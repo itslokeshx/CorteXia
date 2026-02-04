@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useApp } from "@/lib/context/app-context";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -380,6 +381,9 @@ export function QuickAddBar() {
       {/* Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[600px] p-0 gap-0 overflow-hidden">
+          <VisuallyHidden>
+            <DialogTitle>Quick Add</DialogTitle>
+          </VisuallyHidden>
           {/* Success State */}
           {showSuccess ? (
             <div className="flex flex-col items-center justify-center py-12 gap-4">
