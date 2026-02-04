@@ -4,6 +4,27 @@ A unified, AI-powered personal life operating system designed with surgical prec
 
 > **This is NOT mock data. This is NOT a read-only UI. This is a COMPLETE, FUNCTIONAL APPLICATION.**
 
+## 🌟 What's New
+
+### Cortexia AI Assistant (v2.0)
+
+A powerful, always-available AI chatbot that works across ALL pages:
+
+- **General Intelligence** - Ask ANY question (trivia, advice, coding help, etc.) and get smart answers
+- **Voice Commands** - Use natural language to manage your life: _"Add buy groceries to my tasks"_
+- **Full CRUD Operations** - Create, update, delete tasks, habits, goals, expenses, and more via chat
+- **Smart Suggestions** - AI suggests relevant actions after answering your questions
+- **Cross-Page Access** - Floating chat button available on every page
+- **Offline Fallback** - Smart local parsing when API is unavailable
+
+**Example commands:**
+
+- _"Who directed Inception?"_ → Answers + suggests adding to watchlist
+- _"Create a goal called Learn Python and add 3 tasks to it"_
+- _"I spent $50 on groceries"_ → Logs expense automatically
+- _"Show my priorities for today"_ → Full daily overview
+- _"I studied machine learning for 2 hours"_ → Logs study session
+
 ## Vision
 
 CorteXia is the world's first unified personal life operating system that competes with and surpasses fragmented productivity tools like Notion and Obsidian. It treats your life as a cohesive system, not isolated domains.
@@ -19,7 +40,8 @@ CorteXia integrates ALL aspects of personal life management into ONE intelligent
 - **Study Sessions** - Learning goal tracking with subject breakdown and focus level monitoring
 - **Journal Entries** - Reflective journaling with AI-powered summaries and pattern detection
 - **Goal Architecture** - Hierarchical goal system with milestones and progress tracking
-- **AI-Powered Insights** - Cross-domain pattern detection via Gemini AI integration
+- **AI-Powered Insights** - Cross-domain pattern detection via Groq/Llama AI integration
+- **Conversational AI** - Natural language assistant for hands-free life management
 
 ## Design Philosophy
 
@@ -48,7 +70,8 @@ CorteXia integrates ALL aspects of personal life management into ONE intelligent
 - **Database**: PostgreSQL via Supabase
 - **ORM**: Drizzle ORM 0.29.5
 - **Validation**: Zod schemas
-- **AI**: Google Gemini 1.5 Pro (@google/generative-ai)
+- **AI**: Groq SDK with Llama 3.3-70b (conversational AI)
+- **AI**: Google Gemini 1.5 Pro (insights & analysis)
 
 ## Project Structure
 
@@ -67,6 +90,8 @@ CorteXia/
 │   ├── insights/               # AI insights
 │   └── settings/               # Settings & preferences
 ├── components/
+│   ├── ai/                     # AI chatbot components
+│   │   └── conversational-ai.tsx  # Floating AI assistant
 │   ├── layout/                 # Header, Sidebar, AppLayout
 │   ├── dashboard/              # Life State Core, Signals, AI Strip
 │   ├── tasks/                  # Task-specific components
@@ -80,6 +105,9 @@ CorteXia/
 ├── lib/
 │   ├── utils.ts                # Utility functions
 │   ├── types.ts                # TypeScript types
+│   ├── ai/                     # AI utilities
+│   │   ├── conversational.ts   # Conversational AI logic
+│   │   └── prompts/            # System prompts
 │   └── context/
 │       └── app-context.tsx     # Global app state
 ├── api/                        # Backend API (Hono)
@@ -175,7 +203,37 @@ CorteXia/
 | GET    | `/recommendations` | AI recommendations    |
 | POST   | `/analyze`         | Custom analysis       |
 
+### AI Conversation (`/api/ai`)
+
+| Method | Endpoint | Description                         |
+| ------ | -------- | ----------------------------------- |
+| POST   | `/ask`   | Send message to conversational AI   |
+| POST   | `/parse` | Parse natural language into actions |
+
 ## Key Features
+
+### 🤖 Cortexia AI Assistant (NEW!)
+
+A floating AI chat assistant available on every page:
+
+- **General Knowledge** - Answer any question (science, movies, advice, coding)
+- **Natural Language Commands** - "Add a task", "Log expense", "Create a goal"
+- **Full CRUD via Chat** - Create, update, delete any entity through conversation
+- **Smart Context** - AI has full access to your data for personalized responses
+- **Action Execution** - Automatically executes requested actions and shows confirmation
+- **Voice Input** - Speech recognition support for hands-free operation
+- **Suggestions** - Proactive suggestions based on your data and conversation
+
+**Supported Actions:**
+
+- Tasks: create, update, delete, complete
+- Habits: create, update, delete, mark complete
+- Goals: create, update, delete, add tasks to goals
+- Finance: log expenses, log income
+- Time: log time entries
+- Study: log study sessions
+- Journal: create entries
+- Navigation: go to any page
 
 ### Dashboard (Home)
 
@@ -321,6 +379,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 ```env
 DATABASE_URL=postgresql://user:password@host:5432/cortexia
 GEMINI_API_KEY=your-gemini-api-key
+GROQ_API_KEY=your-groq-api-key
 JWT_SECRET=your-jwt-secret
 ```
 
@@ -382,6 +441,9 @@ npm run db:studio
 - [ ] Advanced analytics dashboards
 - [ ] Voice input for journal entries
 - [ ] Collaborative goals/tasks
+- [x] ~~Conversational AI assistant~~ ✅ Completed!
+- [x] ~~Cross-page AI availability~~ ✅ Completed!
+- [x] ~~Natural language task creation~~ ✅ Completed!
 
 ## Browser Support
 
