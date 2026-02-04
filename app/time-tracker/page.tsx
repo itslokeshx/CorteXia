@@ -335,6 +335,9 @@ export default function TimeTrackerPage() {
     return ((totalSeconds - timeRemaining) / totalSeconds) * 100;
   }, [timeRemaining, timerState, settings, pomodorosCompleted]);
 
+  // Derived state for break time (for use in UI)
+  const isBreakTime = timerState === "break";
+
   // Full screen focus mode
   if (isFullScreen && (timerState === "running" || timerState === "paused")) {
     return (
@@ -395,7 +398,7 @@ export default function TimeTrackerPage() {
           <motion.div
             className={cn(
               "h-full rounded-full",
-              timerState === "break" ? "bg-green-500" : "bg-purple-500",
+              isBreakTime ? "bg-green-500" : "bg-purple-500",
             )}
             initial={{ width: "0%" }}
             animate={{ width: `${progressPercentage}%` }}
@@ -405,7 +408,7 @@ export default function TimeTrackerPage() {
 
         {/* Status */}
         <p className="text-white/60 mt-4 text-lg">
-          {timerState === "break"
+          {isBreakTime
             ? "☕ Break Time"
             : timerState === "paused"
               ? "⏸ Paused"

@@ -94,7 +94,7 @@ const INTENT_PATTERNS = {
 // Parse user input to extract structured data
 function parseTaskFromText(text: string): Partial<Task> {
   const result: Partial<Task> = {
-    status: "pending",
+    status: "todo",
     priority: "medium",
   };
 
@@ -130,15 +130,28 @@ function parseTaskFromText(text: string): Partial<Task> {
       .trim();
   }
 
-  // Parse category
-  const categoryMatch =
-    text.match(/category[:\s]+(\w+)/i) || text.match(/in\s+(\w+)\s+category/i);
-  if (categoryMatch) {
-    result.category = categoryMatch[1].toLowerCase();
+  // Parse domain
+  const domainMatch =
+    text.match(/domain[:\s]+(\w+)/i) || text.match(/in\s+(\w+)\s+domain/i);
+  if (domainMatch) {
+    const domain = domainMatch[1].toLowerCase();
+    if (
+      [
+        "work",
+        "health",
+        "study",
+        "personal",
+        "finance",
+        "focus",
+        "leisure",
+      ].includes(domain)
+    ) {
+      result.domain = domain as Task["domain"];
+    }
     title = title
       .replace(
         new RegExp(
-          `\\s*category[:\\s]+${categoryMatch[1]}|in\\s+${categoryMatch[1]}\\s+category\\s*`,
+          `\\s*domain[:\\s]+${domainMatch[1]}|in\\s+${domainMatch[1]}\\s+domain\\s*`,
           "i",
         ),
         " ",
@@ -154,8 +167,7 @@ function parseHabitFromText(text: string): Partial<Habit> {
   const result: Partial<Habit> = {
     frequency: "daily",
     color: "#10b981",
-    targetDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
-    completions: [],
+    category: "productivity",
   };
 
   // Extract name
@@ -178,9 +190,10 @@ function parseHabitFromText(text: string): Partial<Habit> {
 
 function parseGoalFromText(text: string): Partial<Goal> {
   const result: Partial<Goal> = {
-    status: "not-started",
+    status: "active",
     progress: 0,
     milestones: [],
+    level: "monthly",
   };
 
   // Extract title
@@ -194,21 +207,21 @@ function parseGoalFromText(text: string): Partial<Goal> {
   } else if (/career|work|job|professional/i.test(text)) {
     result.category = "career";
   } else if (/learn|study|education|skill/i.test(text)) {
-    result.category = "learning";
+    result.category = "education";
   } else if (/finance|money|saving|invest/i.test(text)) {
-    result.category = "finance";
+    result.category = "financial";
   } else if (/relationship|friend|family|social/i.test(text)) {
-    result.category = "relationships";
+    result.category = "family";
   }
 
-  // Parse deadline
+  // Parse targetDate
   if (/this month/i.test(text)) {
     const endOfMonth = new Date();
     endOfMonth.setMonth(endOfMonth.getMonth() + 1, 0);
-    result.deadline = format(endOfMonth, "yyyy-MM-dd");
+    result.targetDate = format(endOfMonth, "yyyy-MM-dd");
     title = title.replace(/\s*(by\s*)?this month\s*/i, " ").trim();
   } else if (/this year|by year end/i.test(text)) {
-    result.deadline = format(
+    result.targetDate = format(
       new Date(new Date().getFullYear(), 11, 31),
       "yyyy-MM-dd",
     );
@@ -245,7 +258,7 @@ function parseExpenseFromText(
   } else if (/shopping|clothes|amazon|bought/i.test(text)) {
     result.category = "shopping";
   } else if (/bill|utility|rent|electricity|water|internet/i.test(text)) {
-    result.category = "bills";
+    result.category = "utilities";
   } else if (/health|doctor|medicine|pharmacy|gym/i.test(text)) {
     result.category = "health";
   } else {
@@ -326,7 +339,7 @@ export function OmnipotentChatbot() {
       date: format(new Date(), "EEEE, MMMM d"),
       tasks: {
         total: tasks.length,
-        pending: tasks.filter((t) => t.status === "pending").length,
+        pending: tasks.filter((t) => t.status === "todo").length,
         todayPending: todayTasks.length,
         completedToday,
         overdue: tasks.filter(
@@ -384,10 +397,10 @@ export function OmnipotentChatbot() {
         const newTask = addTask({
           title: taskData.title || "New Task",
           description: "",
-          status: "pending",
+          status: "todo",
           priority: taskData.priority || "medium",
           dueDate: taskData.dueDate,
-          category: taskData.category || "general",
+          domain: taskData.domain || "work",
           tags: [],
         });
         actions.push({
@@ -404,17 +417,11 @@ export function OmnipotentChatbot() {
           name: habitData.name || "New Habit",
           description: "",
           frequency: habitData.frequency || "daily",
-          targetDays: habitData.targetDays || [
-            "mon",
-            "tue",
-            "wed",
-            "thu",
-            "fri",
-            "sat",
-            "sun",
-          ],
+          category: habitData.category || "productivity",
           color: habitData.color || "#10b981",
-          icon: "target",
+          streak: 0,
+          longestStreak: 0,
+          active: true,
         });
         actions.push({
           type: "create",
@@ -430,10 +437,14 @@ export function OmnipotentChatbot() {
           title: goalData.title || "New Goal",
           description: "",
           category: goalData.category || "personal",
-          status: "not-started",
+          priority: "medium",
+          status: "active",
           progress: 0,
-          deadline: goalData.deadline,
+          targetDate:
+            goalData.targetDate ||
+            format(addDays(new Date(), 30), "yyyy-MM-dd"),
           milestones: [],
+          level: goalData.level || "monthly",
         });
         actions.push({
           type: "create",
@@ -442,7 +453,7 @@ export function OmnipotentChatbot() {
           status: "success",
           result: `Created goal "${newGoal.title}"`,
         });
-        response = `🎯 Created goal: **${newGoal.title}**${goalData.deadline ? `\n📅 Deadline: ${format(parseISO(goalData.deadline), "MMMM d, yyyy")}` : ""}\n\nBreak it down into milestones to track progress!`;
+        response = `🎯 Created goal: **${newGoal.title}**${goalData.targetDate ? `\n📅 Target: ${format(parseISO(goalData.targetDate), "MMMM d, yyyy")}` : ""}\n\nBreak it down into milestones to track progress!`;
       } else if (INTENT_PATTERNS.ADD_EXPENSE.test(userMessage)) {
         const expenseData = parseExpenseFromText(userMessage);
         if (!expenseData.amount) {
@@ -551,7 +562,11 @@ export function OmnipotentChatbot() {
           result: `Found ${goals.length} goals`,
         });
       } else if (INTENT_PATTERNS.QUERY_FINANCE.test(userMessage)) {
-        const { income, expenses, balance } = context.finance;
+        const {
+          thisMonthIncome: income,
+          thisMonthExpenses: expenses,
+          balance,
+        } = context.finance;
         response = `💰 **Financial Summary**\n\n💵 Balance: **$${balance.toFixed(2)}**\n\n📈 This Month:\n• Income: +$${income.toFixed(2)}\n• Expenses: -$${expenses.toFixed(2)}\n• Net: ${income - expenses >= 0 ? "+" : ""}$${(income - expenses).toFixed(2)}\n\n${balance < 0 ? "⚠️ You're in the negative. Consider reviewing expenses." : balance < 100 ? "💡 Balance is low. Watch your spending!" : "✅ Looking good! Keep it up."}`;
         actions.push({
           type: "query",

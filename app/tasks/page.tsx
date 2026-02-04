@@ -298,9 +298,9 @@ export default function TasksPage() {
       tags: formData.tags,
       recurrence:
         formData.recurrence !== "none"
-          ? { type: formData.recurrence, interval: 1 }
+          ? { frequency: formData.recurrence as "daily" | "weekly" | "monthly" }
           : undefined,
-      status: "pending" as const,
+      status: "todo" as const,
     };
 
     if (editingTask) {
@@ -333,14 +333,14 @@ export default function TasksPage() {
     setFormData({
       title: task.title,
       description: task.description || "",
-      domain: task.domain,
+      domain: task.domain as typeof formData.domain,
       priority: task.priority as "low" | "medium" | "high" | "critical",
       dueDate: task.dueDate || format(new Date(), "yyyy-MM-dd"),
       dueTime: task.dueTime || "",
       linkedGoalId: task.linkedGoalId || "",
       timeEstimate: task.timeEstimate || 30,
       tags: task.tags || [],
-      recurrence: task.recurrence?.type || "none",
+      recurrence: task.recurrence?.frequency || "none",
     });
     setEditingTask(task);
     setDialogOpen(true);
@@ -886,7 +886,7 @@ export default function TasksPage() {
                           {task.recurrence && (
                             <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                               <Repeat className="h-3 w-3" />
-                              {task.recurrence.type}
+                              {task.recurrence.frequency}
                             </span>
                           )}
 
