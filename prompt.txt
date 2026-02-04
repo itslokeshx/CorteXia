@@ -388,277 +388,956 @@ Key Animations:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ═══════════════════════════════════════════════════════════════════════════
-PAGE 1: DASHBOARD (Main Landing Page)
+PAGE 1: DASHBOARD (Main Landing Page) — THE CROWN JEWEL
 ═══════════════════════════════════════════════════════════════════════════
 
 URL: /
 
-PURPOSE: Central hub showing complete life overview with AI-powered Life State
+PURPOSE: The world's most sophisticated personal life command center. This isn't just a dashboard—it's a living, breathing visualization of your entire existence, powered by AI that understands you better than you understand yourself.
 
-LAYOUT STRUCTURE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REVOLUTIONARY LAYOUT ARCHITECTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-┌─────────────────────────────────────────────────────────────────┐
-│ HEADER (64px fixed)                                             │
-│ [Logo] CorteXia  [Quick Add Bar]  [Mode Toggle] [Settings]  │
-├──────────┬──────────────────────────────────────────────────────┤
-│          │                                                       │
-│ SIDEBAR  │              LIFE STATE CORE                         │
-│ (240px)  │           (Central, Breathing Room)                  │
-│          │                                                       │
-│ Home     │        ┌─────────────────────┐                       │
-│ Tasks    │        │   High Momentum     │  ← 48px bold         │
-│ Habits   │        │                     │                       │
-│ Time     │        │ Strong habits +     │  ← 18px explanation  │
-│ Money    │        │ ahead on goals +    │                       │
-│ Study    │        │ controlled spending │                       │
-│ Goals    │        │                     │                       │
-│ AI       │        │  Life Score: 87/100 │  ← 12px metadata     │
-│ Journal  │        └─────────────────────┘                       │
-│          │                                                       │
-│          │         SIGNAL CONSTELLATION                         │
-│          │       (Orbital Layout Around Core)                   │
-│          │                                                       │
-│          │        ⏱         🧠                                  │
-│          │    Time      Focus                                   │
-│          │                                                       │
-│          │  ⚡                    🔁                            │
-│          │ Energy              Habits                           │
-│          │                                                       │
-│          │  💸                    🎯                            │
-│          │ Money                Goals                           │
-│          │                                                       │
-│          │        📚         📱                                 │
-│          │      Study      Screen                               │
-│          │                                                       │
-├──────────┴──────────────────────────────────────────────────────┤
-│ AI REASONING STRIP (120px fixed bottom)                         │
-│ Why: Screen time spiked → broken gym → task failures           │
-│ What Next: Block Instagram after 10pm                           │
-│ [Do It Button]                                                  │
-└─────────────────────────────────────────────────────────────────┘
+SPATIAL HIERARCHY (Inspired by Apple Vision OS):
 
-COMPONENT BREAKDOWN:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ IMMERSIVE HEADER (80px, Glass Morphism)                                     │
+│ ┌─────────┬───────────────────────────────────────────┬───────────────────┐ │
+│ │  🧠     │                                           │  🌙 ⚙️ 👤         │ │
+│ │ CorteXia│    [⌘K] Type anything...                │  Settings  User   │ │
+│ │         │                                           │                   │ │
+│ └─────────┴───────────────────────────────────────────┴───────────────────┘ │
+├──────────┬──────────────────────────────────────────────────────────────────┤
+│          │                                                                   │
+│ ADAPTIVE │              🌟 LIFE STATE ORACLE (Hero Section)                │
+│ SIDEBAR  │                                                                   │
+│ (280px)  │    ┌───────────────────────────────────────────────────┐        │
+│          │    │                                                    │        │
+│ ┌──────┐ │    │          ⚡ HIGH MOMENTUM                         │        │
+│ │ 🏠   │ │    │                                                    │        │
+│ │ Home │ │    │        ┌─────────────────────┐                    │        │
+│ └──────┘ │    │        │                     │ Breathing          │        │
+│ ┌──────┐ │    │        │    Life Score       │ Animation          │        │
+│ │ ✓    │ │    │        │                     │ (4s pulse)         │        │
+│ │ Tasks│ │    │        │       87            │                    │        │
+│ │ [12] │ │    │        │      /100           │                    │        │
+│ └──────┘ │    │        │                     │                    │        │
+│ ┌──────┐ │    │        └─────────────────────┘                    │        │
+│ │ 🎯   │ │    │                                                    │        │
+│ │Habits│ │    │   Strong habit streaks  ●  Ahead on goals         │        │
+│ │ 5/7  │ │    │   Controlled spending  ●  High energy detected    │        │
+│ └──────┘ │    │                                                    │        │
+│ ┌──────┐ │    │   Last Updated: Just now • Next Check: in 15m     │        │
+│ │ ⏱    │ │    │                                                    │        │
+│ │ Time │ │    └───────────────────────────────────────────────────┘        │
+│ │ 18h  │ │                                                                   │
+│ └──────┘ │         QUANTUM SIGNAL CONSTELLATION™                            │
+│ ┌──────┐ │      (8 Life Dimensions in Orbital Formation)                    │
+│ │ 💰   │ │                                                                   │
+│ │Money │ │              ┌────────┐        ┌────────┐                        │
+│ │ +$50 │ │              │   ⏱   │        │   🧠   │                        │
+│ └──────┘ │              │  TIME  │        │ FOCUS  │                        │
+│ ┌──────┐ │              │  18h   │        │  8.2   │                        │
+│ │ 📚   │ │              │  ✅ ON │        │  ✅ ON │                        │
+│ │Study │ │              └────────┘        └────────┘                        │
+│ │ 12h  │ │                                                                   │
+│ └──────┘ │    ┌────────┐                            ┌────────┐              │
+│ ┌──────┐ │    │   ⚡   │      LIFE STATE            │   🔁   │              │
+│ │ 🎯   │ │    │ ENERGY │        CORE                │ HABITS │              │
+│ │Goals │ │    │  High  │                            │  86%   │              │
+│ │ 4/10 │ │    │  ✅ ON │       (Center)             │  ✅ ON │              │
+│ └──────┘ │    └────────┘                            └────────┘              │
+│ ┌──────┐ │                                                                   │
+│ │ 🤖   │ │    ┌────────┐                            ┌────────┐              │
+│ │  AI  │ │    │   💸   │                            │   🎯   │              │
+│ │  •   │ │    │ MONEY  │                            │ GOALS  │              │
+│ └──────┘ │    │  $380  │                            │  40%   │              │
+│ ┌──────┐ │    │ ⚠️ WARN│                            │  ✅ ON │              │
+│ │ 📝   │ │    └────────┘                            └────────┘              │
+│ │Notes │ │                                                                   │
+│ └──────┘ │              ┌────────┐        ┌────────┐                        │
+│          │              │   📚   │        │   📱   │                        │
+│ [Collapse│              │ STUDY  │        │ SCREEN │                        │
+│   ◀︎]    │              │  12h   │        │  2.5h  │                        │
+│          │              │  ✅ ON │        │ ⚠️ WARN│                        │
+│          │              └────────┘        └────────┘                        │
+│          │                                                                   │
+│          │   TODAY'S MICRO-INSIGHTS (Contextual Cards Below Signals)        │
+│          │                                                                   │
+│          │   ┌──────────────────┐ ┌──────────────────┐ ┌─────────────────┐ │
+│          │   │ 📊 TASKS TODAY   │ │ 🔥 HABIT STREAK  │ │ ⏰ TIME LEFT    │ │
+│          │   │                  │ │                  │ │                 │ │
+│          │   │  Completed: 8/12 │ │  Gym: 14 days    │ │  Free: 4h 30m   │ │
+│          │   │  ████████░░░░    │ │  🔥 Personal     │ │  Booked: 3h     │ │
+│          │   │                  │ │  Best! Keep it   │ │  Available      │ │
+│          │   │  Top: Write      │ │  going           │ │  tonight        │ │
+│          │   │  thesis intro    │ │                  │ │                 │ │
+│          │   │                  │ │  [Check In Now]  │ │  [Plan Evening] │ │
+│          │   └──────────────────┘ └──────────────────┘ └─────────────────┘ │
+│          │                                                                   │
+│          │   ┌──────────────────┐ ┌──────────────────┐ ┌─────────────────┐ │
+│          │   │ 💰 BUDGET PULSE  │ │ 🎯 GOAL PROGRESS │ │ 🧠 AI NOTICE    │ │
+│          │   │                  │ │                  │ │                 │ │
+│          │   │  $380/$500 week  │ │  ML Cert: 60%    │ │  Pattern:       │ │
+│          │   │  ███████░░       │ │  ████████░░      │ │  Instagram →    │ │
+│          │   │                  │ │                  │ │  Gym skip →     │ │
+│          │   │  ⚠️ 76% by Wed   │ │  Ahead of pace   │ │  Task fail      │ │
+│          │   │  Slow down       │ │  Great work!     │ │                 │ │
+│          │   │                  │ │                  │ │  [See Full]     │ │
+│          │   └──────────────────┘ └──────────────────┘ └─────────────────┘ │
+│          │                                                                   │
+├──────────┴───────────────────────────────────────────────────────────────────┤
+│ AI REASONING COMMAND CENTER (160px, Ambient Intelligence)                   │
+│ ┌────────────────────────────────────────────────────────────────────────┐ │
+│ │ 💡 CAUSAL CHAIN DETECTED                                               │ │
+│ │                                                                         │ │
+│ │ WHY THIS MATTERS:                           WHAT TO DO NOW:            │ │
+│ │ Screen time (4.5h) → Gym skip →            Block Instagram until 7pm   │ │
+│ │ Energy crash → Task failures (3)           Do 1 task now to recover    │ │
+│ │ → Budget overspend (emotional)             momentum                     │ │
+│ │                                                                         │ │
+│ │ [🎯 Take Action] [🤔 Tell Me More] [😌 Dismiss]                       │ │
+│ └────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-1. HEADER COMPONENT:
-   ├── Logo (left)
-   │   • "CorteXia" text (18px, semibold)
-   │   • Brain icon (24px)
-   │   • Click to go home
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ULTRA-DETAILED COMPONENT SPECIFICATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. IMMERSIVE HEADER (The Command Bar):
+
+   VISUAL STYLE:
+   • Height: 80px (increased from standard 64px for premium feel)
+   • Background: Glass morphism effect
+     - background: rgba(255, 255, 255, 0.7) in light mode
+     - background: rgba(10, 11, 13, 0.8) in dark mode
+     - backdrop-filter: blur(20px) saturate(180%)
+   • Border: none (floating feel)
+   • Shadow: 0 1px 3px rgba(0,0,0,0.05)
+   • Position: Fixed top, z-index: 1000
+   • Padding: 0 40px (spacious)
+
+   LEFT SECTION — Brand Identity:
+   ├── Logo Container (flex items-center gap-3)
+   │   ├── Brain Icon
+   │   │   • Size: 32px (premium, larger than standard)
+   │   │   • Animated: Gentle pulse on hover (0.8s ease-in-out infinite)
+   │   │   • Gradient fill: Linear from #8B5CF6 to #3B82F6
+   │   │   • On click: Navigate to /
+   │   │
+   │   └── "CorteXia" Text
+   │       • Font: Inter, 700 weight
+   │       • Size: 22px (bold presence)
+   │       • Letter-spacing: -0.5px (tight, modern)
+   │       • Background: Linear gradient text
+   │       • Colors: #0A0B0D (light) / #F9FAFB (dark)
+   │       • Cursor: pointer
+   │       • Hover: Opacity 0.8
+
+   CENTER SECTION — Universal Intelligence Input:
+   └── Quick Add Bar (The Magic Input)
+       ├── Container
+       │   • Width: 600px max, 100% of available space
+       │   • Height: 48px (generous touch target)
+       │   • Background: rgba(0,0,0,0.03) light / rgba(255,255,255,0.05) dark
+       │   • Border: 1.5px solid transparent
+       │   • Border-radius: 24px (pill shape)
+       │   • Transition: All 0.2s ease
+       │   • Focus state:
+       │     - Border: 1.5px solid #3B82F6
+       │     - Shadow: 0 0 0 4px rgba(59, 130, 246, 0.1)
+       │     - Background brightens slightly
+       │
+       ├── Icon (Left Prefix)
+       │   • Sparkle icon (✨ or AI wand)
+       │   • Size: 20px
+       │   • Color: #6B7280 (tertiary)
+       │   • Margin: 0 12px 0 20px
+       │   • Animated: Rotate 360deg when AI is processing
+       │
+       ├── Input Field
+       │   • Font: Inter, 400 weight
+       │   • Size: 15px
+       │   • Placeholder: "Type anything... (spent $45, studied 2h, went to gym)"
+       │   • Placeholder rotates every 4s:
+       │     1. "spent $45 on coffee"
+       │     2. "studied ML for 2 hours"
+       │     3. "went to gym"
+       │     4. "feeling stressed"
+       │     5. "task: finish report"
+       │   • No border, transparent background
+       │   • Color: Primary text
+       │   • Width: 100%
+       │   • Auto-focus on Cmd/Ctrl+K
+       │
+       ├── Autocomplete Dropdown (appears 8px below input)
+       │   • Background: White (light) / #151618 (dark)
+       │   • Border: 1px solid #E5E7EB
+       │   • Border-radius: 12px
+       │   • Shadow: 0 10px 40px rgba(0,0,0,0.15)
+       │   • Max-height: 320px
+       │   • Overflow: Auto scroll with custom styled scrollbar
+       │   • Padding: 8px
+       │   
+       │   Suggestion Items:
+       │   ├── AI Interpretation (Top Priority)
+       │   │   • Background: Linear gradient (#3B82F6 to #8B5CF6)
+       │   │   • Text: White
+       │   │   • Icon: ✨
+       │   │   • Label: "AI Detected: Expense - Coffee - $45"
+       │   │   • Font: 14px, 500 weight
+       │   │   • Padding: 12px 16px
+       │   │   • Border-radius: 8px
+       │   │   • Cursor: pointer
+       │   │   • Hover: Brightness 1.1
+       │   │
+       │   ├── Quick Actions (Secondary)
+       │   │   • Items like:
+       │   │     - "💰 Log expense: $45"
+       │   │     - "📚 Log study session: 2h"
+       │   │     - "✓ Mark gym habit complete"
+       │   │   • Background: Transparent
+       │   │   • Hover: Background #F0F1F3
+       │   │   • Icon + Text layout
+       │   │   • Keyboard: Arrow keys to navigate, Enter to select
+       │   │
+       │   └── Recent Entries (Tertiary)
+       │       • Last 3 similar entries
+       │       • Grayed out slightly
+       │       • Click to reuse
+
+       └── Keyboard Shortcut Indicator (Right Suffix)
+           • Badge: "⌘K" or "Ctrl+K"
+           • Size: 11px, uppercase, tracked
+           • Background: rgba(0,0,0,0.05)
+           • Padding: 4px 8px
+           • Border-radius: 6px
+           • Margin-right: 12px
+           • Color: Tertiary text
+
+   RIGHT SECTION — User Controls:
+   ├── Dark Mode Toggle
+   │   • Size: 40px x 40px
+   │   • Border-radius: 12px
+   │   • Background: Transparent
+   │   • Hover: Background rgba(0,0,0,0.05)
+   │   • Icon: Sun (16px) in dark mode, Moon (16px) in light mode
+   │   • Smooth icon transition (rotate + fade)
+   │   • Click: Toggle theme instantly
    │
-   ├── Quick Add Bar (center, 600px width)
-   │   • Universal input field
-   │   • Placeholder: "Type anything... (spent $45, studied 2h, went to gym)"
-   │   • AI parses input and routes to correct domain
-   │   • Autocomplete suggestions
-   │   • Keyboard shortcut: Cmd/Ctrl + K
+   ├── Settings Button
+   │   • Same size/style as dark mode
+   │   • Icon: Gear (⚙️) 16px
+   │   • Click: Navigate to /settings
    │
-   ├── Mode Toggle (right-center)
-   │   • Three buttons: [Focus] [Wise] [Auto]
-   │   • Active mode highlighted
-   │   • Smooth transition when switched
-   │   • Changes UI layout based on mode
-   │
-   └── Right Section
-       • Settings icon (24px)
-       • Dark mode toggle
-       • User avatar (32px circle)
+   └── User Avatar
+       • Size: 40px x 40px
+       • Border-radius: 50% (perfect circle)
+       • Border: 2px solid transparent
+       • Hover: Border 2px solid #3B82F6
+       • Image: User profile picture
+       • Fallback: Initials on gradient background
+       • Click: Open user menu dropdown
+       • Dropdown Menu:
+         ├── View Profile
+         ├── Account Settings
+         ├── Keyboard Shortcuts
+         ├── Help & Support
+         ├── What's New
+         └── Logout
 
-2. SIDEBAR COMPONENT:
-   • Fixed left, 240px width
-   • Collapsible to 64px (icon-only mode)
-   • Smooth slide animation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+2. ADAPTIVE SIDEBAR (Intelligence Navigator):
+
+   VISUAL STYLE:
+   • Width: 280px (expanded) / 72px (collapsed)
+   • Background: #FAFBFC (light) / #0F1011 (dark)
+   • Border-right: 1px solid #E5E7EB / #1F2023
+   • Position: Fixed left
+   • Height: calc(100vh - 80px)
+   • Top: 80px
+   • Transition: Width 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+   • Z-index: 900
+
+   COLLAPSE TOGGLE:
+   • Position: Bottom of sidebar
+   • Button: "◀︎" (expanded) / "▶" (collapsed)
+   • Size: 32px x 32px
+   • Border-radius: 8px
+   • Background: Hover rgba(0,0,0,0.05)
+   • Margin: 16px
+   • Smooth icon rotation (180deg)
+
+   NAVIGATION ITEMS (Revolutionary Design):
    
-   Navigation Items:
-   ├── Home (dashboard icon)
-   ├── Tasks (checkbox icon)
-   ├── Habits (target icon)
-   ├── Time (clock icon)
-   ├── Money (dollar icon)
-   ├── Study (book icon)
-   ├── Goals (flag icon)
-   ├── AI Insights (brain icon)
-   └── Journal (pen icon)
-   
-   Each item:
-   • Icon (20px) + Label (14px)
-   • Hover: background color change
-   • Active: border-left accent (3px)
-   • Keyboard navigation support
-
-3. LIFE STATE CORE:
-   • Center of page, 480px width
-   • Vertical padding: 64px top/bottom
-   
-   Elements:
-   ├── State Label (48px, bold)
-   │   • "High Momentum" | "On Track" | "Drifting" | etc.
-   │   • Color matches state semantic color
-   │   • Subtle breathing animation (4s pulse)
-   │
-   ├── State Explanation (18px, line-height 1.75)
-   │   • "Strong habit consistency + ahead on goals + controlled spending"
-   │   • Max 400px width
-   │   • Secondary text color
-   │
-   └── Life Score (12px, uppercase, tracked)
-       • "Life Score: 87/100"
-       • Tertiary text color
-       • Optional progress ring visualization
-
-4. SIGNAL CONSTELLATION:
-   • 8 signals in circular/orbital layout
-   • 200px radius from Life State Core center
-   • Equal angular spacing (45° apart)
-   
-   Each Signal:
-   ├── Container (96x96px card)
-   │   • Border-radius: 16px
-   │   • Background: secondary
-   │   • Border: 1.5px subtle
+   Each item is a mini-dashboard card:
+   ├── Container
+   │   • Height: 72px (spacious for data)
+   │   • Width: calc(100% - 32px)
+   │   • Margin: 8px 16px
+   │   • Padding: 12px 16px
+   │   • Border-radius: 12px
+   │   • Background: Transparent
+   │   • Border: 2px solid transparent
    │   • Cursor: pointer
-   │   • Hover: lift 2px + shadow
+   │   • Transition: All 0.2s ease
    │
-   ├── Icon (24px emoji/icon, centered)
-   │   • ⏱ Time
-   │   • 🧠 Focus
-   │   • 🔁 Habits
-   │   • 🎯 Goals
-   │   • 💸 Money
-   │   • 📚 Study
-   │   • 📱 Screen
-   │   • ⚡ Energy
+   ├── Hover State:
+   │   • Background: rgba(59, 130, 246, 0.05)
+   │   • Border: 2px solid rgba(59, 130, 246, 0.1)
+   │   • Transform: translateX(4px)
    │
-   ├── Label (12px, uppercase, tracked)
-   │   • Signal name below icon
-   │   • Tertiary color
+   ├── Active State:
+   │   • Background: Linear gradient(to right, rgba(59, 130, 246, 0.1), transparent)
+   │   • Border-left: 4px solid #3B82F6
+   │   • Font weight: 600
+   │   • Icon: Color changes to #3B82F6
    │
-   └── Status Indicator (8px dot, top-right)
-       • Green: Stable ✅
-       • Amber: Warning ⚠️
-       • Red: Critical ❌
-       • Animated pulse if warning/critical
+   └── Layout (Flex column)
+       ├── Top Row (Flex space-between)
+       │   ├── Icon + Label (Flex gap-3)
+       │   │   • Icon: 24px, domain color
+       │   │   • Label: 15px, 500 weight
+       │   │
+       │   └── Live Badge
+       │       • Background: Domain color at 10% opacity
+       │       • Text: Domain color
+       │       • Padding: 2px 8px
+       │       • Border-radius: 12px (pill)
+       │       • Font: 12px, 600 weight
+       │       • Examples:
+       │         - Tasks: "12" (pending tasks)
+       │         - Habits: "5/7" (completed today)
+       │         - Time: "18h" (logged this week)
+       │         - Money: "+$50" (net this week)
+       │         - Study: "12h" (this week)
+       │         - Goals: "4/10" (completed)
+       │         - AI: "•" (new insights available)
+       │
+       └── Bottom Row (Micro-visualization)
+           • Mini progress bar or sparkline
+           • Height: 4px
+           • Width: 100%
+           • Margin-top: 8px
+           • Background: rgba(0,0,0,0.05)
+           • Fill: Domain color
+           • Animated: Smooth fill transition
+           • Examples:
+             - Tasks: Progress bar (8/12 completed)
+             - Habits: Streak indicator (14 days)
+             - Time: Week coverage (5/7 days logged)
+             - Money: Budget usage (76%)
+             - Study: Goal progress (12/15 hours)
+             - Goals: Overall completion
 
-   Interaction:
-   • Click signal → Zoom into detail view
-   • Smooth transition (0.3s ease-out)
-   • Detail view slides up from bottom
-   • Back button to return
+   COLLAPSED STATE (72px width):
+   • Show only icons (centered, 24px)
+   • Badge becomes a dot indicator (8px)
+   • Tooltip appears on hover (delayed 500ms)
+   • Tooltip shows full label + stat
 
-5. AI REASONING STRIP:
-   • Fixed bottom, full width
-   • Height: 120px
-   • Background: gradient fade (transparent top → solid bottom)
-   • Backdrop blur: 12px
-   • Border-top: 1px subtle
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3. LIFE STATE ORACLE (The Beating Heart):
+
+   CONTAINER:
+   • Position: Center of main content area
+   • Width: 560px
+   • Padding: 80px 0 (vertical breathing room)
+   • Margin: 0 auto
+   • Text-align: center
+
+   LIFE SCORE RING (Centerpiece Visualization):
+   ├── Circular Progress Ring
+   │   • Diameter: 200px
+   │   • Stroke-width: 12px
+   │   • Background ring: rgba(0,0,0,0.05)
+   │   • Progress ring: Gradient based on score
+   │     - 90-100: Green (#10B981)
+   │     - 70-89: Blue (#3B82F6)
+   │     - 50-69: Purple (#8B5CF6)
+   │     - 30-49: Amber (#F59E0B)
+   │     - 0-29: Red (#EF4444)
+   │   • Animated: Draws from 0 to current score (2s ease-out)
+   │   • Breathing: Subtle scale pulse (1.0 to 1.02, 4s infinite)
+   │
+   ├── Inner Content (Centered in ring)
+   │   ├── Score Number
+   │   │   • Font: Inter, 800 weight
+   │   │   • Size: 72px
+   │   │   • Color: Matches ring gradient
+   │   │   • Animated: Count-up from 0 (2s)
+   │   │   • Text-shadow: 0 2px 8px rgba(0,0,0,0.1)
+   │   │
+   │   └── "/100" Suffix
+   │       • Font: Inter, 400 weight
+   │       • Size: 24px
+   │       • Color: Tertiary text
+   │       • Opacity: 0.6
+   │
+   └── Hover State:
+       • Ring brightens slightly
+       • Breathing animation pauses
+       • Tooltip appears above:
+         "Your life is operating at 87% optimal capacity"
+
+   STATE LABEL (Above ring):
+   • Text: "HIGH MOMENTUM" (example)
+   • Font: Inter, 700 weight
+   • Size: 48px
+   • Letter-spacing: -1px
+   • Color: Matches life state semantic color
+   • Margin-bottom: 32px
+   • Text-transform: uppercase (tracking 2px for drama)
+   • Animated entrance: Fade + slide down (1s ease-out)
+   • Breathing: Gentle opacity pulse (0.9 to 1.0, 3s infinite)
+
+   STATE EXPLANATION (Below ring):
+   • Text: "Strong habit streaks  ●  Ahead on goals  ●  Controlled spending  ●  High energy detected"
+   • Font: Inter, 400 weight
+   • Size: 18px
+   • Line-height: 1.8
+   • Color: Secondary text (#6B7280)
+   • Max-width: 480px
+   • Margin: 0 auto
+   • Margin-top: 32px
+   • Text-align: center
+   • Separator: Bullet dots (●) with 16px spacing
+   • Animated entrance: Fade + slide up (1s ease-out, 0.3s delay)
+
+   METADATA ROW (Below explanation):
+   • Container: Flex, justify-center, gap-24px
+   • Margin-top: 24px
+   • Font: 13px, 500 weight
+   • Color: Tertiary text
    
-   Layout (Horizontal flex):
-   ├── Why Section (flex: 1, max 400px)
-   │   • Label: "Why" (12px, uppercase, tertiary)
-   │   • Text: "Screen time spiked → broken gym → task failures"
-   │   • 16px, line-height 1.5
+   Items:
+   ├── Last Updated
+   │   • Icon: 🔄 (12px)
+   │   • Text: "Just now" (relative time)
+   │   • Updates every 5s
    │
-   ├── Divider (1px line, 48px height)
+   └── Next Check
+       • Icon: ⏰ (12px)
+       • Text: "in 15m"
+       • Countdown timer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4. QUANTUM SIGNAL CONSTELLATION™ (8 Life Dimensions):
+
+   LAYOUT ALGORITHM:
+   • Circular arrangement around Life State Oracle
+   • Radius: 320px from center
+   • Angular positions: 0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°
+   • Signals "orbit" the center with subtle animation
+   • Hover on one signal: Others fade to 40% opacity
+
+   EACH SIGNAL CARD:
+   ├── Container
+   │   • Size: 140px x 140px (generous for readability)
+   │   • Background: White (light) / #151618 (dark)
+   │   • Border: 2px solid #E5E7EB / #2A2B2E
+   │   • Border-radius: 20px (soft corners)
+   │   • Shadow: 0 2px 8px rgba(0,0,0,0.04)
+   │   • Padding: 20px
+   │   • Cursor: pointer
+   │   • Transition: All 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+   │   • Position: Absolute (calculated via CSS transforms)
    │
-   ├── What Next Section (flex: 1, max 400px)
-   │   • Label: "What Next" (12px, uppercase, tertiary)
-   │   • Text: "Block Instagram after 10pm"
-   │   • 16px, line-height 1.5
+   ├── Hover State:
+   │   • Transform: translateY(-8px) scale(1.05)
+   │   • Shadow: 0 12px 24px rgba(0,0,0,0.12)
+   │   • Border: 2px solid domain color
+   │   • Background: Subtle gradient (domain color at 5% opacity)
    │
-   └── Action Button (right, 140px width)
-       • "Do It" button
-       • 40px height, 12px-32px padding
-       • Primary background
-       • Semibold text
-       • Hover: lift 2px + shadow
+   ├── Click Animation:
+   │   • Scale to 0.95, then spring back to 1.0
+   │   • Duration: 0.2s
+   │   • Then navigate to detail view
+   │
+   └── Content Layout (Flex column, items-center)
+       ├── Status Indicator (Top-right, absolute)
+       │   • Size: 12px x 12px
+       │   • Border-radius: 50%
+       │   • Background:
+       │     - Green #10B981: Stable ✅
+       │     - Amber #F59E0B: Warning ⚠️
+       │     - Red #EF4444: Critical ❌
+       │   • Border: 3px solid card background (creates ring effect)
+       │   • Animated: Pulse if warning/critical (1.5s infinite)
+       │   • Top: 12px, Right: 12px
+       │
+       ├── Icon (Center-top)
+       │   • Emoji or Lucide icon
+       │   • Size: 36px
+       │   • Margin-bottom: 12px
+       │   • Filter: Drop-shadow for depth
+       │   • Icons:
+       │     - ⏱ Time (Clock4)
+       │     - 🧠 Focus (Brain)
+       │     - ⚡ Energy (Zap)
+       │     - 🔁 Habits (Repeat)
+       │     - 💸 Money (DollarSign)
+       │     - 📚 Study (BookOpen)
+       │     - 🎯 Goals (Target)
+       │     - 📱 Screen (Smartphone)
+       │
+       ├── Label (Below icon)
+       │   • Text: Signal name (e.g., "TIME")
+       │   • Font: Inter, 600 weight
+       │   • Size: 12px
+       │   • Letter-spacing: 1px
+       │   • Text-transform: uppercase
+       │   • Color: Tertiary text
+       │   • Margin-bottom: 8px
+       │
+       ├── Value Display (Primary data)
+       │   • Text: Main metric (e.g., "18h" for time)
+       │   • Font: Inter, 700 weight
+       │   • Size: 24px
+       │   • Color: Domain color
+       │   • Margin-bottom: 4px
+       │
+       └── Context Label (Bottom)
+           • Text: Sub-metric (e.g., "this week")
+           • Font: Inter, 400 weight
+           • Size: 11px
+           • Color: Tertiary text
+           • Opacity: 0.7
+
+   SIGNAL POSITION MAPPING:
+   • Top-center (0°): TIME ⏱
+   • Top-right (45°): FOCUS 🧠
+   • Right (90°): HABITS 🔁
+   • Bottom-right (135°): GOALS 🎯
+   • Bottom-center (180°): SCREEN 📱
+   • Bottom-left (225°): STUDY 📚
+   • Left (270°): MONEY 💸
+   • Top-left (315°): ENERGY ⚡
+
+   SIGNAL DETAIL VIEW (On Click):
+   • Transition: Signal card expands to fill main content area
+   • Duration: 0.4s ease-out
+   • Card transforms into full detail panel
+   • Shows:
+     - Large header with icon + name
+     - Current status + trend
+     - This week's data (chart)
+     - AI insight specific to this domain
+     - Quick actions (log data, view history)
+   • Close button (X) top-right
+   • Click outside or ESC key to close
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5. TODAY'S MICRO-INSIGHTS (Contextual Intelligence Cards):
+
+   LAYOUT:
+   • Container: 3-column grid (2 rows = 6 cards)
+   • Gap: 20px
+   • Margin-top: 64px (below signals)
+   • Max-width: 1200px
+   • Padding: 0 40px
+
+   CARD DESIGN (Each):
+   ├── Container
+   │   • Background: White (light) / #151618 (dark)
+   │   • Border: 1px solid #E5E7EB / #2A2B2E
+   │   • Border-radius: 16px
+   │   • Padding: 24px
+   │   • Min-height: 180px
+   │   • Shadow: 0 1px 3px rgba(0,0,0,0.05)
+   │   • Hover: Shadow 0 4px 12px rgba(0,0,0,0.08)
+   │   • Transition: All 0.2s ease
+   │
+   └── Content
+       ├── Header Row (Flex space-between)
+       │   ├── Icon + Title
+       │   │   • Icon: 20px, domain color
+       │   │   • Title: 14px, 600 weight, uppercase, tracked
+       │   │   • Color: Secondary text
+       │   │
+       │   └── Action Button (Optional)
+       │       • Small text button
+       │       • Color: Domain color
+       │       • Size: 12px
+       │       • Hover: Underline
+       │
+       ├── Primary Data (Large emphasis)
+       │   • Font: Inter, 700 weight
+       │   • Size: 32px
+       │   • Color: Primary text
+       │   • Margin: 12px 0
+       │   • Examples:
+       │     - "8/12" (tasks completed)
+       │     - "14 days" (habit streak)
+       │     - "4h 30m" (time available)
+       │     - "$380/$500" (budget)
+       │     - "60%" (goal progress)
+       │
+       ├── Visual (Progress bar, chart, or icon grid)
+       │   • Height: 40px
+       │   • Margin: 12px 0
+       │   • Examples:
+       │     - Progress bar (████████░░░░ 67%)
+       │     - Sparkline chart (trend line)
+       │     - Icon sequence (●●●●○○○)
+       │     - Mini heatmap
+       │
+       ├── Context Text (Explanation)
+       │   • Font: Inter, 400 weight
+       │   • Size: 14px
+       │   • Line-height: 1.6
+       │   • Color: Secondary text
+       │   • Max 2 lines
+       │   • Examples:
+       │     - "Top priority: Write thesis intro"
+       │     - "🔥 Personal best! Keep it going"
+       │     - "⚠️ 76% by Wednesday. Slow down"
+       │
+       └── Call-to-Action (Optional button)
+           • Background: Domain color at 10% opacity
+           • Text: Domain color
+           • Padding: 8px 16px
+           • Border-radius: 8px
+           • Size: 13px, 500 weight
+           • Cursor: pointer
+           • Hover: Background brightens
+           • Examples:
+             - [Check In Now]
+             - [Plan Evening]
+             - [See Full Report]
+
+   6 CARD TYPES:
+
+   1. TASKS TODAY:
+      • Icon: ✓ (CheckSquare)
+      • Data: "8/12 completed"
+      • Visual: Progress bar
+      • Text: "Top priority: Write thesis intro"
+      • Action: [View All Tasks]
+
+   2. HABIT STREAK:
+      • Icon: 🔥 (Flame)
+      • Data: "14 days"
+      • Visual: Icon sequence (🔥🔥🔥🔥...)
+      • Text: "Gym streak — Personal best!"
+      • Action: [Check In Now]
+
+   3. TIME LEFT TODAY:
+      • Icon: ⏰ (Clock)
+      • Data: "4h 30m free"
+      • Visual: Time blocks (booked vs free)
+      • Text: "3h booked, evening available"
+      • Action: [Plan Evening]
+
+   4. BUDGET PULSE:
+      • Icon: 💰 (DollarSign)
+      • Data: "$380/$500"
+      • Visual: Progress bar
+      • Text: "⚠️ 76% spent by Wednesday"
+      • Action: [View Details]
+
+   5. GOAL PROGRESS:
+      • Icon: 🎯 (Target)
+      • Data: "60%"
+      • Visual: Circular progress
+      • Text: "ML Certification — Ahead of pace!"
+      • Action: [See Roadmap]
+
+   6. AI NOTICE:
+      • Icon: 🧠 (Brain)
+      • Data: "Pattern detected"
+      • Visual: Simple flowchart (A→B→C)
+      • Text: "Instagram → Gym skip → Task fail"
+      • Action: [See Full Analysis]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6. AI REASONING COMMAND CENTER (Ambient Intelligence):
+
+   POSITIONING:
+   • Position: Fixed bottom
+   • Width: calc(100% - 280px) (accounts for sidebar)
+   • Left: 280px
+   • Bottom: 0
+   • Height: 160px (increased for richer content)
+   • Z-index: 800
+
+   VISUAL STYLE:
+   • Background: Linear gradient
+     - Top: rgba(255,255,255,0) → transparent fade-in
+     - Bottom: rgba(255,255,255,1) → solid white (light mode)
+     - Dark mode: Similar with dark colors
+   • Backdrop-filter: blur(24px) saturate(180%)
+   • Border-top: 1px solid rgba(0,0,0,0.08)
+   • Padding: 32px 48px
+   • Shadow: 0 -4px 24px rgba(0,0,0,0.04) (upward shadow)
+
+   CONTENT LAYOUT (Grid 2 columns + action):
+   ├── Left Column: "WHY THIS MATTERS"
+   │   ├── Label
+   │   │   • Text: "WHY THIS MATTERS"
+   │   │   • Font: Inter, 700 weight
+   │   │   • Size: 11px
+   │   │   • Letter-spacing: 1.5px
+   │   │   • Color: #6B7280
+   │   │   • Margin-bottom: 12px
+   │   │   • Text-transform: uppercase
+   │   │
+   │   └── Causal Chain Text
+   │       • Font: Inter, 500 weight
+   │       • Size: 15px
+   │       • Line-height: 1.7
+   │       • Color: Primary text
+   │       • Max-width: 400px
+   │       • Uses → arrows to show causality
+   │       • Example:
+   │         "Screen time (4.5h) → Gym skip →
+   │          Energy crash → Task failures (3) →
+   │          Budget overspend (emotional)"
+   │       • Key terms highlighted:
+   │         - Numbers: Bold, domain color
+   │         - Arrows: #9CA3AF color
+   │         - Negative outcomes: Slight red tint
+   │
+   ├── Middle Column: "WHAT TO DO NOW"
+   │   ├── Label (Same style as left)
+   │   │   • Text: "WHAT TO DO NOW"
+   │   │
+   │   └── Action Recommendations (Numbered list)
+   │       • Font: Inter, 500 weight
+   │       • Size: 15px
+   │       • Line-height: 1.7
+   │       • Color: Primary text
+   │       • Max-width: 400px
+   │       • Each action on new line:
+   │         1. Block Instagram until 7pm
+   │         2. Do 1 task now to recover momentum
+   │       • Numbers: Bold, domain color
+   │       • Actions: Clickable (underline on hover)
+   │
+   └── Right Column: ACTION BUTTONS
+       ├── Primary Action Button
+       │   • Text: "🎯 Take Action"
+       │   • Background: Linear gradient (#3B82F6 to #8B5CF6)
+       │   • Color: White
+       │   • Padding: 14px 32px
+       │   • Border-radius: 12px
+       │   • Font: Inter, 600 weight
+       │   • Size: 15px
+       │   • Shadow: 0 4px 16px rgba(59, 130, 246, 0.3)
+       │   • Cursor: pointer
+       │   • Hover: Transform translateY(-2px), shadow grows
+       │   • Click: Executes recommended action
+       │   • Haptic feedback (if supported)
+       │
+       ├── Secondary Button
+       │   • Text: "🤔 Tell Me More"
+       │   • Background: Transparent
+       │   • Border: 1.5px solid #E5E7EB
+       │   • Color: Secondary text
+       │   • Same size as primary
+       │   • Margin-top: 12px
+       │   • Hover: Border-color #3B82F6
+       │   • Opens detailed AI reasoning modal
+       │
+       └── Dismiss Button
+           • Text: "😌 Dismiss"
+           • Background: Transparent
+           • Color: Tertiary text
+           • Size: 13px
+           • Margin-top: 8px
+           • Hover: Color #EF4444
+           • Removes this insight
+
+   ADVANCED FEATURES:
+   • Auto-refresh: Updates every 30 minutes
+   • Context-aware: Changes based on user's current view
+   • Priority system: Most urgent insight shown first
+   • Swipe gestures: Swipe left to dismiss, right for more
+   • Keyboard: Press 'Enter' to take action, 'Esc' to dismiss
 
 DATA REQUIREMENTS:
 
 Must fetch from API:
 • Today's life state (calculated by AI)
-• All 8 signal statuses
-• Current AI reasoning (why + what next)
-• Quick stats for sidebar badges
-• User preferences (mode, theme)
+• All 8 signal statuses (current values + trends)
+• Current AI reasoning (causal chain + recommendations)
+• Micro-insights for 6 cards (tasks, habits, time, budget, goals, patterns)
+• Quick stats for sidebar badges (live counts)
+• User preferences (mode, theme, collapsed sidebar state)
+• Last update timestamp
+• Next scheduled check time
 
 API Endpoints Used:
-• GET /api/stats/today
-• GET /api/insights/current
-• GET /api/user/preferences
+• GET /api/stats/today (comprehensive dashboard data)
+• GET /api/insights/current (AI reasoning + recommendations)
+• GET /api/user/preferences (theme, layout, mode)
+• GET /api/signals/status (8 signal health checks)
+• GET /api/micro-insights (6 contextual cards)
+
+REAL-TIME UPDATES:
+• WebSocket connection for live data
+• Polling fallback: Every 60s
+• Optimistic updates: Instant UI changes
+• Background sync: Every 5 minutes
+• Cache strategy: Stale-while-revalidate
 
 INTERACTIVITY:
 
-• Click signal → Navigate to signal detail view
-• Click "Do It" → Execute recommended action
-• Type in Quick Add → AI parses and logs data
-• Switch mode → UI transforms
-• Hover signals → Show tooltip with quick stats
+• Click signal → Smooth zoom transition to detail view
+• Click "Do It" → Execute AI recommendation (shows progress)
+• Type in Quick Add → AI parsing with 200ms debounce
+• Switch mode → Animated layout transformation (0.5s)
+• Hover signals → Tooltip with 500ms delay + quick stats
+• Keyboard shortcuts:
+  - Cmd/Ctrl+K: Focus Quick Add
+  - Cmd/Ctrl+1-9: Navigate to pages
+  - Cmd/Ctrl+D: Toggle dark mode
+  - Cmd/Ctrl+B: Toggle sidebar
+  - Cmd/Ctrl+/: Open shortcuts reference
+  - Esc: Close modals/dismiss insights
 
 RESPONSIVE BEHAVIOR (Mobile):
 
-< 768px:
-• Sidebar collapses to bottom nav (56px height)
-• Life State Core: full width, smaller text (32px)
-• Signals: 2-column grid instead of circular
-• AI Strip: single column, auto height
-• Quick Add: full width
+< 1024px (Tablet):
+• Sidebar: Overlays content (not fixed left)
+• Signal constellation: 2x4 grid instead of circular
+• Micro-insights: 2 columns instead of 3
+
+< 768px (Mobile):
+• Sidebar: Bottom navigation bar (56px height, 5 icons max)
+• Header: Compact (56px height)
+• Quick Add: Full width, stacks below logo
+• Life State Core: Full width, smaller (32px text)
+• Signals: 2-column grid, 112px cards
+• Micro-insights: Single column
+• AI Reasoning: Single column, auto height
+• Life Score Ring: 160px diameter
+
+< 480px (Small Mobile):
+• Extreme space optimization
+• Collapsible sections
+• Bottom sheet for signal details
+• Swipe gestures primary interaction
 
 ═══════════════════════════════════════════════════════════════════════════
-PAGE 2: TASKS PAGE (Full Task Management)
+PAGE 2: TASKS PAGE — INTELLIGENT PRIORITY ENGINE
 ═══════════════════════════════════════════════════════════════════════════
 
 URL: /tasks
 
-PURPOSE: Comprehensive task management with AI prioritization
+PURPOSE: The world's smartest task manager that thinks for you. AI doesn't just organize—it reasons about causality, dependencies, energy levels, and your behavioral patterns to create the perfect daily execution plan.
 
-LAYOUT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REVOLUTIONARY LAYOUT ARCHITECTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-┌─────────────────────────────────────────────────────────────────┐
-│ HEADER + SIDEBAR (same as dashboard)                            │
-├──────────┬──────────────────────────────────────────────────────┤
-│          │ TASKS                      [+ Add Task]  [Filters]   │
-│          ├──────────────────────────────────────────────────────┤
-│          │                                                       │
-│ SIDEBAR  │  🔥 CRITICAL (AI-Prioritized)                        │
-│          │                                                       │
-│          │  ┌─────────────────────────────────────────────────┐│
-│          │  │ ⭐ Write thesis introduction                     ││
-│          │  │ Due: Tomorrow | Est: 1.5h | Energy: High req.  ││
-│          │  │ [Start Timer] [Mark Done] [Snooze]              ││
-│          │  │                                                  ││
-│          │  │ AI Priority: 9.2/10                             ││
-│          │  │ Reasoning: High importance + urgent deadline +  ││
-│          │  │ blocks other work                               ││
-│          │  └─────────────────────────────────────────────────┘│
-│          │                                                       │
-│          │  ┌─────────────────────────────────────────────────┐│
-│          │  │ ⭐ Code review for team                          ││
-│          │  │ Due: Today 5pm | Est: 1h | Blocking others      ││
-│          │  │ [Start Timer] [Mark Done] [Snooze]              ││
-│          │  └─────────────────────────────────────────────────┘│
-│          │                                                       │
-│          │  📋 IMPORTANT (Not Urgent)                           │
-│          │                                                       │
-│          │  ┌─────────────────────────────────────────────────┐│
-│          │  │ 🎯 Update portfolio with new project             ││
-│          │  │ Due: Next week | Est: 2h                         ││
-│          │  └─────────────────────────────────────────────────┘│
-│          │                                                       │
-│          │  📝 ROUTINE (Low Priority)                           │
-│          │                                                       │
-│          │  ┌─────────────────────────────────────────────────┐│
-│          │  │ 📧 Reply to emails                               ││
-│          │  │ Est: 30min | Can batch process                   ││
-│          │  └─────────────────────────────────────────────────┘│
-│          │                                                       │
-│          │  ✅ COMPLETED TODAY (5)                              │
-│          │  [Show/Hide]                                         │
-│          │                                                       │
-├──────────┴──────────────────────────────────────────────────────┤
-│ AI REASONING STRIP                                              │
-│ 💡 AI Priority Insight:                                         │
-│ You're prioritizing emails (urgent, low-impact) over thesis    │
-│ writing (important, high-impact). Block email until noon.      │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PAGE HEADER (Floating, Glass Morphism)                                      │
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ TASKS                    [🔥 AI Sort] [🎯 Focus Mode] [+ Add Task]     │ │
+│ │ 12 pending  •  8 completed today  •  4.5h estimated                     │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+├──────────┬──────────────────────────────────────────────────────────────────┤
+│          │                                                                   │
+│ SIDEBAR  │  ⚡ POWER HOUR (Next 60 minutes)                                 │
+│ (Same as │  ┌───────────────────────────────────────────────────────────┐  │
+│ Dashboard│  │ 🎯 Your optimal execution window is NOW                   │  │
+│)         │  │                                                           │  │
+│          │  │ Energy: High ████████░░ (8/10)                            │  │
+│          │  │ Distractions: Low (quiet time detected)                   │  │
+│          │  │ Available: 1.5 hours until next meeting                   │  │
+│          │  │                                                           │  │
+│          │  │ RECOMMENDED: Write thesis introduction (90 min)           │  │
+│          │  │                                                           │  │
+│          │  │ [🚀 Start Now] [⏭ Skip to Next]                          │  │
+│          │  └───────────────────────────────────────────────────────────┘  │
+│          │                                                                   │
+│          │  🔥 CRITICAL TASKS (AI Priority > 8.0)                           │
+│          │                                                                   │
+│          │  ┌─────────────────────────────────────────────────────────────┐│
+│          │  │ ⭐ Write thesis introduction                   [BLOCKING]   ││
+│          │  │                                                             ││
+│          │  │ ┌─────────────────────────────────────────────────────────┐││
+│          │  │ │ Due: Tomorrow 9:00 AM (15h 23m left)      🔴 URGENT   │││
+│          │  │ │ Estimated: 1.5 hours  •  Energy: High required          │││
+│          │  │ │ Dependencies: Blocks thesis review, final submission    │││
+│          │  │ └─────────────────────────────────────────────────────────┘││
+│          │  │                                                             ││
+│          │  │ ┌─────────────────────────────────────────────────────────┐││
+│          │  │ │ AI PRIORITY: 9.2/10                      💡 REASONING   │││
+│          │  │ │                                                         │││
+│          │  │ │ Why critical:                                           │││
+│          │  │ │ • High importance (thesis = major goal)                 │││
+│          │  │ │ • Urgent deadline (< 24h)                               │││
+│          │  │ │ • Blocks 3 other tasks                                  │││
+│          │  │ │ • Requires high energy (you have it now)                │││
+│          │  │ │ • 2x impact on life score                               │││
+│          │  │ │                                                         │││
+│          │  │ │ Best time: RIGHT NOW (energy high, time available)     │││
+│          │  │ └─────────────────────────────────────────────────────────┘││
+│          │  │                                                             ││
+│          │  │ [⏱ Start Timer] [✓ Mark Done] [⏸ Snooze] [✎ Edit] [⋯]   ││
+│          │  └─────────────────────────────────────────────────────────────┘│
+│          │                                                                   │
+│          │  ┌─────────────────────────────────────────────────────────────┐│
+│          │  │ ⭐ Code review for team                   [BLOCKING OTHERS] ││
+│          │  │                                                             ││
+│          │  │ Due: Today 5:00 PM (2h 30m left)           🔴 URGENT       ││
+│          │  │ Estimated: 1 hour  •  Energy: Medium required               ││
+│          │  │ Impact: Unblocks 2 teammates                                ││
+│          │  │                                                             ││
+│          │  │ AI Priority: 8.7/10                                         ││
+│          │  │ Why: Blocking others' work + tight deadline                 ││
+│          │  │                                                             ││
+│          │  │ [⏱ Start] [✓ Done] [⏸ Snooze] [✎ Edit]                    ││
+│          │  └─────────────────────────────────────────────────────────────┘│
+│          │                                                                   │
+│          │  📋 IMPORTANT (Priority 6.0-7.9)                  [Collapsed ▼] │
+│          │                                                                   │
+│          │  📝 ROUTINE (Priority < 6.0)                      [Collapsed ▼] │
+│          │                                                                   │
+│          │  ✅ COMPLETED TODAY (8 tasks)                     [Expanded ▲]  │
+│          │                                                                   │
+│          │  ┌─────────────────────────────────────────────────────────────┐│
+│          │  │ ✓ Research ML optimization techniques        10:30 AM       ││
+│          │  │ ✓ Reply to advisor email                     9:45 AM        ││
+│          │  │ ✓ Review lecture notes                       9:00 AM        ││
+│          │  │ ... 5 more                                  [Show All]       ││
+│          │  └─────────────────────────────────────────────────────────────┘│
+│          │                                                                   │
+│          │  SMART FILTERS & VIEWS                                           │
+│          │  ┌─────────────────────────────────────────────────────────────┐│
+│          │  │ Quick Filters:                                              ││
+│          │  │ [🔥 AI Sort] [⏰ Due Today] [⚡ High Energy] [👥 Blocking] ││
+│          │  │ [📚 By Project] [#️⃣ By Tag] [📊 Matrix View]              ││
+│          │  │                                                             ││
+│          │  │ Group By: [Priority ▼] [Project] [Due Date] [Energy]       ││
+│          │  │ Sort By: [AI Score ▼] [Deadline] [Created] [Impact]        ││
+│          │  └─────────────────────────────────────────────────────────────┘│
+│          │                                                                   │
+├──────────┴───────────────────────────────────────────────────────────────────┤
+│ AI REASONING COMMAND CENTER                                                 │
+│ ┌────────────────────────────────────────────────────────────────────────┐ │
+│ │ 💡 EXECUTION PATTERN INSIGHT                                           │ │
+│ │                                                                         │ │
+│ │ ANTI-PATTERN DETECTED:                      RECOVERY STRATEGY:         │ │
+│ │ You're doing emails (urgent but              Block email until noon.   │ │
+│ │ low-impact) instead of thesis                Do thesis NOW while       │ │
+│ │ (important, high-impact).                    energy is high.           │ │
+│ │                                                                         │ │
+│ │ Historical data: When you delay              Expected outcome:         │ │
+│ │ thesis work, you complete it at               +40% quality if done     │ │
+│ │ night with 60% lower quality.                 in morning               │ │
+│ │                                                                         │ │
+│ │ [🎯 Apply Smart Schedule] [🤔 Explain More] [😌 Dismiss]              │ │
+│ └────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
 
 COMPONENT BREAKDOWN:
 
