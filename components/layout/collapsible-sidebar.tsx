@@ -11,7 +11,6 @@ import {
   Target,
   Clock,
   DollarSign,
-  BookOpen,
   Flag,
   Brain,
   PenTool,
@@ -19,6 +18,8 @@ import {
   PanelLeftClose,
   PanelLeft,
   Calendar,
+  Timer,
+  Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/lib/context/app-context";
@@ -28,12 +29,11 @@ const navigation = [
   { name: "Tasks", href: "/tasks", icon: CheckSquare },
   { name: "Habits", href: "/habits", icon: Target },
   { name: "Goals", href: "/goals", icon: Flag },
-  { name: "Time", href: "/time", icon: Clock },
-  { name: "Money", href: "/finance", icon: DollarSign },
-  { name: "Study", href: "/study", icon: BookOpen },
-  { name: "Timeline", href: "/timeline", icon: Calendar },
-  { name: "AI Insights", href: "/insights", icon: Brain },
+  { name: "Day Planner", href: "/day-planner", icon: Calendar },
+  { name: "Time Tracker", href: "/time-tracker", icon: Timer },
+  { name: "Expenses", href: "/finance", icon: DollarSign },
   { name: "Journal", href: "/journal", icon: PenTool },
+  { name: "AI Coach", href: "/ai-coach", icon: Heart },
 ];
 
 const bottomNavigation = [
