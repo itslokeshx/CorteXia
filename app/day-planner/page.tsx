@@ -639,16 +639,19 @@ export default function DayPlannerPage() {
             <div>
               <Label>Link to Task (optional)</Label>
               <Select
-                value={newBlockForm.linkedTaskId}
+                value={newBlockForm.linkedTaskId || "none"}
                 onValueChange={(v) =>
-                  setNewBlockForm({ ...newBlockForm, linkedTaskId: v })
+                  setNewBlockForm({
+                    ...newBlockForm,
+                    linkedTaskId: v === "none" ? "" : v,
+                  })
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a task..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No task</SelectItem>
+                  <SelectItem value="none">No task</SelectItem>
                   {unscheduledTasks.map((task) => (
                     <SelectItem key={task.id} value={task.id}>
                       {task.title}
@@ -661,16 +664,19 @@ export default function DayPlannerPage() {
             <div>
               <Label>Link to Goal (optional)</Label>
               <Select
-                value={newBlockForm.linkedGoalId}
+                value={newBlockForm.linkedGoalId || "none"}
                 onValueChange={(v) =>
-                  setNewBlockForm({ ...newBlockForm, linkedGoalId: v })
+                  setNewBlockForm({
+                    ...newBlockForm,
+                    linkedGoalId: v === "none" ? "" : v,
+                  })
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a goal..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No goal</SelectItem>
+                  <SelectItem value="none">No goal</SelectItem>
                   {goals
                     .filter((g) => g.status === "active")
                     .map((goal) => (
