@@ -2,6 +2,8 @@
 
 A unified, AI-powered personal life operating system designed with surgical precision, calm authority, and invisible elegance. CorteXia integrates every dimension of personal life management into one intelligent system.
 
+TESTING BRANCHING!
+
 ## Vision
 
 CorteXia is the world's first unified personal life operating system that competes with and surpasses fragmented productivity tools like Notion and Obsidian. It treats your life as a cohesive system, not isolated domains.
