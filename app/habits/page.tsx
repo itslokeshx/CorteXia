@@ -103,9 +103,62 @@ export default function HabitsPage() {
     }
   };
 
-  const handleToggleCompletion = (habitId: string) => {
-    completeHabit(habitId, today);
-  };
+  const handleToggleCompletion = useCallback(
+    (habitId: string) => {
+      const habit = habits.find((h) => h.id === habitId);
+      const isCurrentlyCompleted = habit?.completions?.some(
+        (c) => c.date === today && c.completed,
+      );
+
+      // Complete the habit
+      completeHabit(habitId, today);
+
+      // If completing (not uncompleting), trigger celebration
+      if (!isCurrentlyCompleted && habit) {
+        const newStreak = (habit.streak || 0) + 1;
+
+        // Check for milestone streaks
+        if (newStreak === 7) {
+          celebrate({
+            id: crypto.randomUUID(),
+            type: "achievement",
+            title: "Week Warrior! 🏆",
+            subtitle: `You've completed ${habit.name} for 7 days straight!`,
+            value: 7,
+            icon: "flame",
+          });
+        } else if (newStreak === 30) {
+          celebrate({
+            id: crypto.randomUUID(),
+            type: "achievement",
+            title: "Monthly Master! 👑",
+            subtitle: `30 days of ${habit.name}! You're unstoppable!`,
+            value: 30,
+            icon: "crown",
+          });
+        } else if (newStreak === 100) {
+          celebrate({
+            id: crypto.randomUUID(),
+            type: "achievement",
+            title: "Century Club! 🎖️",
+            subtitle: `100 days! ${habit.name} is now part of who you are!`,
+            value: 100,
+            icon: "trophy",
+          });
+        } else if (newStreak > 0 && newStreak % 5 === 0) {
+          celebrate({
+            id: crypto.randomUUID(),
+            type: "streak",
+            title: `${newStreak} Day Streak! 🔥`,
+            subtitle: `Keep up the momentum with ${habit.name}!`,
+            value: newStreak,
+            icon: "flame",
+          });
+        }
+      }
+    },
+    [habits, today, completeHabit, celebrate],
+  );
 
   return (
     <AppLayout>
