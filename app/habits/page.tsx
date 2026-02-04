@@ -70,13 +70,13 @@ export default function HabitsPage() {
   const stats = {
     total: habits.length,
     completed: habits.filter((h) =>
-      h.completions.find((c) => c.date === today && c.completed),
+      h.completions?.find((c) => c.date === today && c.completed),
     ).length,
-    activeStreaks: habits.filter((h) => h.streak > 0).length,
+    activeStreaks: habits.filter((h) => (h.streak || 0) > 0).length,
     avgStreak:
       habits.length > 0
         ? Math.round(
-            habits.reduce((sum, h) => sum + h.streak, 0) / habits.length,
+            habits.reduce((sum, h) => sum + (h.streak || 0), 0) / habits.length,
           )
         : 0,
   };
