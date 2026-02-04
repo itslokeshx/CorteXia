@@ -1344,9 +1344,8 @@ export default function GoalsPage() {
                 <Button onClick={() => setOpen(true)} className="gap-2">
                   <Plus className="w-4 h-4" />
                   Create Your First Goal
-                  </Button>
-                </CardContent>
-              </Card>
+                </Button>
+              </div>
             ) : (
               <div className="space-y-4">
                 {filteredGoals.map((goal) => (
