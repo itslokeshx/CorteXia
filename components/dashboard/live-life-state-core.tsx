@@ -28,7 +28,8 @@ interface LifeState {
 const LIFE_STATES: Record<string, LifeState> = {
   momentum: {
     label: "High Momentum",
-    description: "Strong habit consistency + ahead on goals + controlled spending",
+    description:
+      "Strong habit consistency + ahead on goals + controlled spending",
     color: "#10B981",
     bgGradient: "from-emerald-500/20 via-emerald-500/10 to-transparent",
     glowColor: "shadow-emerald-500/50",
@@ -106,14 +107,17 @@ export function LiveLifeStateCore() {
     // Habit consistency (25% weight)
     const today = new Date().toISOString().split("T")[0];
     const habitsCompletedToday = habits.filter((h) =>
-      h.completions?.some((c) => c.date === today && c.completed)
+      h.completions?.some((c) => c.date === today && c.completed),
     ).length;
-    const habitScore = habits.length > 0 ? (habitsCompletedToday / habits.length) * 100 : 50;
+    const habitScore =
+      habits.length > 0 ? (habitsCompletedToday / habits.length) * 100 : 50;
 
     // Average habit streaks bonus
-    const avgStreak = habits.length > 0
-      ? habits.reduce((sum, h) => sum + getHabitStreak(h.id), 0) / habits.length
-      : 0;
+    const avgStreak =
+      habits.length > 0
+        ? habits.reduce((sum, h) => sum + getHabitStreak(h.id), 0) /
+          habits.length
+        : 0;
     const streakBonus = Math.min(avgStreak * 2, 20);
 
     // Financial health (25% weight)
@@ -123,18 +127,20 @@ export function LiveLifeStateCore() {
 
     // Wellbeing from journal (25% weight)
     const recentEntries = journalEntries.slice(0, 7);
-    const avgMood = recentEntries.length > 0
-      ? recentEntries.reduce((sum, e) => sum + e.mood, 0) / recentEntries.length
-      : 5;
+    const avgMood =
+      recentEntries.length > 0
+        ? recentEntries.reduce((sum, e) => sum + e.mood, 0) /
+          recentEntries.length
+        : 5;
     const wellbeingScore = avgMood * 10;
 
     // Weighted average
     const score = Math.round(
       taskScore * 0.25 +
-      habitScore * 0.25 +
-      financeScore * 0.25 +
-      wellbeingScore * 0.25 +
-      streakBonus
+        habitScore * 0.25 +
+        financeScore * 0.25 +
+        wellbeingScore * 0.25 +
+        streakBonus,
     );
 
     return Math.min(Math.max(score, 0), 100);
@@ -152,7 +158,9 @@ export function LiveLifeStateCore() {
       const progress = Math.min(elapsed / duration, 1);
       // Easing function
       const easeOut = 1 - Math.pow(1 - progress, 3);
-      setAnimatedScore(Math.round(startScore + (endScore - startScore) * easeOut));
+      setAnimatedScore(
+        Math.round(startScore + (endScore - startScore) * easeOut),
+      );
 
       if (progress < 1) {
         requestAnimationFrame(animate);
@@ -176,31 +184,41 @@ export function LiveLifeStateCore() {
     weekAgo.setDate(weekAgo.getDate() - 7);
 
     const recentTasks = tasks.filter(
-      (t) => t.completedAt && new Date(t.completedAt) > weekAgo
+      (t) => t.completedAt && new Date(t.completedAt) > weekAgo,
     ).length;
 
     const olderTasks = tasks.filter((t) => {
       const completedDate = t.completedAt ? new Date(t.completedAt) : null;
       const twoWeeksAgo = new Date();
       twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-      return completedDate && completedDate > twoWeeksAgo && completedDate <= weekAgo;
+      return (
+        completedDate && completedDate > twoWeeksAgo && completedDate <= weekAgo
+      );
     }).length;
 
-    const diff = olderTasks > 0 ? ((recentTasks - olderTasks) / olderTasks) * 100 : 0;
+    const diff =
+      olderTasks > 0 ? ((recentTasks - olderTasks) / olderTasks) * 100 : 0;
 
-    if (recentTasks > olderTasks * 1.2) return { trend: "up", trendValue: Math.round(diff) };
-    if (recentTasks < olderTasks * 0.8) return { trend: "down", trendValue: Math.round(diff) };
+    if (recentTasks > olderTasks * 1.2)
+      return { trend: "up", trendValue: Math.round(diff) };
+    if (recentTasks < olderTasks * 0.8)
+      return { trend: "down", trendValue: Math.round(diff) };
     return { trend: "stable", trendValue: 0 };
   }, [tasks]);
 
   // Contributing factors
   const factors = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
-    const factors: { label: string; value: string; positive: boolean; link: string }[] = [];
+    const factors: {
+      label: string;
+      value: string;
+      positive: boolean;
+      link: string;
+    }[] = [];
 
     // Habits
     const habitsToday = habits.filter((h) =>
-      h.completions?.some((c) => c.date === today && c.completed)
+      h.completions?.some((c) => c.date === today && c.completed),
     ).length;
     factors.push({
       label: "Habits completed",
@@ -211,8 +229,11 @@ export function LiveLifeStateCore() {
 
     // Tasks
     const pendingTasks = tasks.filter((t) => t.status !== "completed").length;
-    const overdueTasks = tasks.filter((t) => 
-      t.status !== "completed" && t.dueDate && new Date(t.dueDate) < new Date()
+    const overdueTasks = tasks.filter(
+      (t) =>
+        t.status !== "completed" &&
+        t.dueDate &&
+        new Date(t.dueDate) < new Date(),
     ).length;
     factors.push({
       label: overdueTasks > 0 ? "Tasks overdue" : "Tasks pending",
@@ -233,9 +254,10 @@ export function LiveLifeStateCore() {
 
     // Mood
     const recentMood = journalEntries.slice(0, 3);
-    const avgMood = recentMood.length > 0
-      ? recentMood.reduce((s, e) => s + e.mood, 0) / recentMood.length
-      : 5;
+    const avgMood =
+      recentMood.length > 0
+        ? recentMood.reduce((s, e) => s + e.mood, 0) / recentMood.length
+        : 5;
     factors.push({
       label: "Recent mood",
       value: `${avgMood.toFixed(1)}/10`,
@@ -269,7 +291,7 @@ export function LiveLifeStateCore() {
       <motion.div
         className={cn(
           "absolute inset-0 rounded-3xl blur-3xl transition-all duration-1000",
-          `bg-gradient-radial ${currentState.bgGradient}`
+          `bg-gradient-radial ${currentState.bgGradient}`,
         )}
         animate={{
           opacity: isHovered ? 0.8 : 0.5,
@@ -282,7 +304,7 @@ export function LiveLifeStateCore() {
         className={cn(
           "relative w-full max-w-md px-8 py-10 rounded-3xl border border-border/50 backdrop-blur-md",
           "bg-gradient-to-br from-background/90 to-background/50",
-          `shadow-2xl ${currentState.glowColor}`
+          `shadow-2xl ${currentState.glowColor}`,
         )}
         animate={{
           boxShadow: isHovered
@@ -376,9 +398,19 @@ export function LiveLifeStateCore() {
 
             {/* Gradient definition */}
             <defs>
-              <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient
+                id="scoreGradient"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
+              >
                 <stop offset="0%" stopColor={currentState.color} />
-                <stop offset="100%" stopColor={currentState.color} stopOpacity={0.5} />
+                <stop
+                  offset="100%"
+                  stopColor={currentState.color}
+                  stopOpacity={0.5}
+                />
               </linearGradient>
               <filter id="glow">
                 <feGaussianBlur stdDeviation="4" result="coloredBlur" />
@@ -450,16 +482,18 @@ export function LiveLifeStateCore() {
                 "hover:scale-[1.02] hover:shadow-md",
                 factor.positive
                   ? "border-emerald-500/30 bg-emerald-500/5"
-                  : "border-amber-500/30 bg-amber-500/5"
+                  : "border-amber-500/30 bg-amber-500/5",
               )}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="text-xs text-muted-foreground">{factor.label}</div>
+              <div className="text-xs text-muted-foreground">
+                {factor.label}
+              </div>
               <div
                 className={cn(
                   "text-lg font-bold",
-                  factor.positive ? "text-emerald-500" : "text-amber-500"
+                  factor.positive ? "text-emerald-500" : "text-amber-500",
                 )}
               >
                 {factor.value}
@@ -483,7 +517,10 @@ export function LiveLifeStateCore() {
             className="gap-2"
           >
             <RefreshCw
-              className={cn("w-4 h-4", (isRefreshing || isLoading) && "animate-spin")}
+              className={cn(
+                "w-4 h-4",
+                (isRefreshing || isLoading) && "animate-spin",
+              )}
             />
             {isRefreshing ? "Analyzing..." : "Refresh Life State"}
           </Button>
@@ -503,7 +540,9 @@ export function LiveLifeStateCore() {
         </div>
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4" />
-          <span>{tasks.filter(t => t.status === "completed").length} tasks done</span>
+          <span>
+            {tasks.filter((t) => t.status === "completed").length} tasks done
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <Brain className="w-4 h-4" />
