@@ -213,7 +213,9 @@ function GoalTreeItem({
     goal.milestones?.filter((m: any) => m.completed).length || 0;
   const totalMilestones = goal.milestones?.length || 0;
 
-  const horizonConfig = GOAL_HORIZONS[goal.horizon as keyof typeof GOAL_HORIZONS] || GOAL_HORIZONS.quarterly;
+  const horizonConfig =
+    GOAL_HORIZONS[goal.horizon as keyof typeof GOAL_HORIZONS] ||
+    GOAL_HORIZONS.quarterly;
   const HorizonIcon = horizonConfig.icon;
   const categoryConfig = CATEGORY_CONFIG[goal.category] || { emoji: "🎯" };
 
@@ -252,9 +254,12 @@ function GoalTreeItem({
         <div className="p-4">
           {/* Horizon Badge */}
           <div className="flex items-center gap-2 mb-3">
-            <div 
+            <div
               className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium"
-              style={{ backgroundColor: `${horizonConfig.color}20`, color: horizonConfig.color }}
+              style={{
+                backgroundColor: `${horizonConfig.color}20`,
+                color: horizonConfig.color,
+              }}
             >
               <HorizonIcon className="h-3 w-3" />
               {horizonConfig.label}
@@ -342,16 +347,18 @@ function GoalTreeItem({
 
               {/* Meta info */}
               <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground flex-wrap">
-                <span className="flex items-center gap-1">
+                <span className={cn(
+                  "flex items-center gap-1",
+                  isOverdue && "text-red-500"
+                )}>
                   <Calendar className="w-3 h-3" />
-                  {new Date(goal.targetDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {format(targetDate, "MMM d, yyyy")}
+                  {!isOverdue && daysLeft >= 0 && daysLeft <= 7 && (
+                    <span className="text-amber-500">({daysLeft}d left)</span>
+                  )}
                 </span>
                 <Badge variant="secondary" className="text-[10px]">
-                  {goal.category}
+                  {categoryConfig.emoji} {goal.category}
                 </Badge>
                 {hasMilestones && (
                   <span className="flex items-center gap-1">
@@ -360,6 +367,9 @@ function GoalTreeItem({
                   </span>
                 )}
               </div>
+
+              {/* Connected Items */}
+              <ConnectedItems goalId={goal.id} />
             </div>
           </div>
 
@@ -875,54 +885,87 @@ function AIRoadmapGenerator({
 }
 
 export default function GoalsPage() {
-  const { goals, addGoal, deleteGoal, completeMilestone, getGoalStats } =
+  const { goals, addGoal, updateGoal, deleteGoal, completeMilestone, getGoalStats } =
     useApp();
   const [open, setOpen] = useState(false);
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<typeof goals[0] | null>(null);
   const [activeView, setActiveView] = useState<"tree" | "board" | "timeline">(
     "tree",
   );
-  const [newGoal, setNewGoal] = useState({
+  const [horizonFilter, setHorizonFilter] = useState("all");
+  
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
-    category: "education" as const,
-    priority: "high" as const,
-    targetDate: new Date(Date.now() + 90 * 86400000)
-      .toISOString()
-      .split("T")[0],
+    category: "education" as string,
+    priority: "high" as "low" | "medium" | "high",
+    horizon: "quarterly" as keyof typeof GOAL_HORIZONS,
+    targetDate: format(addDays(new Date(), 90), "yyyy-MM-dd"),
     progress: 0,
-    status: "active" as const,
+    status: "active" as "active" | "paused" | "completed" | "abandoned",
     milestones: [] as any[],
   });
   const [milestoneInput, setMilestoneInput] = useState("");
 
   const stats = getGoalStats();
 
-  const handleAddGoal = () => {
-    if (newGoal.title.trim()) {
-      addGoal(newGoal);
-      setNewGoal({
-        title: "",
-        description: "",
-        category: "education",
-        priority: "high",
-        targetDate: new Date(Date.now() + 90 * 86400000)
-          .toISOString()
-          .split("T")[0],
-        progress: 0,
-        status: "active",
-        milestones: [],
-      });
-      setOpen(false);
+  // Filtered goals by horizon
+  const filteredGoals = useMemo(() => {
+    if (horizonFilter === "all") return goals;
+    return goals.filter(g => g.horizon === horizonFilter);
+  }, [goals, horizonFilter]);
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      description: "",
+      category: "education",
+      priority: "high",
+      horizon: "quarterly",
+      targetDate: format(addDays(new Date(), 90), "yyyy-MM-dd"),
+      progress: 0,
+      status: "active",
+      milestones: [],
+    });
+    setEditingGoal(null);
+    setMilestoneInput("");
+  };
+
+  const handleSubmit = () => {
+    if (!formData.title.trim()) return;
+    
+    if (editingGoal) {
+      updateGoal(editingGoal.id, formData);
+    } else {
+      addGoal(formData);
     }
+    resetForm();
+    setOpen(false);
+  };
+
+  const handleEdit = (goal: typeof goals[0]) => {
+    setFormData({
+      title: goal.title,
+      description: goal.description || "",
+      category: goal.category,
+      priority: goal.priority,
+      horizon: (goal.horizon || "quarterly") as keyof typeof GOAL_HORIZONS,
+      targetDate: goal.targetDate,
+      progress: goal.progress,
+      status: goal.status,
+      milestones: goal.milestones || [],
+    });
+    setEditingGoal(goal);
+    setOpen(true);
   };
 
   const handleAddMilestone = () => {
     if (milestoneInput.trim()) {
-      setNewGoal({
-        ...newGoal,
+      setFormData({
+        ...formData,
         milestones: [
-          ...newGoal.milestones,
+          ...formData.milestones,
           {
             id: crypto.randomUUID(),
             title: milestoneInput,
@@ -943,8 +986,8 @@ export default function GoalsPage() {
       completed: false,
     }));
 
-    setNewGoal({
-      ...newGoal,
+    setFormData({
+      ...formData,
       milestones,
     });
     setAiDialogOpen(false);
@@ -953,15 +996,20 @@ export default function GoalsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 pb-24">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6 pb-24"
+      >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
-              <Target className="w-7 h-7 text-primary" />
+            <h1 className="text-2xl font-semibold flex items-center gap-2 text-neutral-900 dark:text-white">
+              <Target className="w-6 h-6 text-violet-500" />
               Goals
             </h1>
-            <p className="text-muted-foreground text-sm md:text-base mt-1">
+            <p className="text-muted-foreground text-sm mt-1">
               Set ambitious goals and track your journey
             </p>
           </div>
@@ -991,79 +1039,155 @@ export default function GoalsPage() {
               </DialogContent>
             </Dialog>
 
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white border-0">
                   <Plus className="h-4 w-4" />
                   New Goal
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md mx-4 sm:mx-auto max-h-[90vh]">
+              <DialogContent className="max-w-lg max-h-[90vh]">
                 <DialogHeader>
-                  <DialogTitle>Create New Goal</DialogTitle>
+                  <DialogTitle>{editingGoal ? "Edit Goal" : "Create New Goal"}</DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="max-h-[70vh] pr-4">
-                  <div className="space-y-4">
+                  <div className="space-y-4 pb-2">
                     <Input
                       placeholder="Goal title"
-                      value={newGoal.title}
+                      value={formData.title}
                       onChange={(e) =>
-                        setNewGoal({ ...newGoal, title: e.target.value })
+                        setFormData({ ...formData, title: e.target.value })
                       }
+                      className="text-base"
                     />
                     <Textarea
                       placeholder="Description - What do you want to achieve?"
-                      value={newGoal.description}
+                      value={formData.description}
                       onChange={(e) =>
-                        setNewGoal({ ...newGoal, description: e.target.value })
+                        setFormData({ ...formData, description: e.target.value })
                       }
                     />
-                    <div className="grid grid-cols-2 gap-3">
-                      <Select
-                        value={newGoal.category}
-                        onValueChange={(v) =>
-                          setNewGoal({ ...newGoal, category: v as any })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="personal">Personal</SelectItem>
-                          <SelectItem value="health">Health</SelectItem>
-                          <SelectItem value="career">Career</SelectItem>
-                          <SelectItem value="education">Education</SelectItem>
-                          <SelectItem value="financial">Financial</SelectItem>
-                          <SelectItem value="family">Family</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Select
-                        value={newGoal.priority}
-                        onValueChange={(v) =>
-                          setNewGoal({ ...newGoal, priority: v as any })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    
+                    {/* Goal Horizon */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Goal Horizon</label>
+                      <div className="grid grid-cols-5 gap-2">
+                        {Object.entries(GOAL_HORIZONS).map(([key, { label, icon: Icon, color }]) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, horizon: key as keyof typeof GOAL_HORIZONS })}
+                            className={cn(
+                              "p-2 rounded-lg border-2 transition-all flex flex-col items-center gap-1",
+                              formData.horizon === key 
+                                ? "border-violet-500 bg-violet-50 dark:bg-violet-950/30" 
+                                : "border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600"
+                            )}
+                          >
+                            <Icon className="h-4 w-4" style={{ color }} />
+                            <span className="text-[10px] font-medium">{label.split(" ")[0]}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <Input
-                      type="date"
-                      value={newGoal.targetDate}
-                      onChange={(e) =>
-                        setNewGoal({ ...newGoal, targetDate: e.target.value })
-                      }
-                    />
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Category</label>
+                        <Select
+                          value={formData.category}
+                          onValueChange={(v) =>
+                            setFormData({ ...formData, category: v })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(CATEGORY_CONFIG).map(([key, { emoji }]) => (
+                              <SelectItem key={key} value={key}>
+                                {emoji} {key.charAt(0).toUpperCase() + key.slice(1)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Priority</label>
+                        <Select
+                          value={formData.priority}
+                          onValueChange={(v) =>
+                            setFormData({ ...formData, priority: v as any })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">🟢 Low</SelectItem>
+                            <SelectItem value="medium">🟡 Medium</SelectItem>
+                            <SelectItem value="high">🔴 High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      </div>
+                    </div>
+
+                    {/* Target Date & Status */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Target Date</label>
+                        <Input
+                          type="date"
+                          value={formData.targetDate}
+                          onChange={(e) =>
+                            setFormData({ ...formData, targetDate: e.target.value })
+                          }
+                        />
+                      </div>
+                      {editingGoal && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-muted-foreground">Status</label>
+                          <Select
+                            value={formData.status}
+                            onValueChange={(v) =>
+                              setFormData({ ...formData, status: v as any })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active">🏃 Active</SelectItem>
+                              <SelectItem value="paused">⏸️ Paused</SelectItem>
+                              <SelectItem value="completed">✅ Completed</SelectItem>
+                              <SelectItem value="abandoned">❌ Abandoned</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Progress Slider (for editing) */}
+                    {editingGoal && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-medium text-muted-foreground">Progress</label>
+                          <span className="text-sm font-semibold">{formData.progress}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={formData.progress}
+                          onChange={(e) => setFormData({ ...formData, progress: parseInt(e.target.value) })}
+                          className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-violet-500"
+                        />
+                      </div>
+                    )}
 
                     {/* Milestones */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Milestones</label>
+                      <label className="text-xs font-medium text-muted-foreground">Milestones</label>
                       <div className="flex gap-2">
                         <Input
                           placeholder="Add a milestone..."
@@ -1082,14 +1206,14 @@ export default function GoalsPage() {
                           <Plus className="w-4 h-4" />
                         </Button>
                       </div>
-                      {newGoal.milestones.length > 0 && (
+                      {formData.milestones.length > 0 && (
                         <div className="space-y-1 mt-2">
-                          {newGoal.milestones.map((m, idx) => (
+                          {formData.milestones.map((m, idx) => (
                             <div
                               key={m.id}
                               className="flex items-center gap-2 p-2 bg-muted/50 rounded text-sm"
                             >
-                              <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center">
+                              <span className="w-5 h-5 rounded-full bg-violet-500/20 text-violet-600 text-xs flex items-center justify-center font-medium">
                                 {idx + 1}
                               </span>
                               <span className="flex-1">{m.title}</span>
@@ -1098,9 +1222,9 @@ export default function GoalsPage() {
                                 size="sm"
                                 className="h-6 w-6 p-0"
                                 onClick={() =>
-                                  setNewGoal({
-                                    ...newGoal,
-                                    milestones: newGoal.milestones.filter(
+                                  setFormData({
+                                    ...formData,
+                                    milestones: formData.milestones.filter(
                                       (_, i) => i !== idx,
                                     ),
                                   })
@@ -1114,8 +1238,8 @@ export default function GoalsPage() {
                       )}
                     </div>
 
-                    <Button onClick={handleAddGoal} className="w-full">
-                      Create Goal
+                    <Button onClick={handleSubmit} className="w-full">
+                      {editingGoal ? "Update Goal" : "Create Goal"}
                     </Button>
                   </div>
                 </ScrollArea>
