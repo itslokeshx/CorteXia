@@ -19,7 +19,7 @@ function ProgressRing({
   value,
   max = 100,
   size = 200,
-  strokeWidth = 16,
+  strokeWidth = 12,
   className,
 }: {
   value: number;
@@ -33,15 +33,12 @@ function ProgressRing({
   const progress = Math.min(Math.max(value, 0), max);
   const strokeDashoffset = circumference - (progress / max) * circumference;
 
-  // Determine color based on score
+  // Determine color based on score - cleaner palette
   const getColor = () => {
-    if (progress >= 75)
-      return { stroke: "#10B981", glow: "rgba(16, 185, 129, 0.4)" };
-    if (progress >= 50)
-      return { stroke: "#3B82F6", glow: "rgba(59, 130, 246, 0.4)" };
-    if (progress >= 30)
-      return { stroke: "#F59E0B", glow: "rgba(245, 158, 11, 0.4)" };
-    return { stroke: "#EF4444", glow: "rgba(239, 68, 68, 0.4)" };
+    if (progress >= 75) return { stroke: "#22c55e", glow: "transparent" };
+    if (progress >= 50) return { stroke: "#3B82F6", glow: "transparent" };
+    if (progress >= 30) return { stroke: "#F59E0B", glow: "transparent" };
+    return { stroke: "#EF4444", glow: "transparent" };
   };
 
   const { stroke, glow } = getColor();
@@ -60,7 +57,7 @@ function ProgressRing({
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-gray-200 dark:text-gray-800"
+          className="text-neutral-100 dark:text-neutral-800"
         />
         {/* Progress Circle */}
         <motion.circle
@@ -75,13 +72,12 @@ function ProgressRing({
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          style={{ filter: `drop-shadow(0 0 8px ${glow})` }}
         />
       </svg>
       {/* Center Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <motion.span
-          className="text-4xl sm:text-5xl font-bold"
+          className="text-3xl sm:text-4xl font-semibold"
           style={{ color: stroke }}
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -89,9 +85,7 @@ function ProgressRing({
         >
           {Math.round(progress)}
         </motion.span>
-        <span className="text-xs sm:text-sm text-muted-foreground mt-1">
-          Life Score
-        </span>
+        <span className="text-xs text-neutral-400 mt-0.5">Life Score</span>
       </div>
     </div>
   );
@@ -110,7 +104,7 @@ function FactorCard({
   index: number;
 }) {
   const getScoreColor = (s: number) => {
-    if (s >= 70) return "bg-emerald-500";
+    if (s >= 70) return "bg-green-500";
     if (s >= 40) return "bg-amber-500";
     return "bg-red-500";
   };
@@ -120,16 +114,18 @@ function FactorCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 + 0.3 }}
-      className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors"
+      className="bg-neutral-50 dark:bg-neutral-800/50 rounded-lg p-3 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
     >
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-          <Icon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-7 h-7 rounded-md bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+          <Icon className="w-3.5 h-3.5 text-neutral-600 dark:text-neutral-400" />
         </div>
-        <span className="font-medium text-sm">{name}</span>
+        <span className="font-medium text-sm text-neutral-700 dark:text-neutral-300">
+          {name}
+        </span>
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+        <div className="flex-1 bg-neutral-200 dark:bg-neutral-700 rounded-full h-1.5 overflow-hidden">
           <motion.div
             className={cn("h-full rounded-full", getScoreColor(score))}
             initial={{ width: 0 }}
@@ -141,7 +137,9 @@ function FactorCard({
             }}
           />
         </div>
-        <span className="text-sm font-semibold w-10 text-right">{score}%</span>
+        <span className="text-xs font-medium w-8 text-right text-neutral-600 dark:text-neutral-400">
+          {score}%
+        </span>
       </div>
     </motion.div>
   );

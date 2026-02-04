@@ -146,19 +146,23 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <Card className="p-5 sm:p-6">
+            <Card className="p-5 border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-blue-500" />
+                <h3 className="font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-blue-500" />
                   Priority Tasks
                 </h3>
                 <Link href="/tasks">
-                  <Button variant="ghost" size="sm" className="gap-1 text-sm">
-                    View All <ArrowRight className="w-4 h-4" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1 text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                  >
+                    View All <ArrowRight className="w-3.5 h-3.5" />
                   </Button>
                 </Link>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {tasks
                   .filter((t) => t.status !== "completed")
                   .sort((a, b) => {
@@ -176,23 +180,23 @@ export default function DashboardPage() {
                   .map((task) => (
                     <div
                       key={task.id}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
                     >
                       <div
                         className={cn(
-                          "w-2.5 h-2.5 rounded-full flex-shrink-0",
+                          "w-2 h-2 rounded-full flex-shrink-0",
                           task.priority === "high"
-                            ? "bg-orange-500"
+                            ? "bg-red-500"
                             : task.priority === "medium"
                               ? "bg-amber-500"
-                              : "bg-emerald-500",
+                              : "bg-green-500",
                         )}
                       />
-                      <span className="flex-1 text-sm font-medium truncate">
+                      <span className="flex-1 text-sm text-neutral-700 dark:text-neutral-300 truncate">
                         {task.title}
                       </span>
                       {task.dueDate && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 flex-shrink-0">
+                        <span className="text-xs text-neutral-400 flex items-center gap-1 flex-shrink-0">
                           <Calendar className="w-3 h-3" />
                           {new Date(task.dueDate).toLocaleDateString("en-US", {
                             month: "short",
@@ -203,7 +207,7 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 {tasks.filter((t) => t.status !== "completed").length === 0 && (
-                  <p className="text-center text-gray-500 dark:text-gray-400 py-6 text-sm">
+                  <p className="text-center text-neutral-400 py-6 text-sm">
                     All tasks completed! 🎉
                   </p>
                 )}
@@ -217,19 +221,23 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
           >
-            <Card className="p-5 sm:p-6">
+            <Card className="p-5 border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                  <Flame className="w-5 h-5 text-orange-500" />
+                <h3 className="font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-orange-500" />
                   Today's Habits
                 </h3>
                 <Link href="/habits">
-                  <Button variant="ghost" size="sm" className="gap-1 text-sm">
-                    View All <ArrowRight className="w-4 h-4" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1 text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                  >
+                    View All <ArrowRight className="w-3.5 h-3.5" />
                   </Button>
                 </Link>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {habits
                   .filter((h) => h.active)
                   .slice(0, 5)
@@ -241,24 +249,24 @@ export default function DashboardPage() {
                       <div
                         key={habit.id}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl transition-colors",
+                          "flex items-center gap-3 p-2.5 rounded-lg transition-colors",
                           isCompleted
-                            ? "bg-emerald-50 dark:bg-emerald-900/20"
-                            : "bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800",
+                            ? "bg-green-50 dark:bg-green-950/30"
+                            : "hover:bg-neutral-50 dark:hover:bg-neutral-800/50",
                         )}
                       >
                         <div
                           className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold",
+                            "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-xs font-medium",
                             isCompleted
-                              ? "bg-emerald-500 text-white"
-                              : "bg-gray-200 dark:bg-gray-700 text-gray-500",
+                              ? "bg-green-500 text-white"
+                              : "bg-neutral-100 dark:bg-neutral-800 text-neutral-400",
                           )}
                         >
                           {isCompleted ? "✓" : ""}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium truncate block">
+                          <span className="text-sm text-neutral-700 dark:text-neutral-300 truncate block">
                             {habit.name}
                           </span>
                           {habit.streak > 0 && (
@@ -272,7 +280,7 @@ export default function DashboardPage() {
                     );
                   })}
                 {habits.filter((h) => h.active).length === 0 && (
-                  <p className="text-center text-gray-500 dark:text-gray-400 py-6 text-sm">
+                  <p className="text-center text-neutral-400 py-6 text-sm">
                     No habits yet. Create one to start tracking!
                   </p>
                 )}
