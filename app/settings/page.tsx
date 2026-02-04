@@ -294,60 +294,65 @@ export default function SettingsPage() {
           </Card>
 
           {/* Appearance */}
-          <Card>
-            <CardHeader>
+          <Card className="border-border/50">
+            <CardHeader className="pb-3 md:pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                  <Palette className="w-5 h-5 text-blue-500" />
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <Palette className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
                 </div>
                 <div>
-                  <CardTitle>Appearance</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-base md:text-lg">
+                    Appearance
+                  </CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
                     Customize how CorteXia looks
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="space-y-4 md:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="space-y-0.5">
-                  <Label>Theme</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-sm">Theme</Label>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Select your preferred color scheme
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 md:gap-2">
                   <Button
                     variant={theme === "light" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setTheme("light")}
+                    className="text-xs md:text-sm px-2 md:px-3"
                   >
-                    <Sun className="w-4 h-4 mr-2" />
+                    <Sun className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
                     Light
                   </Button>
                   <Button
                     variant={theme === "dark" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setTheme("dark")}
+                    className="text-xs md:text-sm px-2 md:px-3"
                   >
-                    <Moon className="w-4 h-4 mr-2" />
+                    <Moon className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
                     Dark
                   </Button>
                   <Button
                     variant={theme === "system" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setTheme("system")}
+                    className="text-xs md:text-sm px-2 md:px-3"
                   >
-                    <Globe className="w-4 h-4 mr-2" />
-                    System
+                    <Globe className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+                    Auto
                   </Button>
                 </div>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Compact View</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-sm">Compact View</Label>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Use a more compact layout
                   </p>
                 </div>
@@ -355,8 +360,8 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Animations</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-sm">Animations</Label>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Enable interface animations
                   </p>
                 </div>
@@ -366,25 +371,27 @@ export default function SettingsPage() {
           </Card>
 
           {/* Notifications */}
-          <Card>
-            <CardHeader>
+          <Card className="border-border/50">
+            <CardHeader className="pb-3 md:pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-                  <Bell className="w-5 h-5 text-yellow-500" />
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                  <Bell className="w-4 h-4 md:w-5 md:h-5 text-yellow-500" />
                 </div>
                 <div>
-                  <CardTitle>Notifications</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-base md:text-lg">
+                    Notifications
+                  </CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
                     Control how and when you receive notifications
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 md:space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Enable Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-sm">Enable Notifications</Label>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Receive all notifications
                   </p>
                 </div>
@@ -403,8 +410,8 @@ export default function SettingsPage() {
               <Separator />
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Task Reminders</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-sm">Task Reminders</Label>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Get reminded about upcoming tasks
                   </p>
                 </div>
@@ -422,8 +429,8 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Habit Reminders</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-sm">Habit Reminders</Label>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Daily habit check-in reminders
                   </p>
                 </div>
@@ -441,9 +448,9 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>AI Insights</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive AI-generated insights and recommendations
+                  <Label className="text-sm">AI Insights</Label>
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    Receive AI-generated insights
                   </p>
                 </div>
                 <Switch
@@ -462,25 +469,27 @@ export default function SettingsPage() {
           </Card>
 
           {/* Privacy */}
-          <Card>
-            <CardHeader>
+          <Card className="border-border/50">
+            <CardHeader className="pb-3 md:pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
-                  <Lock className="w-5 h-5 text-red-500" />
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
+                  <Lock className="w-4 h-4 md:w-5 md:h-5 text-red-500" />
                 </div>
                 <div>
-                  <CardTitle>Privacy & Security</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-base md:text-lg">
+                    Privacy & Security
+                  </CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
                     Protect your data and privacy
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 md:space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Data Collection</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-sm">Data Collection</Label>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Allow anonymous usage analytics
                   </p>
                 </div>
@@ -495,8 +504,8 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>AI Analysis</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-sm">AI Analysis</Label>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Allow AI to analyze your data for insights
                   </p>
                 </div>
@@ -513,31 +522,33 @@ export default function SettingsPage() {
           </Card>
 
           {/* Data Management */}
-          <Card>
-            <CardHeader>
+          <Card className="border-border/50">
+            <CardHeader className="pb-3 md:pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                  <Database className="w-5 h-5 text-green-500" />
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                  <Database className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
                 </div>
                 <div>
-                  <CardTitle>Data Management</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-base md:text-lg">
+                    Data Management
+                  </CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
                     Export, import, or clear your data
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="p-4 rounded-lg bg-secondary border">
+            <CardContent className="space-y-4 md:space-y-6">
+              <div className="p-3 md:p-4 rounded-lg bg-secondary border">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">
+                  <span className="text-xs md:text-sm font-medium">
                     Local Storage Usage
                   </span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-xs md:text-sm text-muted-foreground">
                     {calculateStorageUsage()} MB
                   </span>
                 </div>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div className="w-full h-1.5 md:h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary transition-all"
                     style={{
@@ -545,17 +556,22 @@ export default function SettingsPage() {
                     }}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-[10px] md:text-xs text-muted-foreground mt-2">
                   {tasks.length} tasks, {habits.length} habits,{" "}
                   {transactions.length} transactions, {journalEntries.length}{" "}
                   journal entries
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <Button variant="outline" onClick={handleExportData}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Data
+              <div className="flex flex-wrap gap-2 md:gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleExportData}
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  <Download className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                  Export
                 </Button>
                 <div className="relative">
                   <input
@@ -564,27 +580,35 @@ export default function SettingsPage() {
                     onChange={handleImportData}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  <Button variant="outline">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Import Data
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs md:text-sm"
+                  >
+                    <Upload className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                    Import
                   </Button>
                 </div>
-                <Button variant="destructive" onClick={handleClearAllData}>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Clear All Data
+                <Button
+                  variant="destructive"
+                  onClick={handleClearAllData}
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                  Clear All
                 </Button>
               </div>
 
-              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
+              <div className="p-3 md:p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-destructive mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-destructive">
+                    <p className="text-xs md:text-sm font-medium text-destructive">
                       Danger Zone
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Clearing all data will permanently delete all your tasks,
-                      habits, transactions, journal entries, and settings. This
+                    <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+                      Clearing all data will permanently delete everything. This
                       action cannot be undone.
                     </p>
                   </div>
@@ -594,12 +618,14 @@ export default function SettingsPage() {
           </Card>
 
           {/* About */}
-          <Card>
-            <CardHeader>
-              <CardTitle>About CorteXia</CardTitle>
+          <Card className="border-border/50">
+            <CardHeader className="pb-3 md:pb-4">
+              <CardTitle className="text-base md:text-lg">
+                About CorteXia
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
+            <CardContent className="space-y-3 md:space-y-4">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 text-xs md:text-sm">
                 <div>
                   <p className="text-muted-foreground">Version</p>
                   <p className="font-medium">1.0.0</p>
@@ -612,17 +638,24 @@ export default function SettingsPage() {
                 </div>
               </div>
               <Separator />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground">
                 CorteXia is an AI-powered personal life management system
-                designed to help you track tasks, habits, finances, and more
-                with intelligent insights.
+                designed to help you track tasks, habits, finances, and more.
               </p>
-              <div className="flex gap-3">
-                <Button variant="outline" size="sm">
-                  View Documentation
+              <div className="flex flex-wrap gap-2 md:gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  Documentation
                 </Button>
-                <Button variant="outline" size="sm">
-                  Report an Issue
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  Report Issue
                 </Button>
               </div>
             </CardContent>
