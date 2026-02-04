@@ -2,7 +2,18 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, parseISO, subDays, eachDayOfInterval, isSameDay, startOfMonth, endOfMonth, getDay, addMonths, subMonths } from "date-fns";
+import {
+  format,
+  parseISO,
+  subDays,
+  eachDayOfInterval,
+  isSameDay,
+  startOfMonth,
+  endOfMonth,
+  getDay,
+  addMonths,
+  subMonths,
+} from "date-fns";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,13 +129,16 @@ const getMoodColor = (mood: number): string => {
 };
 
 // Get mood emoji
-const getMoodEmoji = (mood: number) => MOOD_SCALE.find(m => m.value === mood) || MOOD_SCALE[4];
+const getMoodEmoji = (mood: number) =>
+  MOOD_SCALE.find((m) => m.value === mood) || MOOD_SCALE[4];
 
 // Format relative date
 const formatRelativeDate = (dateString: string): string => {
   const date = parseISO(dateString);
   const now = new Date();
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
+  );
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays} days ago`;
@@ -142,21 +156,27 @@ function CalendarView({
   onSelectDate: (date: Date) => void;
 }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  
+
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const startDate = subDays(monthStart, getDay(monthStart));
-  const days = eachDayOfInterval({ start: startDate, end: addMonths(monthEnd, 0) > endOfMonth(startDate) ? endOfMonth(startDate) : monthEnd });
-  
+  const days = eachDayOfInterval({
+    start: startDate,
+    end:
+      addMonths(monthEnd, 0) > endOfMonth(startDate)
+        ? endOfMonth(startDate)
+        : monthEnd,
+  });
+
   // Extend to fill grid
   while (days.length < 35) {
     days.push(addMonths(days[days.length - 1] || startDate, 0));
   }
-  
+
   // Create entry map for quick lookup
   const entryMap = useMemo(() => {
     const map = new Map<string, JournalEntry>();
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       const dateStr = format(parseISO(entry.date), "yyyy-MM-dd");
       map.set(dateStr, entry);
     });
@@ -191,8 +211,11 @@ function CalendarView({
 
       {/* Day labels */}
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-          <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+          <div
+            key={day}
+            className="text-center text-xs font-medium text-muted-foreground py-1"
+          >
             {day}
           </div>
         ))}
@@ -200,41 +223,48 @@ function CalendarView({
 
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1">
-        {weeks.flat().slice(0, 35).map((day, index) => {
-          if (!day) return <div key={index} className="aspect-square" />;
-          
-          const dateStr = format(day, "yyyy-MM-dd");
-          const entry = entryMap.get(dateStr);
-          const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
-          const isSelected = isSameDay(day, selectedDate);
-          const isToday = isSameDay(day, new Date());
+        {weeks
+          .flat()
+          .slice(0, 35)
+          .map((day, index) => {
+            if (!day) return <div key={index} className="aspect-square" />;
 
-          return (
-            <button
-              key={index}
-              onClick={() => onSelectDate(day)}
-              className={cn(
-                "aspect-square rounded-lg flex flex-col items-center justify-center relative transition-all text-sm",
-                !isCurrentMonth && "opacity-30",
-                isSelected && "ring-2 ring-violet-500",
-                isToday && !isSelected && "ring-1 ring-neutral-300 dark:ring-neutral-600",
-                entry ? "bg-violet-50 dark:bg-violet-950/30" : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              )}
-            >
-              <span className={cn(
-                "text-xs",
-                isToday && "font-bold"
-              )}>
-                {format(day, "d")}
-              </span>
-              {entry && (
-                <span className="text-xs mt-0.5" title={getMoodEmoji(entry.mood).label}>
-                  {getMoodEmoji(entry.mood).emoji}
+            const dateStr = format(day, "yyyy-MM-dd");
+            const entry = entryMap.get(dateStr);
+            const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
+            const isSelected = isSameDay(day, selectedDate);
+            const isToday = isSameDay(day, new Date());
+
+            return (
+              <button
+                key={index}
+                onClick={() => onSelectDate(day)}
+                className={cn(
+                  "aspect-square rounded-lg flex flex-col items-center justify-center relative transition-all text-sm",
+                  !isCurrentMonth && "opacity-30",
+                  isSelected && "ring-2 ring-violet-500",
+                  isToday &&
+                    !isSelected &&
+                    "ring-1 ring-neutral-300 dark:ring-neutral-600",
+                  entry
+                    ? "bg-violet-50 dark:bg-violet-950/30"
+                    : "hover:bg-neutral-100 dark:hover:bg-neutral-800",
+                )}
+              >
+                <span className={cn("text-xs", isToday && "font-bold")}>
+                  {format(day, "d")}
                 </span>
-              )}
-            </button>
-          );
-        })}
+                {entry && (
+                  <span
+                    className="text-xs mt-0.5"
+                    title={getMoodEmoji(entry.mood).label}
+                  >
+                    {getMoodEmoji(entry.mood).emoji}
+                  </span>
+                )}
+              </button>
+            );
+          })}
       </div>
     </div>
   );
@@ -255,8 +285,12 @@ function EmojiSelector({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-muted-foreground">{label}</label>
-        <span className="text-lg">{scale.find(s => s.value === value)?.emoji}</span>
+        <label className="text-xs font-medium text-muted-foreground">
+          {label}
+        </label>
+        <span className="text-lg">
+          {scale.find((s) => s.value === value)?.emoji}
+        </span>
       </div>
       <div className="flex justify-between gap-1">
         {scale.map((item) => (
@@ -268,7 +302,7 @@ function EmojiSelector({
               "p-1.5 rounded-lg transition-all text-lg",
               value === item.value
                 ? "bg-violet-100 dark:bg-violet-900/50 scale-110"
-                : "hover:bg-neutral-100 dark:hover:bg-neutral-800 opacity-50 hover:opacity-100"
+                : "hover:bg-neutral-100 dark:hover:bg-neutral-800 opacity-50 hover:opacity-100",
             )}
             title={item.label}
           >
@@ -288,7 +322,7 @@ export default function JournalPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPrompt, setCurrentPrompt] = useState(JOURNAL_PROMPTS[0]);
-  
+
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -301,50 +335,60 @@ export default function JournalPage() {
 
   // Filtered entries
   const filteredEntries = useMemo(() => {
-    let filtered = [...journalEntries].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
+    let filtered = [...journalEntries].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
-    
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(e => 
-        e.title?.toLowerCase().includes(query) ||
-        e.content?.toLowerCase().includes(query) ||
-        e.tags?.some(t => t.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        (e) =>
+          e.title?.toLowerCase().includes(query) ||
+          e.content?.toLowerCase().includes(query) ||
+          e.tags?.some((t) => t.toLowerCase().includes(query)),
       );
     }
-    
+
     return filtered;
   }, [journalEntries, searchQuery]);
 
   // Entries for selected date (calendar view)
   const entriesForSelectedDate = useMemo(() => {
-    return journalEntries.filter(e => 
-      isSameDay(parseISO(e.date), selectedDate)
+    return journalEntries.filter((e) =>
+      isSameDay(parseISO(e.date), selectedDate),
     );
   }, [journalEntries, selectedDate]);
 
   // Stats
   const stats = useMemo(() => {
     const total = journalEntries.length;
-    const greatDays = journalEntries.filter(e => e.mood >= 8).length;
-    const avgWords = total > 0
-      ? Math.round(journalEntries.reduce((sum, e) => sum + (e.content?.split(" ").length || 0), 0) / total)
-      : 0;
-    const avgMood = total > 0
-      ? Math.round((journalEntries.reduce((sum, e) => sum + e.mood, 0) / total) * 10) / 10
-      : 5;
-    
+    const greatDays = journalEntries.filter((e) => e.mood >= 8).length;
+    const avgWords =
+      total > 0
+        ? Math.round(
+            journalEntries.reduce(
+              (sum, e) => sum + (e.content?.split(" ").length || 0),
+              0,
+            ) / total,
+          )
+        : 0;
+    const avgMood =
+      total > 0
+        ? Math.round(
+            (journalEntries.reduce((sum, e) => sum + e.mood, 0) / total) * 10,
+          ) / 10
+        : 5;
+
     // Streak calculation
     let streak = 0;
-    const sortedEntries = [...journalEntries].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
+    const sortedEntries = [...journalEntries].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
     const today = new Date();
     for (let i = 0; i < 365; i++) {
       const checkDate = format(subDays(today, i), "yyyy-MM-dd");
-      const hasEntry = sortedEntries.some(e => 
-        format(parseISO(e.date), "yyyy-MM-dd") === checkDate
+      const hasEntry = sortedEntries.some(
+        (e) => format(parseISO(e.date), "yyyy-MM-dd") === checkDate,
       );
       if (hasEntry) {
         streak++;
@@ -358,7 +402,7 @@ export default function JournalPage() {
 
   // Generate new prompt
   const generateNewPrompt = () => {
-    const available = JOURNAL_PROMPTS.filter(p => p !== currentPrompt);
+    const available = JOURNAL_PROMPTS.filter((p) => p !== currentPrompt);
     setCurrentPrompt(available[Math.floor(Math.random() * available.length)]);
   };
 
@@ -373,13 +417,13 @@ export default function JournalPage() {
   // Handle form submit
   const handleSubmit = () => {
     if (!formData.title.trim() && !formData.content.trim()) return;
-    
+
     addJournalEntry({
       ...formData,
       title: formData.title || format(new Date(), "MMMM d, yyyy"),
       date: new Date().toISOString(),
     });
-    
+
     setFormData({
       title: "",
       content: "",
@@ -400,14 +444,20 @@ export default function JournalPage() {
         className="space-y-6 pb-24"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
           <div>
             <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-violet-500" />
               Journal
             </h1>
             <p className="text-muted-foreground text-sm mt-1">
-              {journalEntries.length} reflections • {stats.streak > 0 ? `🔥 ${stats.streak} day streak` : "Start your streak today"}
+              {journalEntries.length} reflections •{" "}
+              {stats.streak > 0
+                ? `🔥 ${stats.streak} day streak`
+                : "Start your streak today"}
             </p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -429,23 +479,34 @@ export default function JournalPage() {
                       <Lightbulb className="h-4 w-4" />
                       Today's Prompt
                     </div>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={generateNewPrompt}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={generateNewPrompt}
+                    >
                       <RefreshCw className="h-3 w-3" />
                     </Button>
                   </div>
-                  <p className="text-sm text-violet-700 dark:text-violet-300">{currentPrompt}</p>
+                  <p className="text-sm text-violet-700 dark:text-violet-300">
+                    {currentPrompt}
+                  </p>
                 </div>
 
                 <Input
                   placeholder="Entry title (optional)"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   className="text-base"
                 />
                 <Textarea
                   placeholder="Write your thoughts..."
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, content: e.target.value })
+                  }
                   rows={6}
                   className="resize-none"
                 />
@@ -474,16 +535,25 @@ export default function JournalPage() {
 
                 {/* Tags */}
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Tags</label>
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Tags
+                  </label>
                   <div className="flex gap-2">
                     <Input
                       placeholder="Add a tag"
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" &&
+                        (e.preventDefault(), handleAddTag())
+                      }
                       className="flex-1"
                     />
-                    <Button type="button" variant="outline" onClick={handleAddTag}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddTag}
+                    >
                       Add
                     </Button>
                   </div>
@@ -494,7 +564,12 @@ export default function JournalPage() {
                           key={tag}
                           variant="secondary"
                           className="cursor-pointer"
-                          onClick={() => setFormData({ ...formData, tags: formData.tags.filter(t => t !== tag) })}
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              tags: formData.tags.filter((t) => t !== tag),
+                            })
+                          }
                         >
                           #{tag} ×
                         </Badge>
@@ -512,34 +587,53 @@ export default function JournalPage() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={itemVariants} className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-2 sm:grid-cols-5 gap-3"
+        >
           <div className="p-4 rounded-xl bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800">
             <div className="flex items-center gap-2 mb-1">
               <BookOpen className="h-4 w-4 text-violet-500" />
             </div>
-            <div className="text-2xl font-semibold text-violet-600 dark:text-violet-400">{stats.total}</div>
-            <div className="text-xs text-violet-600 dark:text-violet-400">Total Entries</div>
+            <div className="text-2xl font-semibold text-violet-600 dark:text-violet-400">
+              {stats.total}
+            </div>
+            <div className="text-xs text-violet-600 dark:text-violet-400">
+              Total Entries
+            </div>
           </div>
           <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
             <div className="flex items-center gap-2 mb-1">
               <Heart className="h-4 w-4 text-green-500" />
             </div>
-            <div className="text-2xl font-semibold text-green-600 dark:text-green-400">{stats.greatDays}</div>
-            <div className="text-xs text-green-600 dark:text-green-400">Great Days</div>
+            <div className="text-2xl font-semibold text-green-600 dark:text-green-400">
+              {stats.greatDays}
+            </div>
+            <div className="text-xs text-green-600 dark:text-green-400">
+              Great Days
+            </div>
           </div>
           <div className="p-4 rounded-xl bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
             <div className="flex items-center gap-2 mb-1">
               <Zap className="h-4 w-4 text-orange-500" />
             </div>
-            <div className="text-2xl font-semibold text-orange-600 dark:text-orange-400">{stats.streak}</div>
-            <div className="text-xs text-orange-600 dark:text-orange-400">Day Streak</div>
+            <div className="text-2xl font-semibold text-orange-600 dark:text-orange-400">
+              {stats.streak}
+            </div>
+            <div className="text-xs text-orange-600 dark:text-orange-400">
+              Day Streak
+            </div>
           </div>
           <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
             <div className="flex items-center gap-2 mb-1">
               <Brain className="h-4 w-4 text-blue-500" />
             </div>
-            <div className="text-2xl font-semibold text-blue-600 dark:text-blue-400">{stats.avgWords}</div>
-            <div className="text-xs text-blue-600 dark:text-blue-400">Avg Words</div>
+            <div className="text-2xl font-semibold text-blue-600 dark:text-blue-400">
+              {stats.avgWords}
+            </div>
+            <div className="text-xs text-blue-600 dark:text-blue-400">
+              Avg Words
+            </div>
           </div>
           <div className="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
             <div className="flex items-center gap-2 mb-1">
@@ -551,7 +645,10 @@ export default function JournalPage() {
         </motion.div>
 
         {/* View Controls */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -595,20 +692,28 @@ export default function JournalPage() {
               <div className="space-y-4">
                 <h3 className="font-medium">
                   {format(selectedDate, "MMMM d, yyyy")}
-                  {isSameDay(selectedDate, new Date()) && <span className="text-violet-500 ml-2">Today</span>}
+                  {isSameDay(selectedDate, new Date()) && (
+                    <span className="text-violet-500 ml-2">Today</span>
+                  )}
                 </h3>
                 {entriesForSelectedDate.length === 0 ? (
                   <div className="text-center py-8 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-dashed border-neutral-200 dark:border-neutral-800">
                     <PenTool className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground text-sm">No entries for this day</p>
+                    <p className="text-muted-foreground text-sm">
+                      No entries for this day
+                    </p>
                     {isSameDay(selectedDate, new Date()) && (
-                      <Button variant="link" onClick={() => setDialogOpen(true)} className="mt-2">
+                      <Button
+                        variant="link"
+                        onClick={() => setDialogOpen(true)}
+                        className="mt-2"
+                      >
                         Write today's entry
                       </Button>
                     )}
                   </div>
                 ) : (
-                  entriesForSelectedDate.map(entry => (
+                  entriesForSelectedDate.map((entry) => (
                     <EntryCard
                       key={entry.id}
                       entry={entry}
@@ -616,7 +721,8 @@ export default function JournalPage() {
                       onSelect={() => setSelectedEntry(entry)}
                       onDelete={() => {
                         deleteJournalEntry(entry.id);
-                        if (selectedEntry?.id === entry.id) setSelectedEntry(null);
+                        if (selectedEntry?.id === entry.id)
+                          setSelectedEntry(null);
                       }}
                     />
                   ))
@@ -632,17 +738,22 @@ export default function JournalPage() {
                   <div className="text-center py-12 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-dashed border-neutral-200 dark:border-neutral-800">
                     <PenTool className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <p className="text-muted-foreground mb-4">
-                      {searchQuery ? "No entries match your search" : "No journal entries yet"}
+                      {searchQuery
+                        ? "No entries match your search"
+                        : "No journal entries yet"}
                     </p>
                     {!searchQuery && (
-                      <Button onClick={() => setDialogOpen(true)} variant="outline">
+                      <Button
+                        onClick={() => setDialogOpen(true)}
+                        variant="outline"
+                      >
                         Write your first entry
                       </Button>
                     )}
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {filteredEntries.map(entry => (
+                    {filteredEntries.map((entry) => (
                       <EntryCard
                         key={entry.id}
                         entry={entry}
@@ -650,7 +761,8 @@ export default function JournalPage() {
                         onSelect={() => setSelectedEntry(entry)}
                         onDelete={() => {
                           deleteJournalEntry(entry.id);
-                          if (selectedEntry?.id === entry.id) setSelectedEntry(null);
+                          if (selectedEntry?.id === entry.id)
+                            setSelectedEntry(null);
                         }}
                       />
                     ))}
@@ -661,14 +773,18 @@ export default function JournalPage() {
               {/* Entry Detail */}
               <div>
                 <h3 className="font-medium mb-4">
-                  {selectedEntry ? (selectedEntry.title || "Untitled Entry") : "Entry Preview"}
+                  {selectedEntry
+                    ? selectedEntry.title || "Untitled Entry"
+                    : "Entry Preview"}
                 </h3>
                 {selectedEntry ? (
                   <EntryDetail entry={selectedEntry} />
                 ) : (
                   <div className="text-center py-12 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
                     <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Select an entry to view details</p>
+                    <p className="text-muted-foreground">
+                      Select an entry to view details
+                    </p>
                   </div>
                 )}
               </div>
@@ -693,7 +809,7 @@ function EntryCard({
   onDelete: () => void;
 }) {
   const moodInfo = getMoodEmoji(entry.mood);
-  
+
   return (
     <motion.div
       layout
@@ -703,7 +819,7 @@ function EntryCard({
         "p-4 rounded-xl cursor-pointer transition-all border",
         isSelected
           ? "bg-violet-50 dark:bg-violet-950/30 border-violet-500"
-          : "bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 hover:border-violet-500/50"
+          : "bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 hover:border-violet-500/50",
       )}
       onClick={onSelect}
     >
@@ -716,20 +832,29 @@ function EntryCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <h4 className="font-medium text-sm truncate">{entry.title || "Untitled Entry"}</h4>
+            <h4 className="font-medium text-sm truncate">
+              {entry.title || "Untitled Entry"}
+            </h4>
             <Button
               variant="ghost"
               size="icon"
               className="h-6 w-6 flex-shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{entry.content}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+            {entry.content}
+          </p>
           <div className="flex items-center gap-2 mt-2">
-            <span className="text-[10px] text-muted-foreground">{formatRelativeDate(entry.date)}</span>
-            <span 
+            <span className="text-[10px] text-muted-foreground">
+              {formatRelativeDate(entry.date)}
+            </span>
+            <span
               className="text-[10px] px-1.5 py-0.5 rounded text-white"
               style={{ backgroundColor: getMoodColor(entry.mood) }}
             >
@@ -738,13 +863,18 @@ function EntryCard({
           </div>
           {entry.tags && entry.tags.length > 0 && (
             <div className="flex gap-1 flex-wrap mt-2">
-              {entry.tags.slice(0, 3).map(tag => (
-                <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-muted-foreground">
+              {entry.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-muted-foreground"
+                >
                   #{tag}
                 </span>
               ))}
               {entry.tags.length > 3 && (
-                <span className="text-[10px] text-muted-foreground">+{entry.tags.length - 3}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  +{entry.tags.length - 3}
+                </span>
               )}
             </div>
           )}
@@ -757,9 +887,11 @@ function EntryCard({
 // Entry Detail Component
 function EntryDetail({ entry }: { entry: JournalEntry }) {
   const moodInfo = getMoodEmoji(entry.mood);
-  const energyInfo = ENERGY_SCALE.find(e => e.value === entry.energy) || ENERGY_SCALE[4];
-  const focusInfo = FOCUS_SCALE.find(f => f.value === entry.focus) || FOCUS_SCALE[4];
-  
+  const energyInfo =
+    ENERGY_SCALE.find((e) => e.value === entry.energy) || ENERGY_SCALE[4];
+  const focusInfo =
+    FOCUS_SCALE.find((f) => f.value === entry.focus) || FOCUS_SCALE[4];
+
   return (
     <div className="p-6 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-6">
       {/* Header */}
@@ -772,23 +904,29 @@ function EntryDetail({ entry }: { entry: JournalEntry }) {
             {moodInfo.emoji}
           </div>
           <div>
-            <span 
+            <span
               className="text-xs px-2 py-1 rounded text-white"
               style={{ backgroundColor: getMoodColor(entry.mood) }}
             >
               {moodInfo.label}
             </span>
-            <p className="text-xs text-muted-foreground mt-1">{format(parseISO(entry.date), "EEEE, MMMM d, yyyy 'at' h:mm a")}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {format(parseISO(entry.date), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+            </p>
           </div>
         </div>
-        <h2 className="text-xl font-semibold">{entry.title || "Untitled Entry"}</h2>
+        <h2 className="text-xl font-semibold">
+          {entry.title || "Untitled Entry"}
+        </h2>
       </div>
 
       {/* Metrics */}
       <div className="flex gap-4 text-sm">
         <div className="flex items-center gap-1.5">
           <span className="text-lg">{energyInfo.emoji}</span>
-          <span className="text-muted-foreground">Energy: {entry.energy}/10</span>
+          <span className="text-muted-foreground">
+            Energy: {entry.energy}/10
+          </span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-lg">{focusInfo.emoji}</span>
@@ -798,14 +936,19 @@ function EntryDetail({ entry }: { entry: JournalEntry }) {
 
       {/* Content */}
       <div className="prose prose-sm dark:prose-invert max-w-none">
-        <p className="text-muted-foreground whitespace-pre-line leading-relaxed">{entry.content}</p>
+        <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
+          {entry.content}
+        </p>
       </div>
 
       {/* Tags */}
       {entry.tags && entry.tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {entry.tags.map(tag => (
-            <span key={tag} className="text-xs px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-muted-foreground">
+          {entry.tags.map((tag) => (
+            <span
+              key={tag}
+              className="text-xs px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-muted-foreground"
+            >
               #{tag}
             </span>
           ))}
@@ -816,7 +959,9 @@ function EntryDetail({ entry }: { entry: JournalEntry }) {
       <div className="p-4 rounded-lg bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles className="h-4 w-4 text-violet-500" />
-          <span className="text-sm font-medium text-violet-700 dark:text-violet-300">AI Insights</span>
+          <span className="text-sm font-medium text-violet-700 dark:text-violet-300">
+            AI Insights
+          </span>
         </div>
         <p className="text-sm text-violet-600 dark:text-violet-400">
           {entry.mood >= 7
@@ -827,324 +972,5 @@ function EntryDetail({ entry }: { entry: JournalEntry }) {
         </p>
       </div>
     </div>
-  );
-}
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">
-                      Focus (1-10)
-                    </label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={newEntry.focus}
-                      onChange={(e) =>
-                        setNewEntry({
-                          ...newEntry,
-                          focus: Math.min(
-                            10,
-                            Math.max(1, parseInt(e.target.value) || 5),
-                          ),
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-                {/* Tags Input */}
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">Tags</label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Add a tag"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddTag();
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleAddTag}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                  {newEntry.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {newEntry.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="cursor-pointer"
-                          onClick={() => handleRemoveTag(tag)}
-                        >
-                          #{tag} ×
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <Button onClick={handleAddEntry} className="w-full">
-                  Save Entry
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-          <Card className="border-border/50">
-            <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
-              <div className="text-xs md:text-sm text-muted-foreground mb-1">
-                Total Entries
-              </div>
-              <div className="text-2xl md:text-3xl font-bold text-primary">
-                {stats.total}
-              </div>
-              <div className="text-[10px] md:text-xs text-muted-foreground mt-1">
-                All time
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50">
-            <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
-              <div className="text-xs md:text-sm text-muted-foreground mb-1">
-                Great Days
-              </div>
-              <div className="text-2xl md:text-3xl font-bold text-emerald-500">
-                {stats.greatDays}
-              </div>
-              <div className="text-[10px] md:text-xs text-muted-foreground mt-1">
-                Mood 8+
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50">
-            <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
-              <div className="text-xs md:text-sm text-muted-foreground mb-1">
-                Avg Words
-              </div>
-              <div className="text-2xl md:text-3xl font-bold text-amber-500">
-                {stats.avgWords}
-              </div>
-              <div className="text-[10px] md:text-xs text-muted-foreground mt-1">
-                Per entry
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50">
-            <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
-              <div className="text-xs md:text-sm text-muted-foreground mb-1">
-                Avg Mood
-              </div>
-              <div className="text-2xl md:text-3xl font-bold text-blue-500">
-                {stats.avgMood}/10
-              </div>
-              <div className="text-[10px] md:text-xs text-muted-foreground mt-1">
-                {getMoodLabel(stats.avgMood)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Entries Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-          {/* Entry List */}
-          <div className="space-y-3 md:space-y-4">
-            <h2 className="text-base md:text-lg font-semibold">
-              Recent Entries
-            </h2>
-            {journalEntries.length === 0 ? (
-              <Card className="border-border/50">
-                <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-                  <PenTool className="w-12 h-12 text-muted-foreground opacity-50 mb-4" />
-                  <h3 className="text-base font-semibold mb-2">
-                    No entries yet
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Start journaling to track your thoughts and growth.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              journalEntries.map((entry) => (
-                <Card
-                  key={entry.id}
-                  className={`border-border/50 cursor-pointer transition-all hover:shadow-md ${
-                    selectedEntry?.id === entry.id ? "ring-2 ring-primary" : ""
-                  }`}
-                  onClick={() => setSelectedEntry(entry)}
-                >
-                  <CardContent className="p-3 md:p-4">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className="w-3 h-3 md:w-4 md:h-4 rounded-full flex-shrink-0 mt-1"
-                        style={{ backgroundColor: getMoodColor(entry.mood) }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-semibold text-sm md:text-base truncate">
-                            {entry.title || "Untitled Entry"}
-                          </h3>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-destructive flex-shrink-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteJournalEntry(entry.id);
-                              if (selectedEntry?.id === entry.id) {
-                                setSelectedEntry(null);
-                              }
-                            }}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                        <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {entry.content}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2 md:mt-3 flex-wrap">
-                          <span className="text-[10px] md:text-xs text-muted-foreground">
-                            {formatDate(entry.date)}
-                          </span>
-                          <span
-                            className="text-[10px] md:text-xs px-2 py-0.5 rounded text-white"
-                            style={{
-                              backgroundColor: getMoodColor(entry.mood),
-                            }}
-                          >
-                            {getMoodLabel(entry.mood)}
-                          </span>
-                        </div>
-                        {entry.tags && entry.tags.length > 0 && (
-                          <div className="flex gap-1 flex-wrap mt-2">
-                            {entry.tags.slice(0, 3).map((tag) => (
-                              <span
-                                key={tag}
-                                className="text-[10px] md:text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
-                              >
-                                #{tag}
-                              </span>
-                            ))}
-                            {entry.tags.length > 3 && (
-                              <span className="text-[10px] md:text-xs text-muted-foreground">
-                                +{entry.tags.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-
-          {/* Entry Detail or Welcome */}
-          <div>
-            <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">
-              {selectedEntry
-                ? selectedEntry.title || "Untitled Entry"
-                : "Start Writing"}
-            </h2>
-            {selectedEntry ? (
-              <Card className="border-border/50">
-                <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
-                  {/* Header */}
-                  <div className="pb-3 md:pb-4 border-b border-border">
-                    <div className="flex items-center gap-2 mb-2 md:mb-3">
-                      <div
-                        className="w-3 h-3 md:w-4 md:h-4 rounded-full"
-                        style={{
-                          backgroundColor: getMoodColor(selectedEntry.mood),
-                        }}
-                      />
-                      <span
-                        className="text-[10px] md:text-sm px-2 py-0.5 md:py-1 rounded text-white"
-                        style={{
-                          backgroundColor: getMoodColor(selectedEntry.mood),
-                        }}
-                      >
-                        {getMoodLabel(selectedEntry.mood)}
-                      </span>
-                      <span className="text-xs md:text-sm text-muted-foreground ml-auto">
-                        {formatDate(selectedEntry.date)}
-                      </span>
-                    </div>
-                    <h3 className="text-lg md:text-2xl font-bold">
-                      {selectedEntry.title || "Untitled Entry"}
-                    </h3>
-                    {/* Metrics */}
-                    <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
-                      <span>Energy: {selectedEntry.energy}/10</span>
-                      <span>Focus: {selectedEntry.focus}/10</span>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="text-sm md:text-base text-muted-foreground whitespace-pre-line leading-relaxed">
-                      {selectedEntry.content}
-                    </p>
-                  </div>
-
-                  {/* Tags */}
-                  {selectedEntry.tags && selectedEntry.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedEntry.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-xs px-2 md:px-3 py-1 rounded-full bg-muted text-muted-foreground"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* AI Summary Placeholder */}
-                  <div className="p-3 md:p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      <span className="text-xs md:text-sm font-semibold">
-                        AI Insights
-                      </span>
-                    </div>
-                    <p className="text-xs md:text-sm text-muted-foreground">
-                      {selectedEntry.mood >= 7
-                        ? "You seem to be in a positive mindset! Keep up the great work and maintain this energy."
-                        : selectedEntry.mood >= 5
-                          ? "A neutral day - consider what small wins you can celebrate or what might lift your spirits."
-                          : "It looks like today was challenging. Remember, difficult days are opportunities for growth. Be kind to yourself."}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border-border/50">
-                <CardContent className="flex flex-col items-center justify-center p-8 md:p-12 text-center">
-                  <PenTool className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground opacity-50 mb-4" />
-                  <h3 className="text-base md:text-lg font-semibold mb-2">
-                    Start Your Reflection
-                  </h3>
-                  <p className="text-sm text-muted-foreground max-w-sm">
-                    Writing helps you process thoughts and track growth. Click
-                    on an entry or create a new one.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
-    </AppLayout>
   );
 }
