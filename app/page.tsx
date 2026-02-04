@@ -42,9 +42,7 @@ export default function DashboardPage() {
     ).length;
 
     const pendingHighPriority = tasks.filter(
-      (t) =>
-        t.status !== "completed" &&
-        (t.priority === "high" || t.priority === "critical"),
+      (t) => t.status !== "completed" && t.priority === "high",
     ).length;
 
     return { completedTodayCount, pendingHighPriority };
@@ -165,15 +163,14 @@ export default function DashboardPage() {
                 {tasks
                   .filter((t) => t.status !== "completed")
                   .sort((a, b) => {
-                    const priorityOrder = {
-                      critical: 0,
-                      high: 1,
-                      medium: 2,
-                      low: 3,
+                    const priorityOrder: Record<string, number> = {
+                      high: 0,
+                      medium: 1,
+                      low: 2,
                     };
                     return (
-                      (priorityOrder[a.priority] || 3) -
-                      (priorityOrder[b.priority] || 3)
+                      (priorityOrder[a.priority] ?? 2) -
+                      (priorityOrder[b.priority] ?? 2)
                     );
                   })
                   .slice(0, 5)
@@ -185,13 +182,11 @@ export default function DashboardPage() {
                       <div
                         className={cn(
                           "w-2.5 h-2.5 rounded-full flex-shrink-0",
-                          task.priority === "critical"
-                            ? "bg-red-500"
-                            : task.priority === "high"
-                              ? "bg-orange-500"
-                              : task.priority === "medium"
-                                ? "bg-amber-500"
-                                : "bg-emerald-500",
+                          task.priority === "high"
+                            ? "bg-orange-500"
+                            : task.priority === "medium"
+                              ? "bg-amber-500"
+                              : "bg-emerald-500",
                         )}
                       />
                       <span className="flex-1 text-sm font-medium truncate">
