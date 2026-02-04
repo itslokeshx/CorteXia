@@ -35,17 +35,17 @@ interface SignalData {
 }
 
 const statusColors = {
-  excellent: "border-emerald-500 bg-emerald-500/10",
-  good: "border-blue-500 bg-blue-500/10",
-  warning: "border-amber-500 bg-amber-500/10",
-  critical: "border-red-500 bg-red-500/10",
+  excellent: "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30",
+  good: "border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30",
+  warning: "border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30",
+  critical: "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30",
 };
 
 const statusGlows = {
-  excellent: "hover:shadow-emerald-500/25",
-  good: "hover:shadow-blue-500/25",
-  warning: "hover:shadow-amber-500/25",
-  critical: "hover:shadow-red-500/25",
+  excellent: "",
+  good: "",
+  warning: "",
+  critical: "",
 };
 
 function SignalCard({ signal, index }: { signal: SignalData; index: number }) {
@@ -60,40 +60,31 @@ function SignalCard({ signal, index }: { signal: SignalData; index: number }) {
       <Link href={signal.href}>
         <div
           className={cn(
-            "group relative overflow-hidden rounded-2xl border-2 p-5 transition-all duration-300",
-            "hover:shadow-xl hover:-translate-y-1",
+            "group relative overflow-hidden rounded-lg border p-4 transition-all duration-200",
+            "hover:border-neutral-300 dark:hover:border-neutral-700",
             statusColors[signal.status],
-            statusGlows[signal.status],
           )}
         >
-          {/* Background Gradient */}
-          <div
-            className={cn(
-              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-              signal.bgColor,
-            )}
-          />
-
           {/* Content */}
           <div className="relative z-10">
             {/* Header */}
             <div className="flex items-start justify-between mb-3">
               <div
                 className={cn(
-                  "w-12 h-12 rounded-xl flex items-center justify-center",
+                  "w-9 h-9 rounded-lg flex items-center justify-center",
                   signal.color,
                 )}
               >
-                <Icon className="w-6 h-6" />
+                <Icon className="w-4 h-4" />
               </div>
 
               {signal.trend !== undefined && signal.trend !== 0 && (
                 <div
                   className={cn(
-                    "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
+                    "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
                     signal.trend > 0
-                      ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                      : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+                      ? "bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"
+                      : "bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400",
                   )}
                 >
                   {signal.trend > 0 ? (
@@ -108,26 +99,21 @@ function SignalCard({ signal, index }: { signal: SignalData; index: number }) {
 
             {/* Value */}
             <div className="mb-1">
-              <span className="text-3xl font-bold">{signal.value}</span>
+              <span className="text-2xl font-semibold text-neutral-900 dark:text-white">{signal.value}</span>
             </div>
 
             {/* Label */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                   {signal.name}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-neutral-500 dark:text-neutral-500">
                   {signal.subtext}
                 </p>
               </div>
-              <ArrowRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-neutral-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
             </div>
-          </div>
-
-          {/* Shine Effect */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           </div>
         </div>
       </Link>

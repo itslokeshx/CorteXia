@@ -369,33 +369,33 @@ export function QuickAddBar() {
       {/* Trigger Button */}
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
       >
-        <Command className="w-4 h-4" />
+        <Command className="w-3.5 h-3.5" />
         <span className="text-sm">Quick Add</span>
-        <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+        <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded bg-neutral-200 dark:bg-neutral-700 px-1.5 font-mono text-[10px] font-medium text-neutral-500">
           <span className="text-xs">⌘</span>K
         </kbd>
       </button>
 
       {/* Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[600px] p-0 gap-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[540px] p-0 gap-0 overflow-hidden bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
           <VisuallyHidden>
             <DialogTitle>Quick Add</DialogTitle>
           </VisuallyHidden>
           {/* Success State */}
           {showSuccess ? (
             <div className="flex flex-col items-center justify-center py-12 gap-4">
-              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-green-500" />
+              <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-950/50 flex items-center justify-center">
+                <Sparkles className="w-7 h-7 text-green-500" />
               </div>
-              <p className="text-lg font-medium">Added successfully!</p>
+              <p className="text-base font-medium text-neutral-900 dark:text-white">Added successfully!</p>
             </div>
           ) : (
             <>
               {/* Input Area */}
-              <div className="flex items-center gap-3 p-4 border-b">
+              <div className="flex items-center gap-3 p-4 border-b border-neutral-200 dark:border-neutral-800">
                 <div
                   className={cn(
                     "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",

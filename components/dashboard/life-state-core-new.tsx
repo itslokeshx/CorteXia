@@ -267,17 +267,8 @@ export function LifeStateCore() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-500/10 via-blue-500/5 to-cyan-500/10 dark:from-purple-500/20 dark:via-blue-500/10 dark:to-cyan-500/20 p-6 sm:p-8 lg:p-12"
+      className="relative overflow-hidden rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-6"
     >
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-30" />
-
-      {/* Floating Elements */}
-      <div className="absolute top-10 right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
-      <div
-        className="absolute bottom-10 left-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
-        style={{ animationDelay: "1s" }}
-      />
 
       <div className="relative z-10">
         {/* Main Content */}
@@ -285,26 +276,26 @@ export function LifeStateCore() {
           {/* Score Ring */}
           <ProgressRing
             value={lifeData.lifeScore}
-            size={180}
-            strokeWidth={14}
+            size={160}
+            strokeWidth={10}
           />
 
           {/* State Info */}
           <div className="text-center lg:text-left flex-1">
             <motion.div
-              className="flex items-center justify-center lg:justify-start gap-3 mb-3"
+              className="flex items-center justify-center lg:justify-start gap-2 mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <span className="text-4xl">{lifeData.stateEmoji}</span>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold gradient-text">
+              <span className="text-2xl">{lifeData.stateEmoji}</span>
+              <h1 className="text-2xl sm:text-3xl font-semibold text-neutral-900 dark:text-white">
                 {lifeData.state}
               </h1>
             </motion.div>
 
             <motion.p
-              className="text-lg text-gray-600 dark:text-gray-400 mb-4 max-w-md"
+              className="text-sm text-neutral-500 dark:text-neutral-400 mb-4 max-w-md"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
@@ -319,16 +310,16 @@ export function LifeStateCore() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.7 }}
                 className={cn(
-                  "inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium",
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium",
                   lifeData.trend > 0
-                    ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                    : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+                    ? "bg-green-50 dark:bg-green-950/50 text-green-600 dark:text-green-400"
+                    : "bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400",
                 )}
               >
                 {lifeData.trend > 0 ? (
-                  <TrendingUp className="w-4 h-4" />
+                  <TrendingUp className="w-3.5 h-3.5" />
                 ) : (
-                  <TrendingDown className="w-4 h-4" />
+                  <TrendingDown className="w-3.5 h-3.5" />
                 )}
                 <span>
                   {lifeData.trend > 0 ? "+" : ""}
@@ -340,7 +331,7 @@ export function LifeStateCore() {
         </div>
 
         {/* Factor Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {lifeData.factors.map((factor, index) => (
             <FactorCard
               key={factor.name}
@@ -357,17 +348,17 @@ export function LifeStateCore() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
-          className="mt-6 p-4 bg-purple-500/10 dark:bg-purple-500/20 rounded-xl border border-purple-500/20"
+          className="mt-5 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-100 dark:border-neutral-800"
         >
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
             </div>
             <div>
-              <p className="font-medium text-sm text-purple-700 dark:text-purple-300 mb-1">
+              <p className="font-medium text-xs text-neutral-500 dark:text-neutral-400 mb-1">
                 AI Insight
               </p>
-              <p className="text-sm text-gray-700 dark:text-gray-300">
+              <p className="text-sm text-neutral-700 dark:text-neutral-300">
                 {lifeData.lifeScore >= 70
                   ? "Your consistency is paying off! Consider pushing one of your habits to the next level."
                   : lifeData.lifeScore >= 50
