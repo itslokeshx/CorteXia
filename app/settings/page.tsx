@@ -170,12 +170,15 @@ export default function SettingsPage() {
     if (
       confirm("Are you sure you want to clear all data? This cannot be undone.")
     ) {
-      localStorage.removeItem("cortexia-data");
-      window.location.reload();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("cortexia-data");
+        window.location.reload();
+      }
     }
   };
 
   const calculateStorageUsage = () => {
+    if (typeof window === "undefined") return "0.00";
     const data = localStorage.getItem("cortexia-data") || "";
     const bytes = new Blob([data]).size;
     return (bytes / 1024 / 1024).toFixed(2); // Convert to MB
