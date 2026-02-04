@@ -197,53 +197,55 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-      <section className="pb-32 max-w-4xl mx-auto">
+      <section className="max-w-4xl mx-auto space-y-6 pb-24">
         {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-              <Settings className="w-6 h-6 text-primary" />
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-secondary flex items-center justify-center">
+              <Settings className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold">Settings</h1>
+              <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
+              <p className="text-sm md:text-base text-muted-foreground">
+                Customize your experience
+              </p>
             </div>
           </div>
-          <p className="text-lg text-muted-foreground mt-4">
-            Customize your CorteXia experience and manage your preferences
-          </p>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-4 md:space-y-6">
           {/* AI Configuration */}
-          <Card>
-            <CardHeader>
+          <Card className="border-border/50">
+            <CardHeader className="pb-3 md:pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-purple-500" />
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
                 </div>
-                <div>
-                  <CardTitle className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="flex flex-wrap items-center gap-2 text-base md:text-lg">
                     AI Configuration
                     {apiStatus === "connected" && (
-                      <Badge className="bg-green-500/20 text-green-400">
+                      <Badge className="bg-green-500/20 text-green-400 text-xs">
                         Connected
                       </Badge>
                     )}
                     {apiStatus === "disconnected" && (
-                      <Badge variant="destructive">Disconnected</Badge>
+                      <Badge variant="destructive" className="text-xs">
+                        Disconnected
+                      </Badge>
                     )}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs md:text-sm">
                     AI powered by Groq (Llama 3.1 70B)
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 md:space-y-4">
               <div className="space-y-2">
-                <Label>Backend API Connection</Label>
-                <div className="flex gap-2">
-                  <div className="flex-1 p-3 rounded-lg bg-muted/50 border">
+                <Label className="text-sm">Backend API Connection</Label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex-1 p-2.5 md:p-3 rounded-lg bg-muted/50 border">
                     <div className="flex items-center gap-2">
                       <div
                         className={`w-2 h-2 rounded-full ${
@@ -254,7 +256,7 @@ export default function SettingsPage() {
                               : "bg-yellow-500"
                         }`}
                       />
-                      <span className="text-sm font-medium">
+                      <span className="text-xs md:text-sm font-medium">
                         {apiStatus === "connected"
                           ? "API Connected"
                           : apiStatus === "disconnected"
@@ -262,7 +264,7 @@ export default function SettingsPage() {
                             : "Checking..."}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-[10px] md:text-xs text-muted-foreground mt-1 truncate">
                       {process.env.NEXT_PUBLIC_API_URL ||
                         "http://localhost:3001"}
                     </p>
@@ -271,18 +273,19 @@ export default function SettingsPage() {
                     variant="outline"
                     onClick={handleTestApi}
                     disabled={isTestingApi}
+                    size="sm"
+                    className="flex-shrink-0"
                   >
                     {isTestingApi ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
                     ) : (
-                      "Test Connection"
+                      "Test"
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  AI is configured on the backend with Groq API. Run the API
-                  server with{" "}
-                  <code className="px-1 py-0.5 rounded bg-muted">
+                <p className="text-[10px] md:text-xs text-muted-foreground">
+                  Run the API server with{" "}
+                  <code className="px-1 py-0.5 rounded bg-muted text-[10px] md:text-xs">
                     cd api && npm run dev
                   </code>
                 </p>
