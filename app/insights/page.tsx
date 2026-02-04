@@ -263,12 +263,17 @@ export default function InsightsPage() {
                   <div className="flex items-start gap-3 md:gap-4">
                     {getIcon(insight.type)}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base md:text-lg">{insight.title}</h3>
+                      <h3 className="font-semibold text-base md:text-lg">
+                        {insight.title}
+                      </h3>
                       <p className="text-muted-foreground text-sm mt-1 md:mt-2">
                         {insight.content}
                       </p>
                       <div className="flex items-center gap-2 mt-2 md:mt-3 flex-wrap">
-                        <Badge variant="outline" className="capitalize text-[10px] md:text-xs">
+                        <Badge
+                          variant="outline"
+                          className="capitalize text-[10px] md:text-xs"
+                        >
                           {insight.type}
                         </Badge>
                         <Badge
