@@ -213,11 +213,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     settings,
   ]);
 
+  // Unique ID generator to prevent duplicate keys
+  const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
   // Task operations
   const addTask = (task: Omit<Task, "id" | "createdAt">) => {
     const newTask: Task = {
       ...task,
-      id: Date.now().toString(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
     };
     setTasks((prev) => [newTask, ...prev]);
@@ -248,7 +251,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addHabit = (habit: Omit<Habit, "id" | "createdAt" | "completions">) => {
     const newHabit: Habit = {
       ...habit,
-      id: Date.now().toString(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
       completions: [],
     };
@@ -324,7 +327,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   ) => {
     const newTransaction: Transaction = {
       ...transaction,
-      id: Date.now().toString(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
     };
     setTransactions((prev) => [newTransaction, ...prev]);
@@ -358,7 +361,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addTimeEntry = (entry: Omit<TimeEntry, "id" | "createdAt">) => {
     const newEntry: TimeEntry = {
       ...entry,
-      id: Date.now().toString(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
     };
     setTimeEntries((prev) => [newEntry, ...prev]);
@@ -379,7 +382,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addGoal = (goal: Omit<Goal, "id" | "createdAt" | "completedAt">) => {
     const newGoal: Goal = {
       ...goal,
-      id: Date.now().toString(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
     };
     setGoals((prev) => [newGoal, ...prev]);
@@ -422,7 +425,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addStudySession = (session: Omit<StudySession, "id" | "createdAt">) => {
     const newSession: StudySession = {
       ...session,
-      id: Date.now().toString(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
     };
     setStudySessions((prev) => [newSession, ...prev]);
@@ -443,7 +446,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addJournalEntry = (entry: Omit<JournalEntry, "id" | "createdAt">) => {
     const newEntry: JournalEntry = {
       ...entry,
-      id: Date.now().toString(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
     };
     setJournalEntries((prev) => [newEntry, ...prev]);
@@ -522,7 +525,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addInsight = (insight: Omit<AIInsight, "id" | "createdAt">) => {
     const newInsight: AIInsight = {
       ...insight,
-      id: Date.now().toString(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
     };
     setInsights((prev) => [newInsight, ...prev]);
