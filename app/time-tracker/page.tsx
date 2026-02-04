@@ -527,17 +527,23 @@ export default function TimeTrackerPage() {
                   Select Task to Track
                 </Label>
                 <Select
-                  value={selectedTask?.id || ""}
+                  value={selectedTask?.id || "general"}
                   onValueChange={(v) => {
-                    const task = pendingTasks.find((t) => t.id === v);
-                    setSelectedTask(task || null);
+                    if (v === "general") {
+                      setSelectedTask(null);
+                    } else {
+                      const task = pendingTasks.find((t) => t.id === v);
+                      setSelectedTask(task || null);
+                    }
                   }}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Choose a task or work in general..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">General Focus Session</SelectItem>
+                    <SelectItem value="general">
+                      General Focus Session
+                    </SelectItem>
                     {pendingTasks.map((task) => (
                       <SelectItem key={task.id} value={task.id}>
                         <div className="flex items-center gap-2">
