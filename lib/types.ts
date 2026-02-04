@@ -3,9 +3,9 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  domain: 'work' | 'health' | 'study' | 'personal' | 'finance';
-  priority: 'low' | 'medium' | 'high';
-  status: 'todo' | 'in-progress' | 'completed';
+  domain: "work" | "health" | "study" | "personal" | "finance";
+  priority: "low" | "medium" | "high";
+  status: "todo" | "in-progress" | "completed";
   dueDate?: string;
   timeEstimate?: number; // in minutes
   timeSpent?: number; // in minutes
@@ -26,8 +26,14 @@ export interface Subtask {
 export interface Habit {
   id: string;
   name: string;
-  category: 'health' | 'productivity' | 'learning' | 'fitness' | 'mindfulness' | 'social';
-  frequency: 'daily' | 'weekly' | 'monthly';
+  category:
+    | "health"
+    | "productivity"
+    | "learning"
+    | "fitness"
+    | "mindfulness"
+    | "social";
+  frequency: "daily" | "weekly" | "monthly";
   description?: string;
   color?: string;
   streak: number;
@@ -47,11 +53,19 @@ export interface HabitCompletion {
 // Finance types
 export interface Transaction {
   id: string;
-  category: 'food' | 'transport' | 'entertainment' | 'health' | 'learning' | 'utilities' | 'salary' | 'other';
+  category:
+    | "food"
+    | "transport"
+    | "entertainment"
+    | "health"
+    | "learning"
+    | "utilities"
+    | "salary"
+    | "other";
   amount: number;
   description: string;
   date: string;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   createdAt: string;
 }
 
@@ -60,7 +74,7 @@ export interface Budget {
   category: string;
   limit: number;
   spent: number;
-  period: 'weekly' | 'monthly';
+  period: "weekly" | "monthly";
   createdAt: string;
 }
 
@@ -68,10 +82,10 @@ export interface Budget {
 export interface TimeEntry {
   id: string;
   task: string;
-  category: 'work' | 'study' | 'health' | 'personal';
+  category: "work" | "study" | "health" | "personal";
   duration: number; // in minutes
   date: string;
-  focusQuality: 'deep' | 'moderate' | 'shallow';
+  focusQuality: "deep" | "moderate" | "shallow";
   interruptions: number;
   notes?: string;
   createdAt: string;
@@ -82,11 +96,17 @@ export interface Goal {
   id: string;
   title: string;
   description: string;
-  category: 'personal' | 'health' | 'career' | 'financial' | 'education' | 'family';
-  priority: 'low' | 'medium' | 'high';
+  category:
+    | "personal"
+    | "health"
+    | "career"
+    | "financial"
+    | "education"
+    | "family";
+  priority: "low" | "medium" | "high";
   targetDate: string;
   progress: number; // 0-100
-  status: 'active' | 'completed' | 'paused' | 'abandoned';
+  status: "active" | "completed" | "paused" | "abandoned";
   milestones: Milestone[];
   createdAt: string;
   completedAt?: string;
@@ -106,7 +126,7 @@ export interface StudySession {
   subject: string;
   duration: number; // in minutes
   pomodoros: number;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   topic?: string;
   notes?: string;
   startTime: string;
@@ -130,7 +150,7 @@ export interface JournalEntry {
 
 // Life state types
 export interface LifeState {
-  status: 'momentum' | 'on-track' | 'drifting' | 'overloaded' | 'burnout';
+  status: "momentum" | "on-track" | "drifting" | "overloaded" | "burnout";
   momentum: number; // 0-100
   stress: number; // 0-100
   productivity: number; // 0-100
@@ -142,11 +162,11 @@ export interface LifeState {
 // AI Insight types
 export interface AIInsight {
   id: string;
-  type: 'pattern' | 'recommendation' | 'warning' | 'achievement' | 'synthesis';
+  type: "pattern" | "recommendation" | "warning" | "achievement" | "synthesis";
   title: string;
   content: string;
   domain?: string;
-  severity: 'info' | 'success' | 'warning' | 'critical';
+  severity: "info" | "success" | "warning" | "critical";
   actionable: boolean;
   relatedData?: Record<string, any>;
   createdAt: string;
@@ -154,7 +174,8 @@ export interface AIInsight {
 
 // Settings types
 export interface UserSettings {
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
+  sidebarCollapsed?: boolean;
   notifications: {
     enabled: boolean;
     tasks: boolean;
@@ -166,8 +187,8 @@ export interface UserSettings {
     aiAnalysis: boolean;
   };
   preferences: {
-    startOfWeek: 'monday' | 'sunday';
-    timeFormat: '12h' | '24h';
+    startOfWeek: "monday" | "sunday";
+    timeFormat: "12h" | "24h";
     language: string;
   };
 }

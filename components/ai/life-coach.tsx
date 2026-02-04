@@ -233,6 +233,7 @@ export function AILifeCoach() {
     }
 
     // Finance analysis
+    const netBalance = financeStats.income - financeStats.expenses;
     if (financeStats.expenses > financeStats.income * 0.8) {
       score -= 5;
       insights.push({
@@ -243,13 +244,13 @@ export function AILifeCoach() {
           "Expenses are at 80%+ of income. Review discretionary spending.",
         action: "Review this month's expenses",
       });
-    } else if (financeStats.savings > 0) {
+    } else if (netBalance > 0) {
       score += 5;
       insights.push({
         type: "strength",
         domain: "finance",
         title: "Positive savings",
-        description: `You've saved $${financeStats.savings.toFixed(0)} this month!`,
+        description: `You've saved $${netBalance.toFixed(0)} this month!`,
       });
     }
 

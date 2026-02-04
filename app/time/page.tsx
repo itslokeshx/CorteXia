@@ -68,9 +68,12 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const CATEGORY_LIGHT_COLORS: Record<string, string> = {
   work: "bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700",
-  study: "bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700",
-  health: "bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700",
-  personal: "bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700",
+  study:
+    "bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700",
+  health:
+    "bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700",
+  personal:
+    "bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700",
 };
 
 // Visual Time Block Component
@@ -162,7 +165,9 @@ function DayCalendarView({
             key={hour}
             className={cn(
               "flex border-b last:border-b-0 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50",
-              isToday && hour === currentHour && "bg-blue-50 dark:bg-blue-900/20",
+              isToday &&
+                hour === currentHour &&
+                "bg-blue-50 dark:bg-blue-900/20",
             )}
             style={{ height: "60px" }}
             onClick={() => onAddBlock(hour)}
@@ -264,7 +269,10 @@ function WeekView({
         {/* Week grid */}
         <div className="border rounded-lg overflow-hidden">
           {HOURS.filter((_, i) => i % 2 === 0).map((hour) => (
-            <div key={hour} className="grid grid-cols-8 border-b last:border-b-0">
+            <div
+              key={hour}
+              className="grid grid-cols-8 border-b last:border-b-0"
+            >
               {/* Hour label */}
               <div className="w-12 px-1 py-2 text-[10px] text-muted-foreground bg-gray-50/50 dark:bg-gray-900/50 border-r">
                 {hour % 12 === 0 ? 12 : hour % 12}
@@ -275,7 +283,10 @@ function WeekView({
               {weekDays.map((day) => {
                 const dateStr = day.toISOString().split("T")[0];
                 const dayBlocks = blocks.filter(
-                  (b) => b.date === dateStr && b.startHour >= hour && b.startHour < hour + 2,
+                  (b) =>
+                    b.date === dateStr &&
+                    b.startHour >= hour &&
+                    b.startHour < hour + 2,
                 );
 
                 return (
@@ -348,7 +359,10 @@ function PomodoroTimer() {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const progress = mode === "work" ? (1 - timeLeft / (25 * 60)) * 100 : (1 - timeLeft / (5 * 60)) * 100;
+  const progress =
+    mode === "work"
+      ? (1 - timeLeft / (25 * 60)) * 100
+      : (1 - timeLeft / (5 * 60)) * 100;
 
   return (
     <Card className="border-border/50">
@@ -381,12 +395,16 @@ function PomodoroTimer() {
               strokeLinecap="round"
               strokeDasharray={2 * Math.PI * 45}
               initial={{ strokeDashoffset: 2 * Math.PI * 45 }}
-              animate={{ strokeDashoffset: 2 * Math.PI * 45 * (1 - progress / 100) }}
+              animate={{
+                strokeDashoffset: 2 * Math.PI * 45 * (1 - progress / 100),
+              }}
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-2xl font-bold">{formatTime(timeLeft)}</span>
-            <span className="text-xs text-muted-foreground capitalize">{mode}</span>
+            <span className="text-xs text-muted-foreground capitalize">
+              {mode}
+            </span>
           </div>
         </div>
 
@@ -431,7 +449,13 @@ function PomodoroTimer() {
 }
 
 export default function TimeBlockingPage() {
-  const { timeEntries, addTimeEntry, deleteTimeEntry, getTodayStats, getWeeklyStats } = useApp();
+  const {
+    timeEntries,
+    addTimeEntry,
+    deleteTimeEntry,
+    getTodayStats,
+    getWeeklyStats,
+  } = useApp();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [blocks, setBlocks] = useState<TimeBlock[]>([]);
@@ -465,14 +489,17 @@ export default function TimeBlockingPage() {
     localStorage.setItem("cortexia-time-blocks", JSON.stringify(blocks));
   }, [blocks]);
 
-  const handleAddBlock = useCallback((hour: number, date?: string) => {
-    setNewBlock((prev) => ({
-      ...prev,
-      startHour: hour,
-      date: date || selectedDate.toISOString().split("T")[0],
-    }));
-    setDialogOpen(true);
-  }, [selectedDate]);
+  const handleAddBlock = useCallback(
+    (hour: number, date?: string) => {
+      setNewBlock((prev) => ({
+        ...prev,
+        startHour: hour,
+        date: date || selectedDate.toISOString().split("T")[0],
+      }));
+      setDialogOpen(true);
+    },
+    [selectedDate],
+  );
 
   const handleCreateBlock = () => {
     if (newBlock.title.trim()) {
@@ -558,13 +585,18 @@ export default function TimeBlockingPage() {
                 <Input
                   placeholder="What are you working on?"
                   value={newBlock.title}
-                  onChange={(e) => setNewBlock({ ...newBlock, title: e.target.value })}
+                  onChange={(e) =>
+                    setNewBlock({ ...newBlock, title: e.target.value })
+                  }
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <Select
                     value={newBlock.category}
                     onValueChange={(v) =>
-                      setNewBlock({ ...newBlock, category: v as typeof newBlock.category })
+                      setNewBlock({
+                        ...newBlock,
+                        category: v as typeof newBlock.category,
+                      })
                     }
                   >
                     <SelectTrigger>
@@ -600,11 +632,15 @@ export default function TimeBlockingPage() {
                   <Input
                     type="date"
                     value={newBlock.date}
-                    onChange={(e) => setNewBlock({ ...newBlock, date: e.target.value })}
+                    onChange={(e) =>
+                      setNewBlock({ ...newBlock, date: e.target.value })
+                    }
                   />
                   <Select
                     value={newBlock.startHour.toString()}
-                    onValueChange={(v) => setNewBlock({ ...newBlock, startHour: parseInt(v) })}
+                    onValueChange={(v) =>
+                      setNewBlock({ ...newBlock, startHour: parseInt(v) })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -632,9 +668,13 @@ export default function TimeBlockingPage() {
             <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
               <div className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-blue-500" />
-                <div className="text-2xl md:text-3xl font-bold">{plannedHours}h</div>
+                <div className="text-2xl md:text-3xl font-bold">
+                  {plannedHours}h
+                </div>
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">Planned Today</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                Planned Today
+              </p>
             </CardContent>
           </Card>
           <Card className="border-border/50">
@@ -645,7 +685,9 @@ export default function TimeBlockingPage() {
                   {completedHours}h
                 </div>
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">Completed</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                Completed
+              </p>
             </CardContent>
           </Card>
           <Card className="border-border/50">
@@ -653,10 +695,12 @@ export default function TimeBlockingPage() {
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-purple-500" />
                 <div className="text-2xl md:text-3xl font-bold text-purple-500">
-                  {Math.round(todayStats.minutes / 60)}h
+                  {Math.round(todayStats.totalMinutes / 60)}h
                 </div>
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">Logged Today</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                Logged Today
+              </p>
             </CardContent>
           </Card>
           <Card className="border-border/50">
@@ -667,7 +711,9 @@ export default function TimeBlockingPage() {
                   {Math.round(weeklyStats.total / 60)}h
                 </div>
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">This Week</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                This Week
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -679,10 +725,18 @@ export default function TimeBlockingPage() {
             {/* View Toggle & Navigation */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={() => navigateDate("prev")}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => navigateDate("prev")}
+                >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" size="icon" onClick={() => navigateDate("next")}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => navigateDate("next")}
+                >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
                 <h2 className="font-semibold ml-2">
@@ -692,10 +746,13 @@ export default function TimeBlockingPage() {
                         month: "long",
                         day: "numeric",
                       })
-                    : `Week of ${getWeekStart(selectedDate).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}`}
+                    : `Week of ${getWeekStart(selectedDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}`}
                 </h2>
               </div>
               <div className="flex items-center gap-2">
@@ -706,7 +763,10 @@ export default function TimeBlockingPage() {
                 >
                   Today
                 </Button>
-                <Tabs value={activeView} onValueChange={(v) => setActiveView(v as "day" | "week")}>
+                <Tabs
+                  value={activeView}
+                  onValueChange={(v) => setActiveView(v as "day" | "week")}
+                >
                   <TabsList className="h-8">
                     <TabsTrigger value="day" className="text-xs px-3">
                       Day
@@ -773,7 +833,12 @@ export default function TimeBlockingPage() {
                           block.completed && "opacity-60",
                         )}
                       >
-                        <div className={cn("w-2 h-2 rounded-full", CATEGORY_COLORS[block.category])} />
+                        <div
+                          className={cn(
+                            "w-2 h-2 rounded-full",
+                            CATEGORY_COLORS[block.category],
+                          )}
+                        />
                         <div className="flex-1 min-w-0">
                           <p
                             className={cn(
@@ -784,8 +849,11 @@ export default function TimeBlockingPage() {
                             {block.title}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {block.startHour % 12 === 0 ? 12 : block.startHour % 12}
-                            {block.startHour < 12 ? "AM" : "PM"} • {block.duration}h
+                            {block.startHour % 12 === 0
+                              ? 12
+                              : block.startHour % 12}
+                            {block.startHour < 12 ? "AM" : "PM"} •{" "}
+                            {block.duration}h
                           </p>
                         </div>
                         <Badge variant="secondary" className="text-[9px]">
@@ -804,7 +872,10 @@ export default function TimeBlockingPage() {
               </CardHeader>
               <CardContent className="space-y-1">
                 {Object.entries(CATEGORY_COLORS).map(([category, color]) => (
-                  <div key={category} className="flex items-center gap-2 text-sm">
+                  <div
+                    key={category}
+                    className="flex items-center gap-2 text-sm"
+                  >
                     <div className={cn("w-3 h-3 rounded", color)} />
                     <span className="capitalize">{category}</span>
                   </div>
