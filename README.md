@@ -2,7 +2,7 @@
 
 A unified, AI-powered personal life operating system designed with surgical precision, calm authority, and invisible elegance. CorteXia integrates every dimension of personal life management into one intelligent system.
 
-TESTING BRANCHING!
+> **This is NOT mock data. This is NOT a read-only UI. This is a COMPLETE, FUNCTIONAL APPLICATION.**
 
 ## Vision
 
@@ -12,15 +12,14 @@ CorteXia is the world's first unified personal life operating system that compet
 
 CorteXia integrates ALL aspects of personal life management into ONE intelligent system:
 
-- **Tasks & To-Dos** - Hierarchical task management with priority and time tracking
+- **Tasks & To-Dos** - Full CRUD with priority, categories, time estimates, and completion tracking
 - **Time Tracking** - Deep analytics on how you spend your hours with focus quality metrics
 - **Habit Tracking** - Streak-based habit management with GitHub-style calendar visualization
 - **Finance Tracking** - Budget management, spending analytics, and financial insights
 - **Study Sessions** - Learning goal tracking with subject breakdown and focus level monitoring
-- **Screen Time** - Real-time screen usage analytics with health implications
 - **Journal Entries** - Reflective journaling with AI-powered summaries and pattern detection
 - **Goal Architecture** - Hierarchical goal system with milestones and progress tracking
-- **AI-Powered Insights** - Cross-domain pattern detection, behavioral analysis, and recommendations
+- **AI-Powered Insights** - Cross-domain pattern detection via Gemini AI integration
 
 ## Design Philosophy
 
@@ -30,100 +29,222 @@ CorteXia integrates ALL aspects of personal life management into ONE intelligent
 - **Truth Over Decoration** - Color only when meaningful; data-driven design
 - **Addictive Through Clarity** - Engaging through understanding, not gamification
 
-## Architecture
+## Tech Stack
 
-### Tech Stack
+### Frontend
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4
-- **UI Components**: shadcn/ui components with custom CorteXia theming
+- **Framework**: Next.js 16.0.10 with App Router
+- **UI Library**: React 19.2.0
+- **Styling**: Tailwind CSS v4
+- **Components**: shadcn/ui with custom CorteXia theming
 - **Charts**: Recharts for data visualization
 - **Icons**: Lucide React
-- **State Management**: Client-side React with Zustand-ready architecture
-- **Layout**: App Router with modular component structure
+- **State**: React Context with localStorage persistence
 
-### Project Structure
+### Backend API
+
+- **Framework**: Hono 4.5.1 (lightweight, edge-ready)
+- **Server**: @hono/node-server
+- **Database**: PostgreSQL via Supabase
+- **ORM**: Drizzle ORM 0.29.5
+- **Validation**: Zod schemas
+- **AI**: Google Gemini 1.5 Pro (@google/generative-ai)
+
+## Project Structure
 
 ```
 CorteXia/
-├── /app
-│   ├── layout.tsx              # Root layout with metadata
-│   ├── globals.css             # Design system & CSS variables
+├── app/                        # Next.js App Router pages
+│   ├── layout.tsx              # Root layout with providers
 │   ├── page.tsx                # Dashboard home
-│   ├── /tasks                  # Task management
-│   ├── /habits                 # Habit tracking
-│   ├── /time                   # Time analytics
-│   ├── /finance                # Finance tracking
-│   ├── /study                  # Study session management
-│   ├── /goals                  # Goal architecture
-│   ├── /journal                # Journaling
-│   ├── /insights               # AI insights
-│   └── /settings               # Settings & preferences
-├── /components
-│   ├── /layout                 # Header, Sidebar, AppLayout
-│   ├── /dashboard              # Life State Core, Signals, AI Reasoning Strip
-│   └── /ui                     # shadcn/ui components
-└── /lib
-    └── utils.ts                # Utility functions
+│   ├── tasks/                  # Task management
+│   ├── habits/                 # Habit tracking
+│   ├── time/                   # Time analytics
+│   ├── finance/                # Finance tracking
+│   ├── study/                  # Study sessions
+│   ├── goals/                  # Goal architecture
+│   ├── journal/                # Journaling
+│   ├── insights/               # AI insights
+│   └── settings/               # Settings & preferences
+├── components/
+│   ├── layout/                 # Header, Sidebar, AppLayout
+│   ├── dashboard/              # Life State Core, Signals, AI Strip
+│   ├── tasks/                  # Task-specific components
+│   └── ui/                     # shadcn/ui components
+├── hooks/                      # Custom React hooks
+│   ├── use-tasks.ts            # Task management hook
+│   ├── use-goals.ts            # Goals management hook
+│   ├── use-habits.ts           # Habits management hook
+│   ├── use-finance.ts          # Finance management hook
+│   └── use-time-tracking.ts    # Time tracking hook
+├── lib/
+│   ├── utils.ts                # Utility functions
+│   ├── types.ts                # TypeScript types
+│   └── context/
+│       └── app-context.tsx     # Global app state
+├── api/                        # Backend API (Hono)
+│   ├── index.ts                # API entry point
+│   ├── routes/
+│   │   ├── tasks.ts            # Tasks CRUD API
+│   │   ├── habits.ts           # Habits CRUD API
+│   │   ├── goals.ts            # Goals CRUD API
+│   │   ├── journal.ts          # Journal entries API
+│   │   ├── finance.ts          # Finance API
+│   │   ├── time-tracking.ts    # Time tracking API
+│   │   ├── insights.ts         # AI insights API
+│   │   └── auth.ts             # Authentication API
+│   ├── db/
+│   │   ├── index.ts            # Database connection
+│   │   └── schema.ts           # Drizzle ORM schema
+│   ├── services/
+│   │   └── ai.ts               # Gemini AI service
+│   └── middleware/
+│       └── auth.ts             # Auth middleware
+└── types/
+    └── goal.ts                 # Goal type definitions
 ```
 
-## Key Pages & Features
+## API Endpoints
+
+### Tasks (`/api/tasks`)
+
+| Method | Endpoint        | Description                   |
+| ------ | --------------- | ----------------------------- |
+| GET    | `/`             | List all tasks with filtering |
+| POST   | `/`             | Create a new task             |
+| GET    | `/:id`          | Get task by ID                |
+| PATCH  | `/:id`          | Update task                   |
+| DELETE | `/:id`          | Delete task                   |
+| POST   | `/:id/complete` | Mark task complete            |
+| GET    | `/stats`        | Get task statistics           |
+
+### Goals (`/api/goals`)
+
+| Method | Endpoint               | Description       |
+| ------ | ---------------------- | ----------------- |
+| GET    | `/`                    | List all goals    |
+| POST   | `/`                    | Create a new goal |
+| GET    | `/:id`                 | Get goal by ID    |
+| PATCH  | `/:id`                 | Update goal       |
+| DELETE | `/:id`                 | Delete goal       |
+| POST   | `/:id/milestones`      | Add milestone     |
+| PATCH  | `/:id/milestones/:mid` | Update milestone  |
+
+### Habits (`/api/habits`)
+
+| Method | Endpoint     | Description          |
+| ------ | ------------ | -------------------- |
+| GET    | `/`          | List all habits      |
+| POST   | `/`          | Create a new habit   |
+| GET    | `/:id`       | Get habit by ID      |
+| PATCH  | `/:id`       | Update habit         |
+| DELETE | `/:id`       | Delete habit         |
+| POST   | `/:id/check` | Log habit completion |
+| GET    | `/streaks`   | Get streak data      |
+
+### Journal (`/api/journal`)
+
+| Method | Endpoint         | Description          |
+| ------ | ---------------- | -------------------- |
+| GET    | `/`              | List journal entries |
+| POST   | `/`              | Create entry         |
+| GET    | `/:id`           | Get entry by ID      |
+| PATCH  | `/:id`           | Update entry         |
+| DELETE | `/:id`           | Delete entry         |
+| POST   | `/:id/summarize` | AI summarize entry   |
+| GET    | `/stats`         | Get journaling stats |
+
+### Finance (`/api/finance`)
+
+| Method | Endpoint        | Description        |
+| ------ | --------------- | ------------------ |
+| GET    | `/transactions` | List transactions  |
+| POST   | `/transactions` | Add transaction    |
+| GET    | `/budgets`      | Get budgets        |
+| POST   | `/budgets`      | Create budget      |
+| GET    | `/summary`      | Financial summary  |
+| GET    | `/analytics`    | Spending analytics |
+
+### AI Insights (`/api/insights`)
+
+| Method | Endpoint           | Description           |
+| ------ | ------------------ | --------------------- |
+| GET    | `/daily`           | Daily briefing        |
+| GET    | `/weekly`          | Weekly synthesis      |
+| GET    | `/patterns`        | Cross-domain patterns |
+| GET    | `/recommendations` | AI recommendations    |
+| POST   | `/analyze`         | Custom analysis       |
+
+## Key Features
 
 ### Dashboard (Home)
+
 The central hub of CorteXia featuring:
-- **Life State Core** - AI-calculated life state (Momentum, On Track, Drifting, Overloaded)
-- **Signal Constellation** - 8 signals in orbital layout (Time, Focus, Habits, Goals, Money, Study, Screen, Energy)
-- **AI Reasoning Strip** - Fixed bottom panel explaining AI insights and recommendations
+
+- **Life State Core** - Dynamic AI-calculated life state (Momentum, On Track, Drifting, Overloaded)
+- **Signal Constellation** - 8 signals in orbital layout showing real-time domain health
+- **AI Reasoning Strip** - Fixed bottom panel with Gemini-powered insights
 
 ### Tasks Page
-- Comprehensive task management with priority levels
+
+- Full CRUD operations with real database persistence
+- Priority levels (low, medium, high, urgent)
+- Categories and domain filtering
 - Time estimation and completion tracking
-- Filter by domain (work, personal, health, learning)
 - Quick stats on high-priority and due-today tasks
 
 ### Habits Page
+
 - Daily/weekly habit tracking with checkboxes
 - Streak visualization with GitHub-style calendar
 - Individual streak counters and momentum tracking
 - Habit performance analytics
 
 ### Time Analytics
+
 - Weekly time distribution charts
 - Focus quality analysis (focused/distracted/neutral)
 - Category breakdown of time allocation
 - Daily productivity metrics
 
 ### Finance
+
 - Income vs. expense tracking
 - Weekly spending patterns with budget comparison
 - Category-based spending breakdown
 - Budget progress bars with warning indicators
 
 ### Study
+
 - Session-based learning tracking
 - Subject breakdown with time allocation
 - Learning goal progress tracking
 - Focus level metrics per session
 
 ### Goals
+
 - Hierarchical goal system with milestones
 - Progress bars with deadline tracking
 - Sub-goal completion tracking
 - Priority-based goal organization
 
 ### Journal
+
 - Rich text journaling with mood tracking
-- AI-powered entry summaries
+- AI-powered entry summaries via Gemini
 - Tag-based organization
 - Mood analytics and sentiment tracking
 
 ### AI Insights
-- Cross-domain pattern detection
+
+- Cross-domain pattern detection via Gemini 1.5 Pro
 - Behavioral analysis and recommendations
 - Weekly synthesis of life trends
 - Morning briefing generation
 - Actionable recommendations with impact estimates
 
 ### Settings
+
 - Account and profile management
 - Notification preferences
 - Privacy and security controls
@@ -135,6 +256,7 @@ The central hub of CorteXia featuring:
 ### Color Palette
 
 **Semantic State Colors** (consistent across light/dark):
+
 - Momentum: `#10B981` (Green)
 - On Track: `#3B82F6` (Blue)
 - Strategic: `#8B5CF6` (Purple)
@@ -143,6 +265,7 @@ The central hub of CorteXia featuring:
 - Burnout: `#DC2626` (Dark Red)
 
 **Light Mode Neutrals**:
+
 - Background: `#FFFFFF`
 - Secondary: `#F8F9FA`
 - Tertiary: `#F0F1F3`
@@ -151,6 +274,7 @@ The central hub of CorteXia featuring:
 - Text Tertiary: `#9CA3AF`
 
 **Dark Mode Neutrals**:
+
 - Background: `#0A0B0D`
 - Secondary: `#151618`
 - Tertiary: `#1F2023`
