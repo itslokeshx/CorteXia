@@ -162,19 +162,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper to deduplicate arrays by id (fixes legacy duplicate key issues)
+  const deduplicateById = <T extends { id: string }>(arr: T[]): T[] => {
+    const seen = new Set<string>();
+    return arr.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  };
+
   // Load from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem("cortexia-data");
       if (saved) {
         const data = JSON.parse(saved);
-        setTasks(data.tasks || []);
-        setHabits(data.habits || []);
-        setTransactions(data.transactions || []);
-        setTimeEntries(data.timeEntries || []);
-        setGoals(data.goals || []);
-        setStudySessions(data.studySessions || []);
-        setJournalEntries(data.journalEntries || []);
+        // Deduplicate all arrays to fix any legacy duplicate IDs
+        setTasks(deduplicateById(data.tasks || []));
+        setHabits(deduplicateById(data.habits || []));
+        setTransactions(deduplicateById(data.transactions || []));
+        setTimeEntries(deduplicateById(data.timeEntries || []));
+        setGoals(deduplicateById(data.goals || []));
+        setStudySessions(deduplicateById(data.studySessions || []));
+        setJournalEntries(deduplicateById(data.journalEntries || []));
         setLifeState(data.lifeState || DEFAULT_LIFE_STATE);
         setSettings(data.settings || DEFAULT_SETTINGS);
       }

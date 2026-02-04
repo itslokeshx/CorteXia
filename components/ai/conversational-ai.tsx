@@ -39,6 +39,66 @@ interface ChatMessage {
   suggestions?: Array<{ text: string; action: string; reason?: string }>;
 }
 
+// Format action for display in chat
+const formatActionSummary = (action: {
+  type: string;
+  data: Record<string, unknown>;
+}): string => {
+  const { type, data } = action;
+  switch (type) {
+    case "create_task":
+      return `Created task: "${data.title}"`;
+    case "update_task":
+      return `Updated task`;
+    case "delete_task":
+      return `Deleted task`;
+    case "complete_task":
+      return `Completed task`;
+    case "create_habit":
+      return `Created habit: "${data.name}"`;
+    case "update_habit":
+      return `Updated habit`;
+    case "delete_habit":
+      return `Deleted habit`;
+    case "complete_habit":
+      return `Marked habit as done`;
+    case "create_goal":
+      return `Created goal: "${data.title}"`;
+    case "update_goal":
+      return `Updated goal`;
+    case "delete_goal":
+      return `Deleted goal`;
+    case "complete_milestone":
+      return `Completed milestone`;
+    case "add_tasks_to_goal":
+      return `Added ${(data.tasks as any[])?.length || 0} tasks to goal`;
+    case "add_expense":
+      return `Logged expense: $${data.amount}`;
+    case "add_income":
+      return `Logged income: $${data.amount}`;
+    case "delete_transaction":
+      return `Deleted transaction`;
+    case "log_time":
+      return `Logged ${data.duration}min for "${data.task}"`;
+    case "delete_time_entry":
+      return `Deleted time entry`;
+    case "log_study":
+      return `Logged ${data.duration}min studying ${data.subject}`;
+    case "delete_study_session":
+      return `Deleted study session`;
+    case "create_journal":
+      return `Created journal entry`;
+    case "update_journal":
+      return `Updated journal`;
+    case "delete_journal":
+      return `Deleted journal entry`;
+    case "navigate":
+      return `Navigating to ${data.path}`;
+    default:
+      return `${type.replace(/_/g, " ")}`;
+  }
+};
+
 const QUICK_ACTIONS = [
   { icon: Calendar, label: "Show Today", action: "show_today" },
   { icon: BarChart3, label: "Analyze Patterns", action: "analyze_patterns" },
@@ -888,12 +948,22 @@ export function ConversationalAI() {
                       </div>
                     )}
 
-                    {/* Actions executed */}
+                    {/* Actions executed - show clear details */}
                     {message.actions && message.actions.length > 0 && (
-                      <div className="mt-2 flex items-center gap-1 text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="w-3 h-3" />
-                        {message.actions.length} action
-                        {message.actions.length > 1 ? "s" : ""} executed
+                      <div className="mt-2 pt-2 border-t border-emerald-500/20 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Done:
+                        </div>
+                        {message.actions.map((action, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-1.5 text-[10px] sm:text-xs text-emerald-600/80 dark:text-emerald-400/80 pl-5"
+                          >
+                            <span className="w-1 h-1 rounded-full bg-emerald-500" />
+                            {formatActionSummary(action)}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
