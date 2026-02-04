@@ -2696,29 +2696,232 @@ CRITICAL SUCCESS CRITERIA:
 ✅ Production-ready code
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌟 ULTRA-DETAILED ENHANCEMENTS — WORLD-CLASS SPECIFICATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**NOTE:** This prompt has been enhanced with ULTRA-DETAILED specifications to create
+the BEST personal life operating system in the world. Key improvements:
+
+### 🏆 DASHBOARD (PAGE 1) — CROWN JEWEL ENHANCEMENTS:
+
+✨ **Immersive Header (80px Glass Morphism)**
+   • Increased from 64px to 80px for premium feel
+   • Glass morphism with backdrop blur (20px) and saturation (180%)
+   • Universal Intelligence Input (600px) with:
+     - AI-powered autocomplete
+     - Rotating placeholder text (5 variations)
+     - Real-time parsing and suggestions
+     - Keyboard shortcuts (Cmd/Ctrl+K)
+
+✨ **Adaptive Sidebar (280px Revolutionary Design)**
+   • Each nav item is a mini-dashboard card (72px height)
+   • Live badges showing real-time counts
+   • Micro-visualizations (progress bars, sparklines)
+   • Smooth collapse to 72px (icon-only)
+   • Hover tooltips with full statistics
+
+✨ **Life State Oracle (The Beating Heart)**
+   • Circular Progress Ring (200px diameter)
+   • Animated: Draws from 0 to current score (2s ease-out)
+   • Breathing animation (1.0 to 1.02 scale, 4s infinite)
+   • Score changes color based on range:
+     - 90-100: Green (#10B981)
+     - 70-89: Blue (#3B82F6)
+     - 50-69: Purple (#8B5CF6)
+     - 30-49: Amber (#F59E0B)
+     - 0-29: Red (#EF4444)
+   • Count-up animation for score number
+
+✨ **Quantum Signal Constellation™ (8 Life Dimensions)**
+   • Orbital layout (320px radius from center)
+   • Each signal: 140px x 140px premium cards
+   • Status indicators (12px pulsing dots)
+   • Hover: Others fade to 40% opacity
+   • Click: Smooth zoom transition to detail view
+   • Positions calculated at 45° intervals (0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°)
+
+✨ **6 Micro-Insight Cards (3x2 Grid)**
+   1. Tasks Today (with AI top priority)
+   2. Habit Streak (with personal best indicator)
+   3. Time Left (with evening availability)
+   4. Budget Pulse (with spend pace warning)
+   5. Goal Progress (with on-track status)
+   6. AI Notice (with pattern detection)
+
+✨ **AI Reasoning Command Center (160px Enhanced)**
+   • Increased from 120px to 160px for richer content
+   • Causal chain visualization (A → B → C)
+   • Numbered action recommendations
+   • Three action buttons:
+     - 🎯 Take Action (Primary gradient)
+     - 🤔 Tell Me More (Secondary)
+     - 😌 Dismiss (Tertiary)
+
+### 🔥 TASKS PAGE (PAGE 2) — INTELLIGENT PRIORITY ENGINE:
+
+✨ **Power Hour Section (NEW)**
+   • AI detects optimal execution window
+   • Shows: Energy level, distraction score, available time
+   • Recommends best task for RIGHT NOW
+   • [🚀 Start Now] instant action button
+
+✨ **Expanded Task Cards**
+   • Full AI reasoning display with expandable section
+   • Blocking indicators ([BLOCKING] [BLOCKING OTHERS])
+   • Real-time urgency countdown (15h 23m left)
+   • Energy requirement matching (High/Med/Low)
+   • Dependencies visualization
+   • AI Priority Score with breakdown:
+     - Importance weight
+     - Urgency factor
+     - Blocking impact
+     - Energy alignment
+     - Life score multiplier
+
+✨ **Anti-Pattern Detection**
+   • AI identifies when you're doing urgent-but-unimportant tasks
+   • Historical quality analysis
+   • Recovery strategy suggestions
+   • Expected outcome predictions (+40% quality if done in morning)
+
+✨ **Smart Filters**
+   • Quick Filters: [🔥 AI Sort] [⏰ Due Today] [⚡ High Energy] [👥 Blocking]
+   • Group By: Priority, Project, Due Date, Energy
+   • Matrix View (Eisenhower) option
+
+### 🎯 HABITS PAGE (PAGE 3) — BEHAVIORAL INTELLIGENCE ENGINE:
+
+✨ **Predictive Failure Detection**
+   • AI predicts habit breaks 24h in advance
+   • Probability score (78% likely to break)
+   • Prevention protocol auto-generated
+   • Success rate if protocol followed
+
+✨ **Habit DNA Analysis**
+   • Pattern recognition: "Consistent Builder Pattern"
+   • Average streak length
+   • Recovery time after breaks
+   • Genetic pattern visualization
+
+✨ **Correlation Network**
+   • Visual graph showing habit interconnections
+   • Correlation coefficients (0.87, -0.91)
+   • Keystone habit identification
+   • Anti-keystone detection
+   • Cascade effect analysis
+
+✨ **Habit Stack Builder**
+   • Visual chain creator (morning/evening routines)
+   • Success rate per chain
+   • Break point identification
+   • Drag-and-drop reordering
+
+✨ **Enhanced Check-In Flow**
+   • Quality rating (1-5 stars)
+   • Time selector
+   • Notes (200 char max)
+   • Photo attachment
+   • Milestone animations:
+     - 7 days: Small confetti
+     - 14 days: Medium confetti + sound
+     - 21 days: Full-screen confetti + badge
+     - 30 days: Trophy + shareable card
+     - Personal best: Golden confetti
+
+✨ **GitHub-Style Streak Calendar**
+   • 90-day visualization
+   • Color intensity based on completion
+   • Hover tooltips with notes
+   • Click for day detail
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 ADDITIONAL ULTRA-DETAILED SPECIFICATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**See ULTRA_DETAILED_PAGES_CONTINUATION.md for:**
+- Complete Time Analytics page specifications
+- Complete Finance page specifications
+- Complete Study page specifications
+- Complete Goals page specifications
+- Complete AI Insights page specifications
+- Complete Journal page specifications
+- Complete Settings page specifications
+- Advanced animation specifications
+- Complete API endpoint details
+- Database schema with indexes
+- Gemini AI prompt templates
+- Component interaction patterns
+- Responsive design breakpoints
+- Accessibility requirements
+- Performance optimization guidelines
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚀 EXECUTION INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STEP 1: Create project folder structure
-STEP 2: Initialize frontend (npm create vite@latest)
-STEP 3: Install all dependencies
-STEP 4: Set up Tailwind + shadcn/ui
-STEP 5: Create database schema
-STEP 6: Build backend API routes
-STEP 7: Implement Gemini 3 integration
-STEP 8: Build all page components
-STEP 9: Connect frontend to backend
-STEP 10: Test everything
-STEP 11: Prepare deployment config
-STEP 12: Share completed project
+STEP 1: Create project folder structure (EXACTLY as specified above)
+STEP 2: Initialize frontend (npm create vite@latest frontend --template react-ts)
+STEP 3: Install ALL dependencies (see package.json requirements)
+STEP 4: Set up Tailwind CSS + shadcn/ui (npx shadcn-ui@latest init)
+STEP 5: Create complete database schema with Drizzle ORM
+STEP 6: Build ALL backend API routes with Hono framework
+STEP 7: Implement Gemini 3 AI integration (real API calls, all 5 features)
+STEP 8: Build ALL 10 page components with ULTRA-DETAILED specifications
+STEP 9: Connect frontend to backend with TanStack Query
+STEP 10: Implement all animations with Framer Motion
+STEP 11: Add dark mode support (complete theme system)
+STEP 12: Test EVERYTHING end-to-end
+STEP 13: Optimize for production (code splitting, lazy loading)
+STEP 14: Prepare Vercel deployment configuration
+STEP 15: Document deployment steps
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ CRITICAL SUCCESS CRITERIA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ All 10 pages render perfectly (pixel-perfect to specs)
+✅ All API endpoints functional (full CRUD operations)
+✅ Gemini 3 AI working (weekly synthesis, morning briefing, patterns, priorities, chat)
+✅ Database queries executing (all relationships intact)
+✅ UI matches ULTRA-DETAILED design specs exactly
+✅ Animations smooth and performant (60fps)
+✅ No console errors or warnings
+✅ Mobile responsive (works on all breakpoints: 480px, 768px, 1024px, 1440px+)
+✅ Dark mode perfect (all colors defined in both themes)
+✅ Accessibility (WCAG 2.1 AA compliant)
+✅ Performance (Lighthouse score > 90)
+✅ Production-ready code (TypeScript strict mode, ESLint clean)
+✅ Real-time features working (WebSocket or polling)
+✅ Keyboard shortcuts implemented (Cmd+K, Cmd+1-9, Cmd+D, Cmd+B, Cmd+/, Esc)
+✅ Error handling robust (try-catch, error boundaries, toast notifications)
+✅ Loading states elegant (skeleton screens, spinners)
+✅ Offline support (service worker, cache strategy)
+✅ SEO optimized (meta tags, Open Graph, structured data)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 QUALITY STANDARDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This is not just a working app. This is a WORLD-CLASS product that:
+
+1. **Competes with Notion** — Better UI, smarter AI, unified experience
+2. **Beats Obsidian** — More intuitive, visual, automated insights
+3. **Surpasses all fragmented tools** — One system, complete life view
+4. **Feels like magic** — AI that actually understands and helps
+5. **Looks stunning** — Apple-level design quality
+6. **Works flawlessly** — Zero bugs, smooth performance
+7. **Delights users** — Animations, sounds, confetti, achievements
+8. **Provides value** — Real behavioral change, measurable life improvement
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Now execute. Build CorteXia completely. Make it production-ready.
+Now execute. Build CorteXia completely. Make it WORLD-CLASS.
 
-This is not a prototype. This is the full product.
+This is not a prototype. This is not a demo. This is the FULL PRODUCTION product.
 
-Begin now.
+Begin now. Build the best personal life operating system in the world. 🚀
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ---
