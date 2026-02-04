@@ -770,7 +770,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     let total = 0;
     timeEntries.forEach((entry) => {
-      const quality = entry.focusQuality || "moderate";
+      // Normalize quality to one of the valid keys, default to "moderate"
+      const rawQuality = entry.focusQuality || "moderate";
+      const quality = breakdown[rawQuality] ? rawQuality : "moderate";
       breakdown[quality].hours += entry.duration / 60;
       total += entry.duration / 60;
     });
