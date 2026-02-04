@@ -214,7 +214,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   ]);
 
   // Unique ID generator to prevent duplicate keys
-  const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+  const generateId = () =>
+    `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
   // Task operations
   const addTask = (task: Omit<Task, "id" | "createdAt">) => {
