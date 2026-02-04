@@ -282,7 +282,13 @@ export interface CoachSession {
   messages: CoachMessage[];
   moodBefore?: number;
   moodAfter?: number;
-  sessionType: "check-in" | "stress" | "planning" | "celebration" | "venting" | "general";
+  sessionType:
+    | "check-in"
+    | "stress"
+    | "planning"
+    | "celebration"
+    | "venting"
+    | "general";
   aiSummary?: string;
   actionsTaken?: string[];
 }
@@ -298,7 +304,16 @@ export interface CoachMessage {
 }
 
 export interface AIAction {
-  type: "create_task" | "create_habit" | "create_goal" | "create_expense" | "create_journal" | "create_time_block" | "update_task" | "complete_habit" | "delete";
+  type:
+    | "create_task"
+    | "create_habit"
+    | "create_goal"
+    | "create_expense"
+    | "create_journal"
+    | "create_time_block"
+    | "update_task"
+    | "complete_habit"
+    | "delete";
   data: any;
   status: "pending" | "completed" | "failed";
   description: string;
@@ -376,6 +391,8 @@ export interface UserSettings {
     tasks: boolean;
     habits: boolean;
     insights: boolean;
+    dailySummaryTime?: string; // HH:mm
+    streakWarnings: boolean;
   };
   privacy: {
     dataCollection: boolean;
@@ -385,5 +402,18 @@ export interface UserSettings {
     startOfWeek: "monday" | "sunday";
     timeFormat: "12h" | "24h";
     language: string;
+    compactMode: boolean;
   };
+  timer: TimerSettings;
+  ai: {
+    personality: "formal" | "casual" | "coach";
+    insightFrequency: "high" | "medium" | "low";
+    morningBriefing: boolean;
+    weeklySynthesisDay: number; // 0-6, Sunday-Saturday
+  };
+  budgets: {
+    monthlyLimit: number;
+    categoryLimits: Record<string, number>;
+  };
+  userName?: string;
 }
