@@ -1,15 +1,81 @@
-# 🚀 ULTRA-DETAILED CLAUDE SONNET 4.5 PROMPT — BUILD CorteXia ENTIRELY
+# 🚀 ULTRA-DETAILED CLAUDE SONNET 4.5 PROMPT — BUILD FULLY FUNCTIONAL CorteXia
 
 ---
 
 ```
 You are Claude Sonnet 4.5, the world's most capable AI assistant for building complete web applications.
 
-Your mission: Build CorteXia — the world's first unified, AI-powered personal life operating system.
+⚠️ CRITICAL UPDATE: The UI exists but is READ-ONLY. Your mission is to make EVERYTHING INTERACTIVE and FUNCTIONAL.
 
-This is not a simple web app. This is a category-defining product that will compete with and surpass Notion, Obsidian, and all fragmented productivity tools.
+Your mission: Transform CorteXia into a FULLY FUNCTIONAL, AI-powered personal life operating system.
 
-You will build this using the computer tools available to you: bash, file creation, package installation, and code execution.
+This is not just UI. This is a COMPLETE APPLICATION where:
+✅ EVERY button DOES something when clicked
+✅ EVERY form ACCEPTS input and SAVES data
+✅ EVERY AI feature calls REAL Gemini 3 API
+✅ EVERY chart displays REAL user data
+✅ EVERY calculation uses ACTUAL algorithms
+✅ EVERY update PERSISTS to database
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔥 CRITICAL REQUIREMENTS (NON-NEGOTIABLE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ⌨️ USER INPUT EVERYWHERE
+   - Quick Add Bar must parse natural language with Gemini 3
+   - ALL forms must accept input (tasks, habits, finances, etc.)
+   - Every "Add" button must open a working form
+   - Every "Edit" button must allow modifications
+   - Every "Delete" button must remove from database
+
+2. 💾 DATA PERSISTENCE
+   - Everything saves to PostgreSQL via Supabase
+   - State persists across page refreshes
+   - Real-time updates when data changes
+   - Optimistic UI updates for instant feedback
+   - Error handling and recovery
+
+3. 🤖 AI FEATURES (ALL MUST WORK)
+   - Life Score: Real calculation algorithm (not mock)
+   - Task Prioritization: Gemini 3 calculates scores
+   - Weekly Synthesis: Gemini 3 generates report
+   - Morning Briefing: Gemini 3 creates daily plan
+   - Pattern Detection: Cross-domain correlation analysis
+   - Habit Predictions: AI predicts failures 24h advance
+   - Ask AI: Conversational interface with context
+
+4. 📊 REAL DATA VISUALIZATION
+   - Charts show actual user data from database
+   - Streak calendar reflects real check-ins
+   - Correlation graphs calculate real Pearson coefficients
+   - Budget charts use real transactions
+   - Time analytics from actual logged time
+
+5. 🎨 INTERACTIVE UX
+   - Animations on success (confetti, toasts)
+   - Loading states during API calls
+   - Error messages when things fail
+   - Confirmation dialogs for destructive actions
+   - Smooth transitions and micro-interactions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 COMPREHENSIVE DOCUMENTATION AVAILABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This prompt includes THREE ultra-detailed documents:
+
+1. **THIS FILE (prompt.txt)**: Visual design specifications & overall architecture
+2. **FUNCTIONAL_IMPLEMENTATION_PROMPT.md**: Complete guide for ALL interactive features
+3. **ULTRA_DETAILED_PAGES_CONTINUATION.md**: Page-by-page component specs
+
+📖 READ FUNCTIONAL_IMPLEMENTATION_PROMPT.md FIRST for:
+   - Every input form with all fields
+   - Every button action implementation
+   - All AI feature algorithms
+   - Complete CRUD operations
+   - State management patterns
+   - Database operations
+   - Success/error handling
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 PROJECT OVERVIEW
@@ -21,24 +87,24 @@ TAGLINE: "Your Life, Understood. Powered by AI."
 
 CORE CONCEPT:
 CorteXia integrates ALL aspects of personal life management into ONE intelligent system:
-• Tasks & To-Dos
-• Time Tracking
-• Habit Tracking
-• Finance Tracking
-• Study Sessions
-• Screen Time
-• Journal Entries
-• Goal Architecture
-• AI-Powered Insights
+• Tasks & To-Dos (FULLY INTERACTIVE)
+• Time Tracking (WITH POMODORO TIMER)
+• Habit Tracking (WITH CHECK-INS & STREAKS)
+• Finance Tracking (WITH TRANSACTION LOGGING)
+• Study Sessions (WITH SUBJECT TRACKING)
+• Screen Time (AUTO-TRACKED)
+• Journal Entries (WITH MOOD TRACKING)
+• Goal Architecture (HIERARCHICAL TREES)
+• AI-Powered Insights (REAL GEMINI 3 INTEGRATION)
 
 It uses Gemini 3 AI to reason across all these domains and provide:
-• Cross-domain pattern detection
-• Behavioral analysis
-• Priority calculation
-• Proactive recommendations
-• Weekly synthesis
-• Morning briefings
-• Real-time interventions
+• Cross-domain pattern detection (REAL CORRELATION ANALYSIS)
+• Behavioral analysis (PREDICTIVE MODELS)
+• Priority calculation (AI-POWERED ALGORITHMS)
+• Proactive recommendations (PERSONALIZED ACTIONS)
+• Weekly synthesis (AUTO-GENERATED REPORTS)
+• Morning briefings (DAILY AI SUMMARIES)
+• Real-time interventions (DRIFT ALERTS)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🎯 YOUR MISSION
@@ -46,14 +112,14 @@ It uses Gemini 3 AI to reason across all these domains and provide:
 
 Build a COMPLETE, FUNCTIONAL web application with:
 
-1. ✅ Beautiful, modern, minimal UI (Claude.ai quality)
-2. ✅ Full frontend (React + Vite + TypeScript)
-3. ✅ Complete backend API (Node.js + Hono)
-4. ✅ Database integration (Supabase PostgreSQL)
-5. ✅ Gemini 3 AI integration (real API calls)
-6. ✅ All features working end-to-end
-7. ✅ Production-ready code
-8. ✅ Deployable to Vercel
+1. ✅ Beautiful, modern, minimal UI (Claude.ai quality) - ALREADY EXISTS
+2. ✅ Full frontend (React + Vite + TypeScript) - NEEDS INTERACTIVITY
+3. ✅ Complete backend API (Node.js + Hono) - MUST IMPLEMENT ALL ENDPOINTS
+4. ✅ Database integration (Supabase PostgreSQL) - MUST PERSIST ALL DATA
+5. ✅ Gemini 3 AI integration (REAL API calls, not mocks) - CRITICAL
+6. ✅ All features working end-to-end - EVERY BUTTON, EVERY FORM
+7. ✅ Production-ready code - ERROR HANDLING, VALIDATION
+8. ✅ Deployable to Vercel - WITH ENV VARS CONFIGURED
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏗️ TECH STACK (MANDATORY)
