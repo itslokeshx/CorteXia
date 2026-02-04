@@ -3,16 +3,29 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  domain: "work" | "health" | "study" | "personal" | "finance";
-  priority: "low" | "medium" | "high";
+  domain:
+    | "work"
+    | "health"
+    | "study"
+    | "personal"
+    | "finance"
+    | "focus"
+    | "leisure";
+  priority: "low" | "medium" | "high" | "critical";
   status: "todo" | "in-progress" | "completed";
   dueDate?: string;
+  dueTime?: string; // HH:mm format
+  scheduledFor?: "today" | "tomorrow" | "week" | "month" | "year";
   timeEstimate?: number; // in minutes
   timeSpent?: number; // in minutes
   completedAt?: string;
   createdAt: string;
   subtasks?: Subtask[];
   tags?: string[];
+  // New fields for deep integration
+  linkedGoalId?: string;
+  timeBlockId?: string;
+  recurrence?: TaskRecurrence;
 }
 
 export interface Subtask {
@@ -20,6 +33,39 @@ export interface Subtask {
   title: string;
   completed: boolean;
   completedAt?: string;
+}
+
+export interface TaskRecurrence {
+  frequency: "daily" | "weekly" | "monthly";
+  daysOfWeek?: number[]; // 0-6, Sunday-Saturday
+  endDate?: string;
+}
+
+// Time Block types (for Day Planner)
+export interface TimeBlock {
+  id: string;
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
+  duration: number; // in minutes
+  title: string;
+  type:
+    | "task"
+    | "habit"
+    | "meeting"
+    | "break"
+    | "deep_work"
+    | "shallow_work"
+    | "personal";
+  status: "planned" | "in_progress" | "completed" | "skipped";
+  linkedTaskId?: string;
+  linkedHabitId?: string;
+  linkedGoalId?: string;
+  color?: string;
+  aiGenerated?: boolean;
+  aiReason?: string;
+  notes?: string;
+  createdAt: string;
 }
 
 // Habit types
@@ -33,7 +79,16 @@ export interface Habit {
     | "fitness"
     | "mindfulness"
     | "social";
-  frequency: "daily" | "weekly" | "monthly";
+  frequency: "daily" | "weekly" | "custom";
+  customDays?: {
+    monday: boolean;
+    tuesday: boolean;
+    wednesday: boolean;
+    thursday: boolean;
+    friday: boolean;
+    saturday: boolean;
+    sunday: boolean;
+  };
   description?: string;
   color?: string;
   streak: number;
@@ -42,6 +97,10 @@ export interface Habit {
   targetDaysPerWeek?: number;
   createdAt: string;
   completions: HabitCompletion[];
+  // New fields
+  linkedGoalIds?: string[];
+  targetTime?: string; // Preferred time to complete HH:mm
+  duration?: number; // in minutes
 }
 
 export interface HabitCompletion {
@@ -61,12 +120,18 @@ export interface Transaction {
     | "learning"
     | "utilities"
     | "salary"
+    | "shopping"
+    | "subscription"
     | "other";
   amount: number;
   description: string;
   date: string;
   type: "income" | "expense";
   createdAt: string;
+  // New fields
+  linkedGoalId?: string;
+  recurring?: boolean;
+  vendor?: string;
 }
 
 export interface Budget {
@@ -91,7 +156,7 @@ export interface TimeEntry {
   createdAt: string;
 }
 
-// Goal types
+// Goal types - Hierarchical structure
 export interface Goal {
   id: string;
   title: string;
@@ -102,14 +167,30 @@ export interface Goal {
     | "career"
     | "financial"
     | "education"
-    | "family";
+    | "family"
+    | "creative";
   priority: "low" | "medium" | "high";
   targetDate: string;
   progress: number; // 0-100
-  status: "active" | "completed" | "paused" | "abandoned";
+  status:
+    | "active"
+    | "completed"
+    | "paused"
+    | "abandoned"
+    | "at_risk"
+    | "failing";
   milestones: Milestone[];
   createdAt: string;
   completedAt?: string;
+  // Hierarchical structure
+  level: "life" | "yearly" | "quarterly" | "monthly" | "weekly";
+  parentGoalId?: string;
+  childGoalIds?: string[];
+  // Linked items
+  linkedHabitIds?: string[];
+  linkedTaskIds?: string[];
+  // AI generated roadmap
+  aiRoadmap?: AIRoadmap;
 }
 
 export interface Milestone {
@@ -118,6 +199,42 @@ export interface Milestone {
   targetDate: string;
   completed: boolean;
   completedAt?: string;
+}
+
+export interface AIRoadmap {
+  quarterlyMilestones: QuarterlyMilestone[];
+  monthlyGoals: MonthlyGoal[];
+  weeklyTargets: WeeklyTarget[];
+  requiredHabits: { name: string; frequency: string; timeOfDay: string }[];
+  tasksToCreate: {
+    title: string;
+    deadline: string;
+    estimatedTime: number;
+    priority: string;
+  }[];
+  weeklyTimeCommitment: number;
+  obstacles: string[];
+  successProbability: number;
+  generatedAt: string;
+}
+
+export interface QuarterlyMilestone {
+  quarter: string;
+  title: string;
+  targets: string[];
+  estimatedHours: number;
+}
+
+export interface MonthlyGoal {
+  month: string;
+  title: string;
+  targets: string[];
+}
+
+export interface WeeklyTarget {
+  week: number;
+  title: string;
+  tasks: string[];
 }
 
 // Study types
@@ -143,9 +260,87 @@ export interface JournalEntry {
   mood: number; // 1-10
   energy: number; // 1-10
   focus: number; // 1-10
+  stress?: number; // 1-10
   tags?: string[];
   aiSummary?: string;
   createdAt: string;
+  // New fields
+  linkedGoalIds?: string[];
+  linkedHabitIds?: string[];
+  linkedTaskIds?: string[];
+  gratitudeList?: string[];
+  aiSentiment?: "positive" | "neutral" | "negative";
+  aiThemes?: string[];
+  aiInsights?: string;
+}
+
+// Coach Session types (AI Mental Health Support)
+export interface CoachSession {
+  id: string;
+  startedAt: string;
+  endedAt?: string;
+  messages: CoachMessage[];
+  moodBefore?: number;
+  moodAfter?: number;
+  sessionType: "check-in" | "stress" | "planning" | "celebration" | "venting" | "general";
+  aiSummary?: string;
+  actionsTaken?: string[];
+}
+
+export interface CoachMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  suggestions?: { text: string; type: "prompt" | "action" }[];
+  dataReferences?: { type: string; text: string }[];
+  actions?: AIAction[];
+}
+
+export interface AIAction {
+  type: "create_task" | "create_habit" | "create_goal" | "create_expense" | "create_journal" | "create_time_block" | "update_task" | "complete_habit" | "delete";
+  data: any;
+  status: "pending" | "completed" | "failed";
+  description: string;
+}
+
+// User State for AI Coach
+export interface UserState {
+  mood: { value: number; trend: "up" | "down" | "stable" };
+  energy: { value: number; trend: "up" | "down" | "stable" };
+  stress: { value: number; trend: "up" | "down" | "stable" };
+  sleep: { avgHours: number; debt: number };
+  tasks: { pending: number; overdue: number; completedToday: number };
+  habits: { atRisk: number; streaksActive: number };
+  goals: { onTrack: number; struggling: number };
+  budget: { percentUsed: number; daysRemaining: number };
+}
+
+// Timer/Pomodoro types
+export interface PomodoroSession {
+  id: string;
+  startTime: string;
+  endTime?: string;
+  duration: number; // planned duration in minutes
+  actualDuration?: number;
+  type: "work" | "short_break" | "long_break";
+  linkedTaskId?: string;
+  linkedGoalId?: string;
+  completed: boolean;
+  interruptions: number;
+  focusQuality?: "deep" | "moderate" | "shallow";
+  notes?: string;
+}
+
+export interface TimerSettings {
+  workDuration: number; // in minutes
+  shortBreakDuration: number;
+  longBreakDuration: number;
+  pomodorosBeforeLongBreak: number;
+  autoStartBreaks: boolean;
+  autoStartPomodoros: boolean;
+  soundEnabled: boolean;
+  notificationsEnabled: boolean;
 }
 
 // Life state types
