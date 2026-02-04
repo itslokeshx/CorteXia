@@ -299,19 +299,89 @@ The central hub of CorteXia featuring:
 
 ## Getting Started
 
-1. **Clone/Download** the project
-2. **Install dependencies** (automatically detected by v0)
-3. **Run development server**: The preview is live in v0
-4. **Explore** each page via the sidebar navigation
+### Prerequisites
 
-## Future Integrations
+- Node.js 18+
+- pnpm (recommended) or npm
+- PostgreSQL database (Supabase recommended)
+- Google AI API key (for Gemini integration)
 
-- Supabase PostgreSQL for data persistence
-- Gemini 3 AI for advanced insights and reasoning
-- Real-time sync across devices
-- Mobile app support
-- Integration with calendar, email, and productivity tools
-- Advanced analytics and visualization dashboards
+### Environment Variables
+
+Create `.env` files:
+
+**Frontend (`.env.local`)**:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+**Backend (`api/.env`)**:
+
+```env
+DATABASE_URL=postgresql://user:password@host:5432/cortexia
+GEMINI_API_KEY=your-gemini-api-key
+JWT_SECRET=your-jwt-secret
+```
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/cortexia.git
+cd cortexia
+
+# Install frontend dependencies
+pnpm install
+
+# Install backend dependencies
+cd api
+npm install
+
+# Set up database
+npm run db:generate
+npm run db:push
+
+# Return to root
+cd ..
+```
+
+### Running the Application
+
+```bash
+# Terminal 1: Start the backend API
+cd api
+npm run dev
+# API runs on http://localhost:3001
+
+# Terminal 2: Start the frontend
+pnpm dev
+# Frontend runs on http://localhost:3000
+```
+
+### Database Commands
+
+```bash
+cd api
+
+# Generate migrations from schema changes
+npm run db:generate
+
+# Push schema to database
+npm run db:push
+
+# Open Drizzle Studio (database GUI)
+npm run db:studio
+```
+
+## Future Roadmap
+
+- [ ] Real-time sync across devices
+- [ ] Mobile app (React Native)
+- [ ] Calendar & email integrations
+- [ ] Advanced analytics dashboards
+- [ ] Voice input for journal entries
+- [ ] Collaborative goals/tasks
 
 ## Browser Support
 
@@ -326,10 +396,12 @@ The central hub of CorteXia featuring:
 - CSS variables for consistent theming
 - Accessible UI with semantic HTML and ARIA labels
 - Mobile-responsive with Tailwind CSS utility classes
+- Edge-ready API with Hono framework
+- Type-safe database queries with Drizzle ORM
 
 ## License
 
-Built with v0 by Vercel. Designed for personal use and productivity.
+MIT License. Built with ❤️ for personal productivity.
 
 ---
 
