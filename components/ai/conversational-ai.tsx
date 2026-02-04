@@ -56,17 +56,53 @@ export function ConversationalAI() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
+  // Get ALL app context for full capabilities
   const {
+    // Data
     tasks,
     habits,
     transactions,
     timeEntries,
     journalEntries,
+    goals,
+    studySessions,
+    // Task actions
     addTask,
+    updateTask,
+    deleteTask,
+    completeTask,
+    // Habit actions
     addHabit,
-    addTransaction,
+    updateHabit,
+    deleteHabit,
     completeHabit,
+    // Transaction actions
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    // Time entry actions
+    addTimeEntry,
+    updateTimeEntry,
+    deleteTimeEntry,
+    // Goal actions
+    addGoal,
+    updateGoal,
+    deleteGoal,
+    completeMilestone,
+    // Study actions
+    addStudySession,
+    updateStudySession,
+    deleteStudySession,
+    // Journal actions
+    addJournalEntry,
+    updateJournalEntry,
+    deleteJournalEntry,
+    // Stats
     getFinanceStats,
+    getExpensesByCategory,
+    getWeeklyStats,
+    getTodayStats,
+    getGoalStats,
   } = useApp();
 
   // Scroll to bottom on new messages
@@ -83,17 +119,98 @@ export function ConversationalAI() {
     }
   }, [isOpen, isMinimized]);
 
-  // Build context for AI
+  // Build COMPREHENSIVE context for AI with full data access
   const buildContext = useCallback(() => {
     const today = new Date().toISOString().split("T")[0];
     const { expenses, income, balance } = getFinanceStats();
+    const expensesByCategory = getExpensesByCategory();
+    const weeklyStats = getWeeklyStats();
+    const todayStats = getTodayStats();
+    const goalStats = getGoalStats();
 
     return {
-      history: messages,
+      history: messages.slice(-10), // Last 10 messages for context
       currentPage: pathname,
-      userData: {
+      currentTime: new Date().toISOString(),
+
+      // FULL DATA ACCESS - All items with details
+      fullData: {
+        tasks: tasks.map((t) => ({
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          domain: t.domain,
+          priority: t.priority,
+          status: t.status,
+          dueDate: t.dueDate,
+          tags: t.tags,
+        })),
+        habits: habits.map((h) => ({
+          id: h.id,
+          name: h.name,
+          category: h.category,
+          frequency: h.frequency,
+          streak: h.streak,
+          completedToday: h.completions?.some(
+            (c) => c.date === today && c.completed,
+          ),
+        })),
+        goals: goals.map((g) => ({
+          id: g.id,
+          title: g.title,
+          description: g.description,
+          category: g.category,
+          priority: g.priority,
+          progress: g.progress,
+          status: g.status,
+          targetDate: g.targetDate,
+          milestones: g.milestones?.map((m) => ({
+            id: m.id,
+            title: m.title,
+            completed: m.completed,
+            targetDate: m.targetDate,
+          })),
+        })),
+        transactions: transactions.slice(0, 20).map((t) => ({
+          id: t.id,
+          type: t.type,
+          amount: t.amount,
+          category: t.category,
+          description: t.description,
+          date: t.date,
+        })),
+        timeEntries: timeEntries.slice(0, 20).map((t) => ({
+          id: t.id,
+          task: t.task,
+          category: t.category,
+          duration: t.duration,
+          date: t.date,
+          focusQuality: t.focusQuality,
+        })),
+        studySessions: studySessions.slice(0, 20).map((s) => ({
+          id: s.id,
+          subject: s.subject,
+          duration: s.duration,
+          topic: s.topic,
+          difficulty: s.difficulty,
+        })),
+        journalEntries: journalEntries.slice(0, 10).map((j) => ({
+          id: j.id,
+          title: j.title,
+          date: j.date,
+          mood: j.mood,
+          energy: j.energy,
+          tags: j.tags,
+          contentPreview: j.content?.substring(0, 100),
+        })),
+      },
+
+      // Summary stats for quick reference
+      stats: {
         tasks: {
+          total: tasks.length,
           pending: tasks.filter((t) => t.status !== "completed").length,
+          completed: tasks.filter((t) => t.status === "completed").length,
           overdue: tasks.filter(
             (t) =>
               t.status !== "completed" &&
@@ -102,31 +219,89 @@ export function ConversationalAI() {
           ).length,
           todayDue: tasks.filter((t) => t.dueDate?.split("T")[0] === today)
             .length,
+          highPriority: tasks.filter(
+            (t) => t.priority === "high" && t.status !== "completed",
+          ).length,
         },
         habits: {
-          completed: habits.filter((h) =>
+          total: habits.length,
+          completedToday: habits.filter((h) =>
             h.completions?.some((c) => c.date === today && c.completed),
           ).length,
-          total: habits.length,
           streaksAtRisk: habits
             .filter(
               (h) =>
                 h.streak >= 7 &&
                 !h.completions?.some((c) => c.date === today && c.completed),
             )
-            .map((h) => h.name),
+            .map((h) => ({ name: h.name, streak: h.streak })),
         },
+        goals: goalStats,
         finance: {
-          spent: expenses,
-          budget: 500, // Default, could come from settings
-          remaining: balance,
+          income,
+          expenses,
+          balance,
+          byCategory: expensesByCategory,
         },
-        timeLogged: timeEntries
-          .filter((t) => t.date.split("T")[0] === today)
-          .reduce((s, t) => s + t.duration, 0),
-        recentActivity: [],
-        mood: journalEntries[0]?.mood || 5,
+        time: {
+          todayMinutes: todayStats.totalMinutes,
+          weeklyByCategory: weeklyStats.byCategory,
+          weeklyTotal: weeklyStats.total,
+        },
+        study: {
+          totalSessions: studySessions.length,
+          totalHours:
+            studySessions.reduce((sum, s) => sum + s.duration, 0) / 60,
+          subjects: [...new Set(studySessions.map((s) => s.subject))],
+        },
+        journal: {
+          totalEntries: journalEntries.length,
+          avgMood:
+            journalEntries.length > 0
+              ? Math.round(
+                  (journalEntries.reduce((sum, j) => sum + j.mood, 0) /
+                    journalEntries.length) *
+                    10,
+                ) / 10
+              : null,
+          avgEnergy:
+            journalEntries.length > 0
+              ? Math.round(
+                  (journalEntries.reduce((sum, j) => sum + j.energy, 0) /
+                    journalEntries.length) *
+                    10,
+                ) / 10
+              : null,
+        },
       },
+
+      // Available actions the AI can take
+      availableActions: [
+        "create_task",
+        "update_task",
+        "delete_task",
+        "complete_task",
+        "create_habit",
+        "update_habit",
+        "delete_habit",
+        "complete_habit",
+        "create_goal",
+        "update_goal",
+        "delete_goal",
+        "complete_milestone",
+        "add_tasks_to_goal",
+        "add_expense",
+        "add_income",
+        "delete_transaction",
+        "log_time",
+        "delete_time_entry",
+        "log_study",
+        "delete_study_session",
+        "create_journal",
+        "update_journal",
+        "delete_journal",
+        "navigate",
+      ],
     };
   }, [
     messages,
@@ -136,7 +311,13 @@ export function ConversationalAI() {
     transactions,
     timeEntries,
     journalEntries,
+    goals,
+    studySessions,
     getFinanceStats,
+    getExpensesByCategory,
+    getWeeklyStats,
+    getTodayStats,
+    getGoalStats,
   ]);
 
   // Send message to AI
@@ -189,33 +370,172 @@ export function ConversationalAI() {
     }
   };
 
-  // Execute AI actions
+  // Execute AI actions - FULL CAPABILITIES
   const executeAction = async (action: {
     type: string;
     data: Record<string, unknown>;
   }) => {
+    const today = new Date().toISOString().split("T")[0];
+
     switch (action.type) {
+      // === TASK ACTIONS ===
       case "create_task":
-        addTask({
+        const newTask = addTask({
           title: action.data.title as string,
           description: (action.data.description as string) || "",
           domain:
-            (action.data.domain as "work" | "study" | "personal" | "health") ||
-            "work",
+            (action.data.domain as
+              | "work"
+              | "study"
+              | "personal"
+              | "health"
+              | "finance") || "work",
           priority:
             (action.data.priority as "low" | "medium" | "high") || "medium",
           dueDate: (action.data.dueDate as string) || "",
           status: "todo",
+          tags: (action.data.tags as string[]) || [],
         });
-        toast.success(`Task created: ${action.data.title}`);
+        toast.success(`✅ Task created: ${action.data.title}`);
+        return newTask;
+
+      case "update_task":
+        updateTask(
+          action.data.taskId as string,
+          action.data.updates as Partial<any>,
+        );
+        toast.success(`📝 Task updated`);
+        break;
+
+      case "delete_task":
+        deleteTask(action.data.taskId as string);
+        toast.success(`🗑️ Task deleted`);
+        break;
+
+      case "complete_task":
+        completeTask(action.data.taskId as string);
+        toast.success(`✅ Task completed!`);
+        break;
+
+      // === HABIT ACTIONS ===
+      case "create_habit":
+        const newHabit = addHabit({
+          name: action.data.name as string,
+          category:
+            (action.data.category as
+              | "health"
+              | "productivity"
+              | "learning"
+              | "fitness"
+              | "mindfulness"
+              | "social") || "productivity",
+          frequency:
+            (action.data.frequency as "daily" | "weekly" | "monthly") ||
+            "daily",
+          description: (action.data.description as string) || "",
+          streak: 0,
+          longestStreak: 0,
+          active: true,
+        });
+        toast.success(`🎯 Habit created: ${action.data.name}`);
+        return newHabit;
+
+      case "update_habit":
+        updateHabit(
+          action.data.habitId as string,
+          action.data.updates as Partial<any>,
+        );
+        toast.success(`📝 Habit updated`);
+        break;
+
+      case "delete_habit":
+        deleteHabit(action.data.habitId as string);
+        toast.success(`🗑️ Habit deleted`);
         break;
 
       case "complete_habit":
-        const today = new Date().toISOString().split("T")[0];
         completeHabit(action.data.habitId as string, today);
-        toast.success("Habit marked as complete!");
+        toast.success(`✅ Habit marked as complete!`);
         break;
 
+      // === GOAL ACTIONS ===
+      case "create_goal":
+        const newGoal = addGoal({
+          title: action.data.title as string,
+          description: (action.data.description as string) || "",
+          category:
+            (action.data.category as
+              | "personal"
+              | "health"
+              | "career"
+              | "financial"
+              | "education"
+              | "family") || "personal",
+          priority:
+            (action.data.priority as "low" | "medium" | "high") || "medium",
+          targetDate:
+            (action.data.targetDate as string) ||
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
+          progress: 0,
+          status: "active",
+          milestones: (action.data.milestones as any[]) || [],
+        });
+        toast.success(`🎯 Goal created: ${action.data.title}`);
+        return newGoal;
+
+      case "update_goal":
+        updateGoal(
+          action.data.goalId as string,
+          action.data.updates as Partial<any>,
+        );
+        toast.success(`📝 Goal updated`);
+        break;
+
+      case "delete_goal":
+        deleteGoal(action.data.goalId as string);
+        toast.success(`🗑️ Goal deleted`);
+        break;
+
+      case "complete_milestone":
+        completeMilestone(
+          action.data.goalId as string,
+          action.data.milestoneId as string,
+        );
+        toast.success(`✅ Milestone completed!`);
+        break;
+
+      case "add_tasks_to_goal":
+        // Create tasks linked to a goal
+        const goalTasks = action.data.tasks as Array<{
+          title: string;
+          description?: string;
+          priority?: string;
+        }>;
+        const goalId = action.data.goalId as string;
+        const goal = goals.find((g) => g.id === goalId);
+
+        if (goal && goalTasks) {
+          for (const taskData of goalTasks) {
+            addTask({
+              title: taskData.title,
+              description:
+                taskData.description || `Part of goal: ${goal.title}`,
+              domain: "work",
+              priority:
+                (taskData.priority as "low" | "medium" | "high") || "medium",
+              status: "todo",
+              tags: [`goal:${goalId}`],
+            });
+          }
+          toast.success(
+            `✅ Added ${goalTasks.length} tasks to goal: ${goal.title}`,
+          );
+        }
+        break;
+
+      // === FINANCE ACTIONS ===
       case "add_expense":
         addTransaction({
           type: "expense",
@@ -230,10 +550,116 @@ export function ConversationalAI() {
               | "utilities"
               | "other") || "other",
           description: (action.data.description as string) || "",
-          date: new Date().toISOString(),
+          date: (action.data.date as string) || new Date().toISOString(),
         });
-        toast.success(`Expense recorded: $${action.data.amount}`);
+        toast.success(`💸 Expense recorded: $${action.data.amount}`);
         break;
+
+      case "add_income":
+        addTransaction({
+          type: "income",
+          amount: action.data.amount as number,
+          category: "salary",
+          description: (action.data.description as string) || "",
+          date: (action.data.date as string) || new Date().toISOString(),
+        });
+        toast.success(`💰 Income recorded: $${action.data.amount}`);
+        break;
+
+      case "delete_transaction":
+        deleteTransaction(action.data.transactionId as string);
+        toast.success(`🗑️ Transaction deleted`);
+        break;
+
+      // === TIME TRACKING ACTIONS ===
+      case "log_time":
+        addTimeEntry({
+          task: action.data.task as string,
+          category:
+            (action.data.category as
+              | "work"
+              | "study"
+              | "health"
+              | "personal") || "work",
+          duration: action.data.duration as number,
+          date: (action.data.date as string) || new Date().toISOString(),
+          focusQuality:
+            (action.data.focusQuality as "deep" | "moderate" | "shallow") ||
+            "moderate",
+          interruptions: (action.data.interruptions as number) || 0,
+          notes: (action.data.notes as string) || "",
+        });
+        toast.success(`⏱️ Time logged: ${action.data.duration} minutes`);
+        break;
+
+      case "delete_time_entry":
+        deleteTimeEntry(action.data.entryId as string);
+        toast.success(`🗑️ Time entry deleted`);
+        break;
+
+      // === STUDY ACTIONS ===
+      case "log_study":
+        addStudySession({
+          subject: action.data.subject as string,
+          duration: action.data.duration as number,
+          pomodoros:
+            (action.data.pomodoros as number) ||
+            Math.ceil((action.data.duration as number) / 25),
+          difficulty:
+            (action.data.difficulty as "easy" | "medium" | "hard") || "medium",
+          topic: (action.data.topic as string) || "",
+          startTime: new Date().toISOString(),
+          endTime: new Date(
+            Date.now() + (action.data.duration as number) * 60000,
+          ).toISOString(),
+        });
+        toast.success(`📚 Study session logged: ${action.data.subject}`);
+        break;
+
+      case "delete_study_session":
+        deleteStudySession(action.data.sessionId as string);
+        toast.success(`🗑️ Study session deleted`);
+        break;
+
+      // === JOURNAL ACTIONS ===
+      case "create_journal":
+        addJournalEntry({
+          title:
+            (action.data.title as string) ||
+            `Journal - ${new Date().toLocaleDateString()}`,
+          content: action.data.content as string,
+          date: (action.data.date as string) || new Date().toISOString(),
+          mood: (action.data.mood as number) || 5,
+          energy: (action.data.energy as number) || 5,
+          focus: (action.data.focus as number) || 5,
+          tags: (action.data.tags as string[]) || [],
+        });
+        toast.success(`📝 Journal entry created`);
+        break;
+
+      case "update_journal":
+        updateJournalEntry(
+          action.data.entryId as string,
+          action.data.updates as Partial<any>,
+        );
+        toast.success(`📝 Journal updated`);
+        break;
+
+      case "delete_journal":
+        deleteJournalEntry(action.data.entryId as string);
+        toast.success(`🗑️ Journal entry deleted`);
+        break;
+
+      // === NAVIGATION ===
+      case "navigate":
+        const path = action.data.path as string;
+        if (path) {
+          window.location.href = path;
+        }
+        break;
+
+      default:
+        console.log("Unknown action type:", action.type);
     }
   };
 
