@@ -44,11 +44,79 @@ import {
   TrendingUp,
   Milestone,
   Brain,
+  Link2,
+  LayoutList,
+  ListTodo,
+  Flame,
+  Star,
+  Mountain,
+  Compass,
+  CalendarDays,
+  Trophy,
+  Edit2,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useApp } from "@/lib/context/app-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { format, differenceInDays, addDays } from "date-fns";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
+// Goal horizon types
+const GOAL_HORIZONS = {
+  life: {
+    label: "Life Goal",
+    icon: Mountain,
+    color: "#8b5cf6",
+    description: "Long-term vision (5+ years)",
+  },
+  yearly: {
+    label: "Yearly Goal",
+    icon: Star,
+    color: "#f59e0b",
+    description: "This year's objectives",
+  },
+  quarterly: {
+    label: "Quarterly",
+    icon: Compass,
+    color: "#3b82f6",
+    description: "Next 3 months",
+  },
+  monthly: {
+    label: "Monthly",
+    icon: CalendarDays,
+    color: "#22c55e",
+    description: "This month's focus",
+  },
+  weekly: {
+    label: "Weekly",
+    icon: Calendar,
+    color: "#06b6d4",
+    description: "This week's targets",
+  },
+};
+
+// Category configurations
+const CATEGORY_CONFIG: Record<string, { color: string; emoji: string }> = {
+  personal: { color: "#8b5cf6", emoji: "🌟" },
+  health: { color: "#22c55e", emoji: "💪" },
+  career: { color: "#3b82f6", emoji: "💼" },
+  education: { color: "#f59e0b", emoji: "📚" },
+  financial: { color: "#10b981", emoji: "💰" },
+  family: { color: "#ec4899", emoji: "👨‍👩‍👧" },
+  creativity: { color: "#f97316", emoji: "🎨" },
+  relationships: { color: "#ef4444", emoji: "❤️" },
+};
 
 // Types for AI Roadmap
 interface AIRoadmapStep {
@@ -64,16 +132,79 @@ interface AIRoadmap {
   tips: string[];
 }
 
-// Goal Tree Item Component
+// Connected Items Component - Shows linked tasks and habits
+function ConnectedItems({ goalId }: { goalId: string }) {
+  const { tasks, habits } = useApp();
+
+  const linkedTasks = tasks.filter((t) => t.linkedGoalId === goalId);
+  const linkedHabits = habits.filter((h) => h.linkedGoalIds?.includes(goalId));
+
+  if (linkedTasks.length === 0 && linkedHabits.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-800">
+      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
+        Connected Items
+      </p>
+      <div className="space-y-1.5">
+        {linkedTasks.slice(0, 3).map((task) => (
+          <div key={task.id} className="flex items-center gap-2 text-xs">
+            <div
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                task.status === "completed" ? "bg-green-500" : "bg-blue-500",
+              )}
+            />
+            <ListTodo className="h-3 w-3 text-muted-foreground" />
+            <span
+              className={cn(
+                task.status === "completed" &&
+                  "line-through text-muted-foreground",
+              )}
+            >
+              {task.title}
+            </span>
+          </div>
+        ))}
+        {linkedHabits.slice(0, 3).map((habit) => (
+          <div key={habit.id} className="flex items-center gap-2 text-xs">
+            <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+            <Flame className="h-3 w-3 text-muted-foreground" />
+            <span>{habit.name}</span>
+            {habit.streak > 0 && (
+              <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+                🔥 {habit.streak}
+              </Badge>
+            )}
+          </div>
+        ))}
+        {(linkedTasks.length > 3 || linkedHabits.length > 3) && (
+          <p className="text-[10px] text-muted-foreground">
+            +
+            {Math.max(0, linkedTasks.length - 3) +
+              Math.max(0, linkedHabits.length - 3)}{" "}
+            more items
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Goal Tree Item Component with hierarchy support
 function GoalTreeItem({
   goal,
   onDelete,
   onMilestoneComplete,
+  onEdit,
   depth = 0,
 }: {
   goal: any;
   onDelete: (id: string) => void;
   onMilestoneComplete: (goalId: string, milestoneId: string) => void;
+  onEdit: (goal: any) => void;
   depth?: number;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -82,9 +213,18 @@ function GoalTreeItem({
     goal.milestones?.filter((m: any) => m.completed).length || 0;
   const totalMilestones = goal.milestones?.length || 0;
 
+  const horizonConfig = GOAL_HORIZONS[goal.horizon as keyof typeof GOAL_HORIZONS] || GOAL_HORIZONS.quarterly;
+  const HorizonIcon = horizonConfig.icon;
+  const categoryConfig = CATEGORY_CONFIG[goal.category] || { emoji: "🎯" };
+
+  const targetDate = new Date(goal.targetDate);
+  const daysLeft = differenceInDays(targetDate, new Date());
+  const isOverdue = daysLeft < 0 && goal.status !== "completed";
+
   const priorityColors = {
     low: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    medium: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    medium:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
     high: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
   };
 
@@ -105,10 +245,27 @@ function GoalTreeItem({
         className={cn(
           "ml-0 border-l-4 rounded-lg bg-card shadow-sm hover:shadow-md transition-all",
           statusColors[goal.status as keyof typeof statusColors],
+          isOverdue && goal.status === "active" && "ring-1 ring-red-500/50",
         )}
         style={{ marginLeft: `${depth * 24}px` }}
       >
         <div className="p-4">
+          {/* Horizon Badge */}
+          <div className="flex items-center gap-2 mb-3">
+            <div 
+              className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium"
+              style={{ backgroundColor: `${horizonConfig.color}20`, color: horizonConfig.color }}
+            >
+              <HorizonIcon className="h-3 w-3" />
+              {horizonConfig.label}
+            </div>
+            {isOverdue && (
+              <Badge variant="destructive" className="text-[10px]">
+                Overdue
+              </Badge>
+            )}
+          </div>
+
           {/* Header */}
           <div className="flex items-start gap-3">
             <button
@@ -128,17 +285,30 @@ function GoalTreeItem({
 
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-base">{goal.title}</h3>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{categoryConfig.emoji}</span>
+                  <h3 className="font-semibold text-base">{goal.title}</h3>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Badge
                     variant="outline"
                     className={cn(
                       "text-[10px]",
-                      priorityColors[goal.priority as keyof typeof priorityColors],
+                      priorityColors[
+                        goal.priority as keyof typeof priorityColors
+                      ],
                     )}
                   >
                     {goal.priority}
                   </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEdit(goal)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -231,17 +401,21 @@ function GoalTreeItem({
                     <span
                       className={cn(
                         "flex-1 text-sm",
-                        milestone.completed && "line-through text-muted-foreground",
+                        milestone.completed &&
+                          "line-through text-muted-foreground",
                       )}
                     >
                       {milestone.title}
                     </span>
                     {milestone.targetDate && (
                       <span className="text-xs text-muted-foreground">
-                        {new Date(milestone.targetDate).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {new Date(milestone.targetDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                          },
+                        )}
                       </span>
                     )}
                   </motion.div>
@@ -301,7 +475,9 @@ function GoalKanbanBoard({
                   <Card className="border-border/50 hover:shadow-md transition-shadow">
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-start justify-between">
-                        <h4 className="font-medium text-sm line-clamp-2">{goal.title}</h4>
+                        <h4 className="font-medium text-sm line-clamp-2">
+                          {goal.title}
+                        </h4>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -343,7 +519,8 @@ function GoalTimeline({ goals }: { goals: any[] }) {
   const sortedGoals = useMemo(
     () =>
       [...goals].sort(
-        (a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime(),
+        (a, b) =>
+          new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime(),
       ),
     [goals],
   );
@@ -496,7 +673,10 @@ function AIRoadmapGenerator({
       // Try to parse the AI response as JSON
       try {
         let jsonStr = data.response || data.message || "";
-        jsonStr = jsonStr.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        jsonStr = jsonStr
+          .replace(/```json\n?/g, "")
+          .replace(/```\n?/g, "")
+          .trim();
 
         const parsedRoadmap = JSON.parse(jsonStr);
         setRoadmap(parsedRoadmap);
@@ -509,25 +689,41 @@ function AIRoadmapGenerator({
               title: "Foundation & Planning",
               description: "Set up the basics and create a solid plan",
               timeframe: "Week 1-2",
-              tasks: ["Define clear objectives", "Research best practices", "Create action plan"],
+              tasks: [
+                "Define clear objectives",
+                "Research best practices",
+                "Create action plan",
+              ],
             },
             {
               title: "Learning & Skill Building",
               description: "Acquire necessary knowledge and skills",
               timeframe: "Week 3-4",
-              tasks: ["Study relevant materials", "Practice core skills", "Get feedback"],
+              tasks: [
+                "Study relevant materials",
+                "Practice core skills",
+                "Get feedback",
+              ],
             },
             {
               title: "Implementation",
               description: "Start putting your plan into action",
               timeframe: "Week 5-8",
-              tasks: ["Execute main tasks", "Track progress", "Adjust as needed"],
+              tasks: [
+                "Execute main tasks",
+                "Track progress",
+                "Adjust as needed",
+              ],
             },
             {
               title: "Review & Optimize",
               description: "Evaluate progress and improve",
               timeframe: "Week 9-12",
-              tasks: ["Review achievements", "Identify improvements", "Celebrate wins"],
+              tasks: [
+                "Review achievements",
+                "Identify improvements",
+                "Celebrate wins",
+              ],
             },
           ],
           totalTimeWeeks: 12,
@@ -556,7 +752,8 @@ function AIRoadmapGenerator({
           <h3 className="font-semibold">AI Roadmap Generator</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          Enter your goal and let AI create a personalized roadmap with actionable steps.
+          Enter your goal and let AI create a personalized roadmap with
+          actionable steps.
         </p>
         <div className="flex gap-2">
           <Input
@@ -566,7 +763,10 @@ function AIRoadmapGenerator({
             onKeyDown={(e) => e.key === "Enter" && generateRoadmap()}
             className="flex-1"
           />
-          <Button onClick={generateRoadmap} disabled={isLoading || !goalTitle.trim()}>
+          <Button
+            onClick={generateRoadmap}
+            disabled={isLoading || !goalTitle.trim()}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -628,10 +828,15 @@ function AIRoadmapGenerator({
                           {step.timeframe}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">{step.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {step.description}
+                      </p>
                       <div className="space-y-1">
                         {step.tasks.map((task, taskIdx) => (
-                          <div key={taskIdx} className="flex items-center gap-2 text-sm">
+                          <div
+                            key={taskIdx}
+                            className="flex items-center gap-2 text-sm"
+                          >
                             <Circle className="w-3 h-3 text-muted-foreground" />
                             {task}
                           </div>
@@ -670,16 +875,21 @@ function AIRoadmapGenerator({
 }
 
 export default function GoalsPage() {
-  const { goals, addGoal, deleteGoal, completeMilestone, getGoalStats } = useApp();
+  const { goals, addGoal, deleteGoal, completeMilestone, getGoalStats } =
+    useApp();
   const [open, setOpen] = useState(false);
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
-  const [activeView, setActiveView] = useState<"tree" | "board" | "timeline">("tree");
+  const [activeView, setActiveView] = useState<"tree" | "board" | "timeline">(
+    "tree",
+  );
   const [newGoal, setNewGoal] = useState({
     title: "",
     description: "",
     category: "education" as const,
     priority: "high" as const,
-    targetDate: new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0],
+    targetDate: new Date(Date.now() + 90 * 86400000)
+      .toISOString()
+      .split("T")[0],
     progress: 0,
     status: "active" as const,
     milestones: [] as any[],
@@ -696,7 +906,9 @@ export default function GoalsPage() {
         description: "",
         category: "education",
         priority: "high",
-        targetDate: new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0],
+        targetDate: new Date(Date.now() + 90 * 86400000)
+          .toISOString()
+          .split("T")[0],
         progress: 0,
         status: "active",
         milestones: [],
@@ -772,7 +984,9 @@ export default function GoalsPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className="max-h-[60vh] pr-4">
-                  <AIRoadmapGenerator onGenerateRoadmap={handleRoadmapGenerated} />
+                  <AIRoadmapGenerator
+                    onGenerateRoadmap={handleRoadmapGenerated}
+                  />
                 </ScrollArea>
               </DialogContent>
             </Dialog>
@@ -793,17 +1007,23 @@ export default function GoalsPage() {
                     <Input
                       placeholder="Goal title"
                       value={newGoal.title}
-                      onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
+                      onChange={(e) =>
+                        setNewGoal({ ...newGoal, title: e.target.value })
+                      }
                     />
                     <Textarea
                       placeholder="Description - What do you want to achieve?"
                       value={newGoal.description}
-                      onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
+                      onChange={(e) =>
+                        setNewGoal({ ...newGoal, description: e.target.value })
+                      }
                     />
                     <div className="grid grid-cols-2 gap-3">
                       <Select
                         value={newGoal.category}
-                        onValueChange={(v) => setNewGoal({ ...newGoal, category: v as any })}
+                        onValueChange={(v) =>
+                          setNewGoal({ ...newGoal, category: v as any })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -819,7 +1039,9 @@ export default function GoalsPage() {
                       </Select>
                       <Select
                         value={newGoal.priority}
-                        onValueChange={(v) => setNewGoal({ ...newGoal, priority: v as any })}
+                        onValueChange={(v) =>
+                          setNewGoal({ ...newGoal, priority: v as any })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -834,7 +1056,9 @@ export default function GoalsPage() {
                     <Input
                       type="date"
                       value={newGoal.targetDate}
-                      onChange={(e) => setNewGoal({ ...newGoal, targetDate: e.target.value })}
+                      onChange={(e) =>
+                        setNewGoal({ ...newGoal, targetDate: e.target.value })
+                      }
                     />
 
                     {/* Milestones */}
@@ -846,10 +1070,15 @@ export default function GoalsPage() {
                           value={milestoneInput}
                           onChange={(e) => setMilestoneInput(e.target.value)}
                           onKeyDown={(e) =>
-                            e.key === "Enter" && (e.preventDefault(), handleAddMilestone())
+                            e.key === "Enter" &&
+                            (e.preventDefault(), handleAddMilestone())
                           }
                         />
-                        <Button type="button" variant="outline" onClick={handleAddMilestone}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleAddMilestone}
+                        >
                           <Plus className="w-4 h-4" />
                         </Button>
                       </div>
@@ -871,7 +1100,9 @@ export default function GoalsPage() {
                                 onClick={() =>
                                   setNewGoal({
                                     ...newGoal,
-                                    milestones: newGoal.milestones.filter((_, i) => i !== idx),
+                                    milestones: newGoal.milestones.filter(
+                                      (_, i) => i !== idx,
+                                    ),
                                   })
                                 }
                               >
@@ -899,9 +1130,13 @@ export default function GoalsPage() {
             <CardContent className="pt-4 md:pt-6 px-3 md:px-6">
               <div className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-blue-500" />
-                <div className="text-2xl md:text-3xl font-bold">{stats.total}</div>
+                <div className="text-2xl md:text-3xl font-bold">
+                  {stats.total}
+                </div>
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">Total Goals</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                Total Goals
+              </p>
             </CardContent>
           </Card>
           <Card className="border-border/50">
@@ -912,7 +1147,9 @@ export default function GoalsPage() {
                   {stats.completed}
                 </div>
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">Completed</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                Completed
+              </p>
             </CardContent>
           </Card>
           <Card className="border-border/50">
@@ -923,7 +1160,9 @@ export default function GoalsPage() {
                   {stats.inProgress}
                 </div>
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">In Progress</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                In Progress
+              </p>
             </CardContent>
           </Card>
           <Card className="border-border/50">
@@ -934,7 +1173,9 @@ export default function GoalsPage() {
                   {stats.avgProgress}%
                 </div>
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">Avg Progress</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                Avg Progress
+              </p>
             </CardContent>
           </Card>
         </div>
