@@ -157,48 +157,52 @@ export function CollapsibleSidebar({
       {/* Desktop Sidebar - Clean minimal style */}
       <motion.aside
         initial={false}
-        animate={{ width: isCollapsed ? 68 : 260 }}
+        animate={{ width: isCollapsed ? 56 : 240 }}
         transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
         className="hidden lg:flex fixed left-0 top-0 h-screen bg-neutral-50 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 z-40 flex-col"
       >
         {/* Header with Logo & Toggle */}
-        <div className="h-14 px-3 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800">
-          <Link href="/" className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
-              <Image
-                src="/Cortexia-icon.jpeg"
-                alt="CorteXia"
-                width={32}
-                height={32}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <AnimatePresence mode="wait">
-              {!isCollapsed && (
-                <motion.span
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="font-semibold text-neutral-900 dark:text-white whitespace-nowrap overflow-hidden"
-                >
+        <div
+          className={cn(
+            "h-14 flex items-center border-b border-neutral-200 dark:border-neutral-800",
+            isCollapsed ? "px-2 justify-center" : "px-3 justify-between",
+          )}
+        >
+          {isCollapsed ? (
+            // Collapsed: Only show toggle button
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+              aria-label="Expand sidebar"
+            >
+              <PanelLeft className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+            </button>
+          ) : (
+            // Expanded: Show logo and toggle
+            <>
+              <Link href="/" className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0">
+                  <Image
+                    src="/Cortexia-icon.jpeg"
+                    alt="CorteXia"
+                    width={28}
+                    height={28}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="font-semibold text-neutral-900 dark:text-white">
                   CorteXia
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </Link>
-
-          <button
-            onClick={toggleSidebar}
-            className="p-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors flex-shrink-0"
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {isCollapsed ? (
-              <PanelLeft className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
-            ) : (
-              <PanelLeftClose className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
-            )}
-          </button>
+                </span>
+              </Link>
+              <button
+                onClick={toggleSidebar}
+                className="p-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+                aria-label="Collapse sidebar"
+              >
+                <PanelLeftClose className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Navigation */}

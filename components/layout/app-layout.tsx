@@ -23,14 +23,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
         className={cn(
           "min-h-screen transition-all duration-200",
           // Desktop: adjust margin based on sidebar state
-          mounted && isCollapsed ? "lg:ml-[68px]" : "lg:ml-[260px]",
+          mounted && isCollapsed ? "lg:ml-14" : "lg:ml-60",
           // Mobile: no margin (sidebar overlays)
           "ml-0",
-          // Padding - no top padding needed since no fixed header
+          // Padding
           "px-4 sm:px-6 lg:px-8 py-6 pt-16 lg:pt-6",
         )}
       >
-        <div className="max-w-6xl mx-auto">{children}</div>
+        <div className="max-w-5xl mx-auto">{children}</div>
       </main>
     </div>
   );
