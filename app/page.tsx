@@ -1,49 +1,65 @@
 "use client";
 
 import { AppLayout } from "@/components/layout/app-layout";
-import { LifeStateCore } from "@/components/dashboard/life-state-core";
-import { SignalConstellation } from "@/components/dashboard/signal-constellation";
-import { AIReasoningStrip } from "@/components/dashboard/ai-reasoning-strip";
+import { LiveLifeStateCore } from "@/components/dashboard/live-life-state-core";
+import { SignalConstellationV2 } from "@/components/dashboard/signal-constellation-v2";
+import { AIReasoningStripV2 } from "@/components/dashboard/ai-reasoning-strip-v2";
+import { WeeklySynthesis } from "@/components/dashboard/weekly-synthesis";
+import { CrossDomainMap } from "@/components/dashboard/cross-domain-map";
+import { ConversationalAI } from "@/components/ai/conversational-ai";
+import { ProactiveAlerts } from "@/components/dashboard/proactive-alerts";
 
 export default function DashboardPage() {
   return (
     <AppLayout>
-      {/* Hero Section with Life State */}
-      <section className="min-h-screen pt-12">
-        <div className="max-w-6xl mx-auto">
-          {/* Page Header */}
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold text-balance">
+      {/* Hero Section with Live Life State */}
+      <section className="min-h-screen pt-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Page Header with Greeting */}
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-balance bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
               Your Life, Understood
             </h1>
-            <p className="text-lg text-muted-foreground mt-3">
-              Powered by AI. Real-time insights across every dimension of your
-              life.
+            <p className="text-lg text-muted-foreground mt-2">
+              AI-powered insights across every dimension of your life
             </p>
           </div>
 
-          {/* Life State Core */}
-          <LifeStateCore />
+          {/* Main Dashboard Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {/* Life State Core - spans 2 columns */}
+            <div className="lg:col-span-2">
+              <LiveLifeStateCore />
+            </div>
 
-          {/* Divider */}
-          <div className="my-16 flex items-center gap-4">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">
-              Life Signal Constellation
-            </span>
-            <div className="flex-1 h-px bg-border" />
+            {/* Weekly Synthesis */}
+            <div className="lg:col-span-1">
+              <WeeklySynthesis />
+            </div>
           </div>
 
-          {/* Signal Constellation */}
-          <SignalConstellation />
+          {/* AI Reasoning Strip */}
+          <div className="mb-8">
+            <AIReasoningStripV2 />
+          </div>
 
-          {/* Bottom Spacing for AI Strip */}
-          <div className="h-40" />
+          {/* Second Row - Constellation and Cross-Domain */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Signal Constellation */}
+            <SignalConstellationV2 />
+
+            {/* Cross-Domain Map */}
+            <CrossDomainMap />
+          </div>
+
+          {/* Bottom Spacing */}
+          <div className="h-24" />
         </div>
       </section>
 
-      {/* AI Reasoning Strip - now uses real data */}
-      <AIReasoningStrip />
+      {/* Floating Components */}
+      <ConversationalAI />
+      <ProactiveAlerts />
     </AppLayout>
   );
 }
