@@ -269,7 +269,6 @@ export function LifeStateCore() {
       transition={{ duration: 0.5 }}
       className="relative overflow-hidden rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-6"
     >
-
       <div className="relative z-10">
         {/* Main Content */}
         <div className="flex flex-col lg:flex-row items-center gap-8 mb-8">

@@ -35,9 +35,11 @@ interface SignalData {
 }
 
 const statusColors = {
-  excellent: "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30",
+  excellent:
+    "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30",
   good: "border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30",
-  warning: "border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30",
+  warning:
+    "border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30",
   critical: "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30",
 };
 
@@ -99,7 +101,9 @@ function SignalCard({ signal, index }: { signal: SignalData; index: number }) {
 
             {/* Value */}
             <div className="mb-1">
-              <span className="text-2xl font-semibold text-neutral-900 dark:text-white">{signal.value}</span>
+              <span className="text-2xl font-semibold text-neutral-900 dark:text-white">
+                {signal.value}
+              </span>
             </div>
 
             {/* Label */}

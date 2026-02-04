@@ -390,7 +390,9 @@ export function QuickAddBar() {
               <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-950/50 flex items-center justify-center">
                 <Sparkles className="w-7 h-7 text-green-500" />
               </div>
-              <p className="text-base font-medium text-neutral-900 dark:text-white">Added successfully!</p>
+              <p className="text-base font-medium text-neutral-900 dark:text-white">
+                Added successfully!
+              </p>
             </div>
           ) : (
             <>
