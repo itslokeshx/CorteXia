@@ -2,61 +2,232 @@
 
 import { AppLayout } from "@/components/layout/app-layout";
 import { useApp } from "@/lib/context/app-context";
-import { useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { CheckCircle2, Circle, ArrowRight, Flame } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import {
+  CheckCircle2,
+  Circle,
+  ArrowRight,
+  Flame,
+  Target,
+  Calendar,
+  Brain,
+  Sparkles,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Wallet,
+  BookOpen,
+  Zap,
+  Activity,
+  ChevronRight,
+  Star,
+  AlertTriangle,
+  Sun,
+  Moon,
+  Sunrise,
+  Heart,
+  Play,
+  Plus,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
+// Motivational quotes
+const QUOTES = [
+  {
+    text: "The secret of getting ahead is getting started.",
+    author: "Mark Twain",
+  },
+  { text: "Small steps lead to big changes.", author: "Unknown" },
+  { text: "Your only limit is your mind.", author: "Unknown" },
+  { text: "Progress, not perfection.", author: "Unknown" },
+  { text: "Today's effort, tomorrow's success.", author: "Unknown" },
+  { text: "Consistency beats intensity.", author: "Unknown" },
+  { text: "You're doing better than you think.", author: "Unknown" },
+  { text: "Every day is a fresh start.", author: "Unknown" },
+];
 
 export default function DashboardPage() {
-  const { tasks, habits } = useApp();
+  const {
+    tasks,
+    habits,
+    goals,
+    transactions,
+    journalEntries,
+    timeEntries,
+    completeTask,
+    completeHabit,
+    getHabitStreak,
+    getFinanceStats,
+    getGoalStats,
+    getTodayStats,
+  } = useApp();
 
-  const today = new Date().toISOString().split("T")[0];
+  const [mounted, setMounted] = useState(false);
+  const [dailyQuote] = useState(
+    () => QUOTES[Math.floor(Math.random() * QUOTES.length)],
+  );
+
+  const today = format(new Date(), "yyyy-MM-dd");
+  const now = new Date();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Get greeting based on time
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
+    const hour = now.getHours();
+    if (hour < 5)
+      return {
+        text: "Good night",
+        icon: Moon,
+        subtext: "Burning the midnight oil?",
+      };
+    if (hour < 12)
+      return {
+        text: "Good morning",
+        icon: Sunrise,
+        subtext: "Let's make today count",
+      };
+    if (hour < 17)
+      return {
+        text: "Good afternoon",
+        icon: Sun,
+        subtext: "Keep the momentum going",
+      };
+    if (hour < 21)
+      return {
+        text: "Good evening",
+        icon: Sun,
+        subtext: "Winding down the day",
+      };
+    return { text: "Good night", icon: Moon, subtext: "Rest well, champion" };
   };
 
-  // Calculate essential stats
+  const greeting = getGreeting();
+  const GreetingIcon = greeting.icon;
+
+  // Calculate comprehensive stats
   const stats = useMemo(() => {
     const pendingTasks = tasks.filter((t) => t.status !== "completed");
     const completedToday = tasks.filter(
-      (t) => t.status === "completed" && t.completedAt?.split("T")[0] === today,
+      (t) => t.status === "completed" && t.completedAt?.startsWith(today),
     ).length;
     const overdueTasks = pendingTasks.filter(
       (t) => t.dueDate && t.dueDate < today,
     ).length;
+    const todayTasks = pendingTasks.filter((t) => t.dueDate === today);
 
-    const activeHabits = habits.filter((h) => h.active);
+    const activeHabits = habits.filter((h) => h.active !== false);
     const habitsCompletedToday = activeHabits.filter((h) =>
       h.completions?.some((c) => c.date === today && c.completed),
     ).length;
+
+    // Calculate total streak days
+    const totalStreakDays = activeHabits.reduce(
+      (sum, h) => sum + getHabitStreak(h.id),
+      0,
+    );
+
+    // Finance stats
+    const financeStats = getFinanceStats();
+
+    // Goal stats
+    const goalStats = getGoalStats();
+
+    // Time tracking stats
+    const todayTimeStats = getTodayStats();
+
+    // Recent journal mood
+    const recentJournals = journalEntries.slice(0, 7);
+    const avgMood =
+      recentJournals.length > 0
+        ? recentJournals.reduce((sum, j) => sum + (j.mood || 3), 0) /
+          recentJournals.length
+        : 3;
+
+    // Calculate productivity score (0-100)
+    const taskScore =
+      todayTasks.length > 0
+        ? (completedToday / (completedToday + todayTasks.length)) * 100
+        : completedToday > 0
+          ? 100
+          : 50;
+    const habitScore =
+      activeHabits.length > 0
+        ? (habitsCompletedToday / activeHabits.length) * 100
+        : 50;
+    const goalScore = goalStats.total > 0 ? goalStats.avgProgress : 50;
+    const productivityScore = Math.round(
+      taskScore * 0.4 + habitScore * 0.4 + goalScore * 0.2,
+    );
 
     return {
       pendingTasks: pendingTasks.length,
       completedToday,
       overdueTasks,
+      todayTasksCount: todayTasks.length,
       activeHabits: activeHabits.length,
       habitsCompletedToday,
+      totalStreakDays,
+      financeBalance: financeStats.balance,
+      monthlyExpenses: financeStats.expenses,
+      goalStats,
+      todayMinutes: todayTimeStats.totalMinutes,
+      deepFocusMinutes: todayTimeStats.deepFocus,
+      avgMood,
+      productivityScore,
     };
-  }, [tasks, habits, today]);
+  }, [
+    tasks,
+    habits,
+    goals,
+    transactions,
+    journalEntries,
+    timeEntries,
+    today,
+    getHabitStreak,
+    getFinanceStats,
+    getGoalStats,
+    getTodayStats,
+  ]);
 
   // Get top priority tasks for today
   const priorityTasks = useMemo(() => {
     return tasks
       .filter((t) => t.status !== "completed")
       .sort((a, b) => {
-        const aOverdue = a.dueDate && a.dueDate < today ? -2 : 0;
-        const bOverdue = b.dueDate && b.dueDate < today ? -2 : 0;
-        const aDueToday = a.dueDate === today ? -1 : 0;
-        const bDueToday = b.dueDate === today ? -1 : 0;
+        const aOverdue = a.dueDate && a.dueDate < today ? -3 : 0;
+        const bOverdue = b.dueDate && b.dueDate < today ? -3 : 0;
+        const aDueToday = a.dueDate === today ? -2 : 0;
+        const bDueToday = b.dueDate === today ? -2 : 0;
         const priorityOrder: Record<string, number> = {
-          high: 0,
-          medium: 1,
-          low: 2,
+          critical: 0,
+          high: 1,
+          medium: 2,
+          low: 3,
         };
         return (
           aOverdue - bOverdue ||
@@ -64,20 +235,125 @@ export default function DashboardPage() {
           (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2)
         );
       })
-      .slice(0, 4);
+      .slice(0, 5);
   }, [tasks, today]);
 
-  // Get today's habits
+  // Get today's habits with streaks
   const todaysHabits = useMemo(() => {
     return habits
-      .filter((h) => h.active)
+      .filter((h) => h.active !== false)
       .map((h) => ({
         ...h,
+        streak: getHabitStreak(h.id),
         isCompleted:
           h.completions?.some((c) => c.date === today && c.completed) ?? false,
       }))
+      .sort((a, b) =>
+        a.isCompleted === b.isCompleted
+          ? b.streak - a.streak
+          : a.isCompleted
+            ? 1
+            : -1,
+      )
       .slice(0, 5);
-  }, [habits, today]);
+  }, [habits, today, getHabitStreak]);
+
+  // Get active goals
+  const activeGoals = useMemo(() => {
+    return goals
+      .filter((g) => g.status !== "completed" && g.status !== "abandoned")
+      .sort((a, b) => b.progress - a.progress)
+      .slice(0, 4);
+  }, [goals]);
+
+  // AI Insights based on current state
+  const aiInsights = useMemo(() => {
+    const insights: {
+      type: "warning" | "success" | "info" | "tip";
+      message: string;
+      icon: typeof AlertTriangle;
+    }[] = [];
+
+    if (stats.overdueTasks > 0) {
+      insights.push({
+        type: "warning",
+        message: `You have ${stats.overdueTasks} overdue task${stats.overdueTasks > 1 ? "s" : ""}. Consider rescheduling or prioritizing.`,
+        icon: AlertTriangle,
+      });
+    }
+
+    if (
+      stats.habitsCompletedToday === stats.activeHabits &&
+      stats.activeHabits > 0
+    ) {
+      insights.push({
+        type: "success",
+        message:
+          "Amazing! All habits completed for today. You're building great consistency! 🔥",
+        icon: Flame,
+      });
+    } else if (stats.habitsCompletedToday === 0 && stats.activeHabits > 0) {
+      insights.push({
+        type: "tip",
+        message: "Start with your easiest habit to build momentum today.",
+        icon: Zap,
+      });
+    }
+
+    if (stats.totalStreakDays > 20) {
+      insights.push({
+        type: "success",
+        message: `Impressive! ${stats.totalStreakDays} total streak days across your habits.`,
+        icon: Star,
+      });
+    }
+
+    if (stats.productivityScore >= 80) {
+      insights.push({
+        type: "success",
+        message: "You're in the productivity zone! Keep this momentum going.",
+        icon: TrendingUp,
+      });
+    } else if (stats.productivityScore < 40) {
+      insights.push({
+        type: "tip",
+        message:
+          "Focus on completing just one important task to gain momentum.",
+        icon: Target,
+      });
+    }
+
+    if (stats.avgMood < 2.5 && journalEntries.length > 0) {
+      insights.push({
+        type: "info",
+        message:
+          "Your recent mood has been low. Consider taking a break or talking to someone.",
+        icon: Heart,
+      });
+    }
+
+    return insights.slice(0, 3);
+  }, [stats, journalEntries.length]);
+
+  // Handle task completion
+  const handleCompleteTask = (taskId: string) => {
+    completeTask(taskId);
+  };
+
+  // Handle habit completion
+  const handleCompleteHabit = (habitId: string) => {
+    completeHabit(habitId, today);
+  };
+
+  if (!mounted) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
