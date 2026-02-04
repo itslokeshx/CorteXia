@@ -21,8 +21,9 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Check, Flame, Trash2, Calendar } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useApp } from "@/lib/context/app-context";
+import { useCelebration } from "@/components/celebration/celebration-provider";
 import { cn } from "@/lib/utils";
 
 interface Habit {
@@ -51,6 +52,7 @@ interface HabitWithUI {
 export default function HabitsPage() {
   const { habits, completeHabit, deleteHabit, addHabit, getHabitStreak } =
     useApp();
+  const { celebrate } = useCelebration();
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [open, setOpen] = useState(false);
   const [newHabit, setNewHabit] = useState({
