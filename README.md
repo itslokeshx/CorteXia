@@ -1,470 +1,231 @@
-# CorteXia - Your Life, Understood. Powered by AI.
+<div align="center">
 
-A unified, AI-powered personal life operating system designed with surgical precision, calm authority, and invisible elegance. CorteXia integrates every dimension of personal life management into one intelligent system.
+# ✨ CorteXia
 
-> **This is NOT mock data. This is NOT a read-only UI. This is a COMPLETE, FUNCTIONAL APPLICATION.**
+### Your Life, Understood. Powered by AI.
 
-## 🌟 What's New
+A unified personal life operating system with deep integration across tasks, habits, goals, finances, time tracking, and journaling — all powered by intelligent AI insights.
 
-### Cortexia AI Assistant (v2.0)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)](https://typescriptlang.org/)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 
-A powerful, always-available AI chatbot that works across ALL pages:
+</div>
 
-- **General Intelligence** - Ask ANY question (trivia, advice, coding help, etc.) and get smart answers
-- **Voice Commands** - Use natural language to manage your life: _"Add buy groceries to my tasks"_
-- **Full CRUD Operations** - Create, update, delete tasks, habits, goals, expenses, and more via chat
-- **Smart Suggestions** - AI suggests relevant actions after answering your questions
-- **Cross-Page Access** - Floating chat button available on every page
-- **Offline Fallback** - Smart local parsing when API is unavailable
+---
 
-**Example commands:**
+## 🎯 Overview
 
-- _"Who directed Inception?"_ → Answers + suggests adding to watchlist
-- _"Create a goal called Learn Python and add 3 tasks to it"_
-- _"I spent $50 on groceries"_ → Logs expense automatically
-- _"Show my priorities for today"_ → Full daily overview
-- _"I studied machine learning for 2 hours"_ → Logs study session
+CorteXia is a **complete, functional productivity system** that treats your life as a cohesive whole rather than isolated domains. Every feature is deeply integrated — tasks connect to goals, habits build towards milestones, finances track against objectives, and AI weaves insights across everything.
 
-## Vision
+<div align="center">
 
-CorteXia is the world's first unified personal life operating system that competes with and surpasses fragmented productivity tools like Notion and Obsidian. It treats your life as a cohesive system, not isolated domains.
+| 📋 Tasks | 🎯 Goals | 💪 Habits | 💰 Finance | ⏱️ Time | 📓 Journal |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| Smart task management with recurrence, priorities & goal linking | Hierarchical horizons from life vision to weekly targets | GitHub-style streak calendar with target days | Budget tracking, spending trends & AI insights | Pomodoro timer with focus modes & analytics | Mood/energy tracking with AI prompts |
 
-### Core Concept
+</div>
 
-CorteXia integrates ALL aspects of personal life management into ONE intelligent system:
+---
 
-- **Tasks & To-Dos** - Full CRUD with priority, categories, time estimates, and completion tracking
-- **Time Tracking** - Deep analytics on how you spend your hours with focus quality metrics
-- **Habit Tracking** - Streak-based habit management with GitHub-style calendar visualization
-- **Finance Tracking** - Budget management, spending analytics, and financial insights
-- **Study Sessions** - Learning goal tracking with subject breakdown and focus level monitoring
-- **Journal Entries** - Reflective journaling with AI-powered summaries and pattern detection
-- **Goal Architecture** - Hierarchical goal system with milestones and progress tracking
-- **AI-Powered Insights** - Cross-domain pattern detection via Groq/Llama AI integration
-- **Conversational AI** - Natural language assistant for hands-free life management
+## ✨ Key Features
 
-## Design Philosophy
+### 🤖 Omnipotent AI Assistant
+Press **⌘K** anywhere to summon the AI chatbot. Create tasks, log expenses, check progress, or ask anything — all through natural language.
 
-- **Surgical Precision** - Every pixel justified, no wasted space
-- **Calm Authority** - Like Claude.ai, sophisticated but approachable
-- **Invisible Until Needed** - No clutter, information reveals on interaction
-- **Truth Over Decoration** - Color only when meaningful; data-driven design
-- **Addictive Through Clarity** - Engaging through understanding, not gamification
+\`\`\`
+"Add task: Review quarterly report by Friday"
+"I spent $45 on groceries"  
+"How am I doing on my fitness goal?"
+"Show my tasks for today"
+\`\`\`
 
-## Tech Stack
+### 📊 Dashboard
+- **Productivity Score** — Real-time ring visualization of daily progress
+- **AI Insights Strip** — Intelligent observations across all your data
+- **Quick Actions** — One-click access to common operations
+- **Today's Timeline** — Visual schedule of your day
+
+### 📋 Tasks
+- Grid/List view toggle
+- Priority-based urgency colors (critical → low)
+- Recurrence patterns (daily, weekly, monthly)
+- Goal linking for meaningful task context
+- Time estimates and tracking
+
+### 🎯 Goals
+- **5 Horizons** — Life Vision → Yearly → Quarterly → Monthly → Weekly
+- Connected items display (linked tasks & habits)
+- Tree, Board, and Timeline views
+- Milestone tracking with completion states
+- AI-generated roadmaps
+
+### 💪 Habits
+- **GitHub-style year streak calendar** — 365 days at a glance
+- Target days selector (M-T-W-T-F-S-S)
+- Custom colors per habit
+- Category filtering
+- Goal linking for habit-goal synergy
+
+### 💰 Finance
+- AI-powered spending insights
+- Category breakdown with pie charts
+- Monthly spending trends (area chart)
+- Budget tracking with progress bars
+- Transaction history with filtering
+
+### 📓 Journal
+- **Calendar view** — Browse entries by date with mood indicators
+- **Emoji selectors** — Intuitive mood, energy, and focus tracking
+- **AI prompts** — Rotating thought-provoking writing prompts
+- Streak tracking for consistent journaling
+- Tag system for organization
+
+### ⏱️ Time Tracker
+- Beautiful Pomodoro timer with focus mode
+- Full-screen immersive focus sessions
+- Task linking for accurate time attribution
+- Session history and analytics
+- Customizable work/break durations
+
+### 📅 Day Planner
+- Visual time block scheduling
+- Drag-and-drop interface
+- Task and goal linking per block
+- AI schedule suggestions
+- Daily overview at a glance
+
+---
+
+## 🛠️ Tech Stack
+
+<table>
+<tr>
+<td width="50%" valign="top">
 
 ### Frontend
+- **Next.js 16** — App Router
+- **React 19** — Latest features
+- **Tailwind CSS 4** — Utility-first styling
+- **Framer Motion** — Smooth animations
+- **Radix UI** — Accessible components
+- **Recharts** — Data visualization
+- **date-fns** — Date manipulation
 
-- **Framework**: Next.js 16.0.10 with App Router
-- **UI Library**: React 19.2.0
-- **Styling**: Tailwind CSS v4
-- **Components**: shadcn/ui with custom CorteXia theming
-- **Charts**: Recharts for data visualization
-- **Icons**: Lucide React
-- **State**: React Context with localStorage persistence
+</td>
+<td width="50%" valign="top">
 
-### Backend API
+### Backend
+- **Hono** — Lightweight API framework
+- **PostgreSQL** — Via Supabase
+- **Drizzle ORM** — Type-safe queries
+- **Zod** — Schema validation
+- **Groq AI** — Llama 3.3-70b chat
+- **Google Gemini** — Insights analysis
 
-- **Framework**: Hono 4.5.1 (lightweight, edge-ready)
-- **Server**: @hono/node-server
-- **Database**: PostgreSQL via Supabase
-- **ORM**: Drizzle ORM 0.29.5
-- **Validation**: Zod schemas
-- **AI**: Groq SDK with Llama 3.3-70b (conversational AI)
-- **AI**: Google Gemini 1.5 Pro (insights & analysis)
+</td>
+</tr>
+</table>
 
-## Project Structure
+---
 
-```
-CorteXia/
-├── app/                        # Next.js App Router pages
-│   ├── layout.tsx              # Root layout with providers
-│   ├── page.tsx                # Dashboard home
-│   ├── tasks/                  # Task management
-│   ├── habits/                 # Habit tracking
-│   ├── time/                   # Time analytics
-│   ├── finance/                # Finance tracking
-│   ├── study/                  # Study sessions
-│   ├── goals/                  # Goal architecture
-│   ├── journal/                # Journaling
-│   ├── insights/               # AI insights
-│   └── settings/               # Settings & preferences
-├── components/
-│   ├── ai/                     # AI chatbot components
-│   │   └── conversational-ai.tsx  # Floating AI assistant
-│   ├── layout/                 # Header, Sidebar, AppLayout
-│   ├── dashboard/              # Life State Core, Signals, AI Strip
-│   ├── tasks/                  # Task-specific components
-│   └── ui/                     # shadcn/ui components
-├── hooks/                      # Custom React hooks
-│   ├── use-tasks.ts            # Task management hook
-│   ├── use-goals.ts            # Goals management hook
-│   ├── use-habits.ts           # Habits management hook
-│   ├── use-finance.ts          # Finance management hook
-│   └── use-time-tracking.ts    # Time tracking hook
-├── lib/
-│   ├── utils.ts                # Utility functions
-│   ├── types.ts                # TypeScript types
-│   ├── ai/                     # AI utilities
-│   │   ├── conversational.ts   # Conversational AI logic
-│   │   └── prompts/            # System prompts
-│   └── context/
-│       └── app-context.tsx     # Global app state
-├── api/                        # Backend API (Hono)
-│   ├── index.ts                # API entry point
-│   ├── routes/
-│   │   ├── tasks.ts            # Tasks CRUD API
-│   │   ├── habits.ts           # Habits CRUD API
-│   │   ├── goals.ts            # Goals CRUD API
-│   │   ├── journal.ts          # Journal entries API
-│   │   ├── finance.ts          # Finance API
-│   │   ├── time-tracking.ts    # Time tracking API
-│   │   ├── insights.ts         # AI insights API
-│   │   └── auth.ts             # Authentication API
-│   ├── db/
-│   │   ├── index.ts            # Database connection
-│   │   └── schema.ts           # Drizzle ORM schema
-│   ├── services/
-│   │   └── ai.ts               # Gemini AI service
-│   └── middleware/
-│       └── auth.ts             # Auth middleware
-└── types/
-    └── goal.ts                 # Goal type definitions
-```
-
-## API Endpoints
-
-### Tasks (`/api/tasks`)
-
-| Method | Endpoint        | Description                   |
-| ------ | --------------- | ----------------------------- |
-| GET    | `/`             | List all tasks with filtering |
-| POST   | `/`             | Create a new task             |
-| GET    | `/:id`          | Get task by ID                |
-| PATCH  | `/:id`          | Update task                   |
-| DELETE | `/:id`          | Delete task                   |
-| POST   | `/:id/complete` | Mark task complete            |
-| GET    | `/stats`        | Get task statistics           |
-
-### Goals (`/api/goals`)
-
-| Method | Endpoint               | Description       |
-| ------ | ---------------------- | ----------------- |
-| GET    | `/`                    | List all goals    |
-| POST   | `/`                    | Create a new goal |
-| GET    | `/:id`                 | Get goal by ID    |
-| PATCH  | `/:id`                 | Update goal       |
-| DELETE | `/:id`                 | Delete goal       |
-| POST   | `/:id/milestones`      | Add milestone     |
-| PATCH  | `/:id/milestones/:mid` | Update milestone  |
-
-### Habits (`/api/habits`)
-
-| Method | Endpoint     | Description          |
-| ------ | ------------ | -------------------- |
-| GET    | `/`          | List all habits      |
-| POST   | `/`          | Create a new habit   |
-| GET    | `/:id`       | Get habit by ID      |
-| PATCH  | `/:id`       | Update habit         |
-| DELETE | `/:id`       | Delete habit         |
-| POST   | `/:id/check` | Log habit completion |
-| GET    | `/streaks`   | Get streak data      |
-
-### Journal (`/api/journal`)
-
-| Method | Endpoint         | Description          |
-| ------ | ---------------- | -------------------- |
-| GET    | `/`              | List journal entries |
-| POST   | `/`              | Create entry         |
-| GET    | `/:id`           | Get entry by ID      |
-| PATCH  | `/:id`           | Update entry         |
-| DELETE | `/:id`           | Delete entry         |
-| POST   | `/:id/summarize` | AI summarize entry   |
-| GET    | `/stats`         | Get journaling stats |
-
-### Finance (`/api/finance`)
-
-| Method | Endpoint        | Description        |
-| ------ | --------------- | ------------------ |
-| GET    | `/transactions` | List transactions  |
-| POST   | `/transactions` | Add transaction    |
-| GET    | `/budgets`      | Get budgets        |
-| POST   | `/budgets`      | Create budget      |
-| GET    | `/summary`      | Financial summary  |
-| GET    | `/analytics`    | Spending analytics |
-
-### AI Insights (`/api/insights`)
-
-| Method | Endpoint           | Description           |
-| ------ | ------------------ | --------------------- |
-| GET    | `/daily`           | Daily briefing        |
-| GET    | `/weekly`          | Weekly synthesis      |
-| GET    | `/patterns`        | Cross-domain patterns |
-| GET    | `/recommendations` | AI recommendations    |
-| POST   | `/analyze`         | Custom analysis       |
-
-### AI Conversation (`/api/ai`)
-
-| Method | Endpoint | Description                         |
-| ------ | -------- | ----------------------------------- |
-| POST   | `/ask`   | Send message to conversational AI   |
-| POST   | `/parse` | Parse natural language into actions |
-
-## Key Features
-
-### 🤖 Cortexia AI Assistant (NEW!)
-
-A floating AI chat assistant available on every page:
-
-- **General Knowledge** - Answer any question (science, movies, advice, coding)
-- **Natural Language Commands** - "Add a task", "Log expense", "Create a goal"
-- **Full CRUD via Chat** - Create, update, delete any entity through conversation
-- **Smart Context** - AI has full access to your data for personalized responses
-- **Action Execution** - Automatically executes requested actions and shows confirmation
-- **Voice Input** - Speech recognition support for hands-free operation
-- **Suggestions** - Proactive suggestions based on your data and conversation
-
-**Supported Actions:**
-
-- Tasks: create, update, delete, complete
-- Habits: create, update, delete, mark complete
-- Goals: create, update, delete, add tasks to goals
-- Finance: log expenses, log income
-- Time: log time entries
-- Study: log study sessions
-- Journal: create entries
-- Navigation: go to any page
-
-### Dashboard (Home)
-
-The central hub of CorteXia featuring:
-
-- **Life State Core** - Dynamic AI-calculated life state (Momentum, On Track, Drifting, Overloaded)
-- **Signal Constellation** - 8 signals in orbital layout showing real-time domain health
-- **AI Reasoning Strip** - Fixed bottom panel with Gemini-powered insights
-
-### Tasks Page
-
-- Full CRUD operations with real database persistence
-- Priority levels (low, medium, high, urgent)
-- Categories and domain filtering
-- Time estimation and completion tracking
-- Quick stats on high-priority and due-today tasks
-
-### Habits Page
-
-- Daily/weekly habit tracking with checkboxes
-- Streak visualization with GitHub-style calendar
-- Individual streak counters and momentum tracking
-- Habit performance analytics
-
-### Time Analytics
-
-- Weekly time distribution charts
-- Focus quality analysis (focused/distracted/neutral)
-- Category breakdown of time allocation
-- Daily productivity metrics
-
-### Finance
-
-- Income vs. expense tracking
-- Weekly spending patterns with budget comparison
-- Category-based spending breakdown
-- Budget progress bars with warning indicators
-
-### Study
-
-- Session-based learning tracking
-- Subject breakdown with time allocation
-- Learning goal progress tracking
-- Focus level metrics per session
-
-### Goals
-
-- Hierarchical goal system with milestones
-- Progress bars with deadline tracking
-- Sub-goal completion tracking
-- Priority-based goal organization
-
-### Journal
-
-- Rich text journaling with mood tracking
-- AI-powered entry summaries via Gemini
-- Tag-based organization
-- Mood analytics and sentiment tracking
-
-### AI Insights
-
-- Cross-domain pattern detection via Gemini 1.5 Pro
-- Behavioral analysis and recommendations
-- Weekly synthesis of life trends
-- Morning briefing generation
-- Actionable recommendations with impact estimates
-
-### Settings
-
-- Account and profile management
-- Notification preferences
-- Privacy and security controls
-- Appearance customization
-- Data export and management
-
-## Design System
-
-### Color Palette
-
-**Semantic State Colors** (consistent across light/dark):
-
-- Momentum: `#10B981` (Green)
-- On Track: `#3B82F6` (Blue)
-- Strategic: `#8B5CF6` (Purple)
-- Drifting: `#F59E0B` (Amber)
-- Overloaded: `#EF4444` (Red)
-- Burnout: `#DC2626` (Dark Red)
-
-**Light Mode Neutrals**:
-
-- Background: `#FFFFFF`
-- Secondary: `#F8F9FA`
-- Tertiary: `#F0F1F3`
-- Text Primary: `#0A0B0D`
-- Text Secondary: `#4B5563`
-- Text Tertiary: `#9CA3AF`
-
-**Dark Mode Neutrals**:
-
-- Background: `#0A0B0D`
-- Secondary: `#151618`
-- Tertiary: `#1F2023`
-- Text Primary: `#F9FAFB`
-- Text Secondary: `#D1D5DB`
-- Text Tertiary: `#6B7280`
-
-### Typography
-
-- **Primary Font**: Inter Variable
-- **Mono Font**: Geist Mono
-- **Spacing System**: 8px baseline (8, 16, 24, 32, 48, 64, 80, 120)
-
-### Layout Dimensions
-
-- Header: 64px fixed
-- Sidebar: 240px (collapsible to 64px)
-- Content Max Width: 1440px
-- Content Padding: 32px
-- Card Border Radius: 12px
-- Minimum Breathing Room: 40% empty space
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 18+
 - pnpm (recommended) or npm
-- PostgreSQL database (Supabase recommended)
-- Google AI API key (for Gemini integration)
-
-### Environment Variables
-
-Create `.env` files:
-
-**Frontend (`.env.local`)**:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001
-```
-
-**Backend (`api/.env`)**:
-
-```env
-DATABASE_URL=postgresql://user:password@host:5432/cortexia
-GEMINI_API_KEY=your-gemini-api-key
-GROQ_API_KEY=your-groq-api-key
-JWT_SECRET=your-jwt-secret
-```
 
 ### Installation
 
-```bash
+\`\`\`bash
 # Clone the repository
 git clone https://github.com/yourusername/cortexia.git
 cd cortexia
 
-# Install frontend dependencies
+# Install dependencies
 pnpm install
 
-# Install backend dependencies
-cd api
-npm install
-
-# Set up database
-npm run db:generate
-npm run db:push
-
-# Return to root
-cd ..
-```
-
-### Running the Application
-
-```bash
-# Terminal 1: Start the backend API
-cd api
-npm run dev
-# API runs on http://localhost:3001
-
-# Terminal 2: Start the frontend
+# Start development server
 pnpm dev
-# Frontend runs on http://localhost:3000
-```
+\`\`\`
 
-### Database Commands
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-```bash
-cd api
+### Environment Variables
 
-# Generate migrations from schema changes
-npm run db:generate
+Create a \`.env.local\` file:
 
-# Push schema to database
-npm run db:push
+\`\`\`env
+# Database (Supabase)
+DATABASE_URL=your_supabase_connection_string
 
-# Open Drizzle Studio (database GUI)
-npm run db:studio
-```
-
-## Future Roadmap
-
-- [ ] Real-time sync across devices
-- [ ] Mobile app (React Native)
-- [ ] Calendar & email integrations
-- [ ] Advanced analytics dashboards
-- [ ] Voice input for journal entries
-- [ ] Collaborative goals/tasks
-- [x] ~~Conversational AI assistant~~ ✅ Completed!
-- [x] ~~Cross-page AI availability~~ ✅ Completed!
-- [x] ~~Natural language task creation~~ ✅ Completed!
-
-## Browser Support
-
-- Modern browsers with ES6+ support
-- Dark/light mode detection and toggle
-- Responsive design (desktop-first, mobile-compatible)
-
-## Performance & Best Practices
-
-- Modular component architecture for code reuse
-- Optimized rendering with React best practices
-- CSS variables for consistent theming
-- Accessible UI with semantic HTML and ARIA labels
-- Mobile-responsive with Tailwind CSS utility classes
-- Edge-ready API with Hono framework
-- Type-safe database queries with Drizzle ORM
-
-## License
-
-MIT License. Built with ❤️ for personal productivity.
+# AI Services
+GROQ_API_KEY=your_groq_api_key
+GOOGLE_AI_API_KEY=your_gemini_api_key
+\`\`\`
 
 ---
 
-**CorteXia**: Your life, understood. Powered by AI.
+## 📁 Project Structure
+
+\`\`\`
+CorteXia/
+├── app/                    # Next.js pages
+│   ├── page.tsx           # Dashboard
+│   ├── tasks/             # Task management
+│   ├── habits/            # Habit tracking
+│   ├── goals/             # Goal architecture
+│   ├── finance/           # Finance tracking
+│   ├── journal/           # Journaling
+│   ├── time-tracker/      # Pomodoro timer
+│   ├── day-planner/       # Schedule planning
+│   └── ai-coach/          # AI coaching
+├── components/
+│   ├── ai/                # AI chatbot
+│   ├── dashboard/         # Dashboard widgets
+│   ├── layout/            # App shell
+│   └── ui/                # shadcn components
+├── lib/
+│   ├── context/           # React context
+│   ├── types.ts           # TypeScript types
+│   └── utils.ts           # Utilities
+└── api/                   # Hono backend
+    ├── routes/            # API endpoints
+    ├── db/                # Database schema
+    └── services/          # AI services
+\`\`\`
+
+---
+
+## 🎨 Design Philosophy
+
+| | Principle | Description |
+|:---:|:---|:---|
+| 🎯 | **Surgical Precision** | Every pixel justified, no wasted space |
+| 🧘 | **Calm Authority** | Sophisticated yet approachable |
+| 👻 | **Invisible Until Needed** | Information reveals on interaction |
+| 📊 | **Truth Over Decoration** | Color only when meaningful |
+| ✨ | **Addictive Through Clarity** | Engaging through understanding |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+<div align="center">
+
+**Built with ❤️ for people who want to understand and optimize their lives.**
+
+[Report Bug](https://github.com/yourusername/cortexia/issues) · [Request Feature](https://github.com/yourusername/cortexia/issues)
+
+</div>
