@@ -4,7 +4,6 @@ import { AppLayout } from "@/components/layout/app-layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/context/app-context";
-import { ConversationalAI } from "@/components/ai/conversational-ai";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
@@ -453,9 +452,6 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-
-      {/* Floating AI Chat */}
-      <ConversationalAI />
     </AppLayout>
   );
 }
