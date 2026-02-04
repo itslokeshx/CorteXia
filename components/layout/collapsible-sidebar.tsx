@@ -137,6 +137,8 @@ export function CollapsibleSidebar({
     );
   };
 
+  const [isHoveringCollapsed, setIsHoveringCollapsed] = useState(false);
+
   if (!mounted) return null;
 
   return (
@@ -169,13 +171,44 @@ export function CollapsibleSidebar({
           )}
         >
           {isCollapsed ? (
-            // Collapsed: Only show toggle button
+            // Collapsed: Show site icon, on hover show expand icon
             <button
               onClick={toggleSidebar}
-              className="p-2 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+              onMouseEnter={() => setIsHoveringCollapsed(true)}
+              onMouseLeave={() => setIsHoveringCollapsed(false)}
+              className="p-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-all"
               aria-label="Expand sidebar"
             >
-              <PanelLeft className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+              <AnimatePresence mode="wait" initial={false}>
+                {isHoveringCollapsed ? (
+                  <motion.div
+                    key="expand"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <PanelLeft className="w-6 h-6 text-neutral-600 dark:text-neutral-400" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="icon"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.15 }}
+                    className="w-7 h-7 rounded-lg overflow-hidden"
+                  >
+                    <Image
+                      src="/Cortexia-icon.jpeg"
+                      alt="CorteXia"
+                      width={28}
+                      height={28}
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </button>
           ) : (
             // Expanded: Show logo and toggle
