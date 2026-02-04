@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 sm:space-y-8 pb-24">
+      <div className="space-y-8 pb-24">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -58,10 +58,10 @@ export default function DashboardPage() {
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
           <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">
-              {getGreeting()} 👋
+            <h1 className="text-2xl sm:text-3xl font-semibold text-neutral-900 dark:text-white">
+              {getGreeting()}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-neutral-500 dark:text-neutral-400 mt-1 text-sm">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
@@ -70,17 +70,17 @@ export default function DashboardPage() {
               })}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {stats.completedTodayCount > 0 && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full text-sm font-medium">
-                <CheckCircle2 className="w-4 h-4" />
-                {stats.completedTodayCount} completed today
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-green-950/50 text-green-600 dark:text-green-400 rounded-full text-xs font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {stats.completedTodayCount} done
               </div>
             )}
             {stats.pendingHighPriority > 0 && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">
-                <TrendingUp className="w-4 h-4" />
-                {stats.pendingHighPriority} high priority
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-full text-xs font-medium">
+                <TrendingUp className="w-3.5 h-3.5" />
+                {stats.pendingHighPriority} priority
               </div>
             )}
           </div>
@@ -101,8 +101,7 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />
+          <h2 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-white">
             Life Signals
           </h2>
           <SignalConstellation />
