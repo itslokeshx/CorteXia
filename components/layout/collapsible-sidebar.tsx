@@ -104,7 +104,7 @@ export function CollapsibleSidebar({
         href={item.href}
         onClick={onClick}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 group",
+          "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-150 group",
           isActive
             ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white"
             : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-white",
@@ -120,19 +120,14 @@ export function CollapsibleSidebar({
           )}
         />
 
-        <AnimatePresence mode="wait">
-          {showLabel && (
-            <motion.span
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: "auto" }}
-              exit={{ opacity: 0, width: 0 }}
-              transition={{ duration: 0.15 }}
-              className="whitespace-nowrap text-sm font-medium overflow-hidden"
-            >
-              {item.name}
-            </motion.span>
+        <span
+          className={cn(
+            "whitespace-nowrap text-sm font-medium overflow-hidden transition-all duration-200",
+            showLabel ? "opacity-100 w-auto" : "opacity-0 w-0",
           )}
-        </AnimatePresence>
+        >
+          {item.name}
+        </span>
       </Link>
     );
   };
@@ -156,12 +151,10 @@ export function CollapsibleSidebar({
         )}
       </button>
 
-      {/* Desktop Sidebar - Clean minimal style */}
-      <motion.aside
-        initial={false}
-        animate={{ width: isCollapsed ? 56 : 240 }}
-        transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-        className="hidden lg:flex fixed left-0 top-0 h-screen bg-neutral-50 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 z-40 flex-col"
+      {/* Desktop Sidebar - Stable CSS-based transitions */}
+      <aside
+        style={{ width: isCollapsed ? 56 : 240 }}
+        className="hidden lg:flex fixed left-0 top-0 h-screen bg-neutral-50 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 z-40 flex-col transition-[width] duration-200 ease-out"
       >
         {/* Header with Logo & Toggle */}
         <div
@@ -176,39 +169,33 @@ export function CollapsibleSidebar({
               onClick={toggleSidebar}
               onMouseEnter={() => setIsHoveringCollapsed(true)}
               onMouseLeave={() => setIsHoveringCollapsed(false)}
-              className="p-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-all"
+              className="p-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-all relative w-8 h-8 flex items-center justify-center"
               aria-label="Expand sidebar"
             >
-              <AnimatePresence mode="wait" initial={false}>
-                {isHoveringCollapsed ? (
-                  <motion.div
-                    key="expand"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <PanelLeft className="w-6 h-6 text-neutral-600 dark:text-neutral-400" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="icon"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.15 }}
-                    className="w-7 h-7 rounded-lg overflow-hidden"
-                  >
-                    <Image
-                      src="/Cortexia-icon.jpeg"
-                      alt="CorteXia"
-                      width={28}
-                      height={28}
-                      className="w-full h-full object-cover"
-                    />
-                  </motion.div>
+              <div
+                className={cn(
+                  "absolute inset-0 flex items-center justify-center transition-opacity duration-150",
+                  isHoveringCollapsed ? "opacity-0" : "opacity-100",
                 )}
-              </AnimatePresence>
+              >
+                <div className="w-7 h-7 rounded-lg overflow-hidden">
+                  <Image
+                    src="/Cortexia-icon.jpeg"
+                    alt="CorteXia"
+                    width={28}
+                    height={28}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <div
+                className={cn(
+                  "absolute inset-0 flex items-center justify-center transition-opacity duration-150",
+                  isHoveringCollapsed ? "opacity-100" : "opacity-0",
+                )}
+              >
+                <PanelLeft className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+              </div>
             </button>
           ) : (
             // Expanded: Show logo and toggle
@@ -251,7 +238,7 @@ export function CollapsibleSidebar({
             <NavLink key={item.href} item={item} showLabel={!isCollapsed} />
           ))}
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Mobile Sidebar Overlay - Clean slide-in */}
       <AnimatePresence>

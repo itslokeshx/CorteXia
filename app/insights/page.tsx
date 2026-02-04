@@ -2,7 +2,7 @@
 
 import { AppLayout } from "@/components/layout/app-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -11,11 +11,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Lightbulb,
-  Clock,
-  Target,
-  Heart,
-  DollarSign,
-  Zap,
   Brain,
   BarChart3,
 } from "lucide-react";
@@ -26,7 +21,7 @@ import {
   CorrelationMatrix,
 } from "@/components/charts";
 import { AILifeCoach } from "@/components/ai/life-coach";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 export default function InsightsPage() {
   const {
@@ -197,23 +192,23 @@ export default function InsightsPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-5xl mx-auto space-y-6 pb-24">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">AI Insights</h1>
-            <p className="text-muted-foreground text-sm md:text-base mt-1">
-              Deep analytics and personalized recommendations
-            </p>
-          </div>
+      <div className="space-y-6 pb-24">
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">
+            AI Insights
+          </h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+            Personalized analytics and life coaching
+          </p>
         </div>
 
         <Tabs defaultValue="coach" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="coach" className="gap-2">
+          <TabsList className="w-full max-w-xs mb-6 bg-neutral-100 dark:bg-neutral-800">
+            <TabsTrigger value="coach" className="flex-1 gap-2 text-sm">
               <Brain className="w-4 h-4" />
-              AI Life Coach
+              AI Coach
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
+            <TabsTrigger value="analytics" className="flex-1 gap-2 text-sm">
               <BarChart3 className="w-4 h-4" />
               Analytics
             </TabsTrigger>
@@ -224,28 +219,12 @@ export default function InsightsPage() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <div className="flex justify-end gap-2">
-              {insights.length > 0 && (
-                <Button variant="outline" size="sm" onClick={clearInsights}>
-                  Clear
-                </Button>
-              )}
-              <Button
-                className="gap-2"
-                onClick={handleGenerateInsights}
-                disabled={isLoading}
-              >
-                <Sparkles className="h-4 w-4" />
-                {isLoading ? "Analyzing..." : "Generate"}
-              </Button>
-            </div>
-
             {/* Analytics Dashboard */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Radar Chart - Life Balance */}
               <RadarChart
                 data={radarData}
-                title="Life Balance Score"
+                title="Life Balance"
                 color="#8b5cf6"
               />
 
@@ -253,23 +232,26 @@ export default function InsightsPage() {
               <CorrelationMatrix
                 domains={correlationDomains}
                 correlations={correlations}
-                title="Domain Correlations"
+                title="Domain Patterns"
               />
             </div>
 
             {/* Activity Heatmap */}
             <HeatmapCalendar
               data={heatmapData}
-              title="Activity History"
+              title="Activity Overview"
               colorScale="green"
             />
 
             {/* AI Generated Insights */}
             {insights.length > 0 && (
-              <div className="space-y-3 md:space-y-4">
-                <h2 className="text-lg md:text-2xl font-semibold">
-                  AI Analysis
-                </h2>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-medium">Generated Insights</h2>
+                  <Button variant="ghost" size="sm" onClick={clearInsights}>
+                    Clear
+                  </Button>
+                </div>
                 {insights.map((insight) => (
                   <Card
                     key={insight.id}
@@ -283,30 +265,22 @@ export default function InsightsPage() {
                             : "border-l-blue-500"
                     }`}
                   >
-                    <CardContent className="pt-4 md:pt-6 px-4 md:px-6">
-                      <div className="flex items-start gap-3 md:gap-4">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
                         {getIcon(insight.type)}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base md:text-lg">
+                          <h3 className="font-medium text-sm">
                             {insight.title}
                           </h3>
-                          <p className="text-muted-foreground text-sm mt-1 md:mt-2">
+                          <p className="text-neutral-500 dark:text-neutral-400 text-xs mt-1">
                             {insight.content}
                           </p>
-                          <div className="flex items-center gap-2 mt-2 md:mt-3 flex-wrap">
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <Badge
                               variant="outline"
-                              className="capitalize text-[10px] md:text-xs"
+                              className="capitalize text-[10px]"
                             >
                               {insight.type}
-                            </Badge>
-                            <Badge
-                              variant={
-                                insight.actionable ? "default" : "secondary"
-                              }
-                              className="text-[10px] md:text-xs"
-                            >
-                              {insight.actionable ? "Actionable" : "Info"}
                             </Badge>
                           </div>
                         </div>
@@ -316,65 +290,6 @@ export default function InsightsPage() {
                 ))}
               </div>
             )}
-
-            {/* Insight Categories */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-              <Card className="hover:shadow-md transition-shadow border-border/50">
-                <CardHeader className="pb-2 px-4 md:px-6">
-                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
-                    <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
-                    Patterns
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 md:px-6">
-                  <p className="text-xs md:text-sm text-muted-foreground">
-                    AI detects correlations between habits and wellbeing.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-md transition-shadow border-border/50">
-                <CardHeader className="pb-2 px-4 md:px-6">
-                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
-                    <Lightbulb className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
-                    Tips
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 md:px-6">
-                  <p className="text-xs md:text-sm text-muted-foreground">
-                    Personalized suggestions to optimize your time.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-md transition-shadow border-border/50">
-                <CardHeader className="pb-2 px-4 md:px-6">
-                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
-                    <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-red-500" />
-                    Warnings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 md:px-6">
-                  <p className="text-xs md:text-sm text-muted-foreground">
-                    Alerts about burnout risk and overcommitment.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-md transition-shadow border-border/50">
-                <CardHeader className="pb-2 px-4 md:px-6">
-                  <CardTitle className="flex items-center gap-2 text-sm md:text-base">
-                    <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 text-emerald-500" />
-                    Wins
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 md:px-6">
-                  <p className="text-xs md:text-sm text-muted-foreground">
-                    Recognition of your progress and milestones.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </div>
