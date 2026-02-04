@@ -3,20 +3,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* CorteXia Design System - Light Mode */
+/* CorteXia Design System - Light Mode (Clean Apple-like) */
 :root {
-  /* Neutral Colors */
+  /* Neutral Colors - Clean whites and grays */
   --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8f9fa;
-  --color-bg-tertiary: #f0f1f3;
-  --color-border: #e5e7eb;
-  --color-border-subtle: #f0f1f3;
-  --color-text-primary: #0a0b0d;
-  --color-text-secondary: #4b5563;
-  --color-text-tertiary: #9ca3af;
+  --color-bg-secondary: #fafafa;
+  --color-bg-tertiary: #f5f5f5;
+  --color-border: #e5e5e5;
+  --color-border-subtle: #f0f0f0;
+  --color-text-primary: #171717;
+  --color-text-secondary: #525252;
+  --color-text-tertiary: #a3a3a3;
 
-  /* Semantic State Colors */
-  --state-momentum: #10b981;
+  /* Semantic State Colors - Subtle, professional */
+  --state-momentum: #22c55e;
   --state-ontrack: #3b82f6;
   --state-strategic: #8b5cf6;
   --state-drift: #f59e0b;
@@ -24,14 +24,14 @@
   --state-burnout: #dc2626;
 
   /* Signal Colors */
-  --signal-stable: #10b981;
+  --signal-stable: #22c55e;
   --signal-warning: #f59e0b;
   --signal-critical: #ef4444;
 
-  /* Domain Colors */
+  /* Domain Colors - Muted, elegant */
   --domain-time: #f59e0b;
   --domain-focus: #8b5cf6;
-  --domain-habits: #10b981;
+  --domain-habits: #22c55e;
   --domain-goals: #3b82f6;
   --domain-money: #ec4899;
   --domain-study: #06b6d4;
@@ -41,68 +41,68 @@
   /* Standard tokens */
   --background: var(--color-bg-primary);
   --foreground: var(--color-text-primary);
-  --card: var(--color-bg-secondary);
+  --card: var(--color-bg-primary);
   --card-foreground: var(--color-text-primary);
   --popover: var(--color-bg-primary);
   --popover-foreground: var(--color-text-primary);
-  --primary: var(--state-ontrack);
+  --primary: #171717;
   --primary-foreground: #ffffff;
   --secondary: var(--color-bg-secondary);
   --secondary-foreground: var(--color-text-primary);
   --muted: var(--color-bg-tertiary);
   --muted-foreground: var(--color-text-tertiary);
-  --accent: var(--state-momentum);
-  --accent-foreground: #ffffff;
+  --accent: var(--color-bg-secondary);
+  --accent-foreground: var(--color-text-primary);
   --destructive: var(--state-overload);
   --destructive-foreground: #ffffff;
   --border: var(--color-border);
   --input: var(--color-bg-secondary);
-  --ring: var(--state-ontrack);
+  --ring: #171717;
   --chart-1: var(--domain-time);
   --chart-2: var(--domain-focus);
   --chart-3: var(--domain-habits);
   --chart-4: var(--domain-goals);
   --chart-5: var(--domain-money);
-  --radius: 0.75rem;
-  --sidebar: var(--color-bg-primary);
+  --radius: 0.5rem;
+  --sidebar: var(--color-bg-secondary);
   --sidebar-foreground: var(--color-text-primary);
-  --sidebar-primary: var(--state-ontrack);
+  --sidebar-primary: var(--color-text-primary);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: var(--color-bg-secondary);
+  --sidebar-accent: var(--color-bg-tertiary);
   --sidebar-accent-foreground: var(--color-text-primary);
   --sidebar-border: var(--color-border);
-  --sidebar-ring: var(--state-ontrack);
+  --sidebar-ring: #171717;
 }
 
-/* CorteXia Design System - Dark Mode */
+/* CorteXia Design System - Dark Mode (Clean, minimal) */
 .dark {
-  /* Neutral Colors */
-  --color-bg-primary: #0a0b0d;
-  --color-bg-secondary: #151618;
-  --color-bg-tertiary: #1f2023;
-  --color-border: #2a2b2e;
-  --color-border-subtle: #1f2023;
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #d1d5db;
-  --color-text-tertiary: #6b7280;
+  /* Neutral Colors - True dark with subtle grays */
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #171717;
+  --color-bg-tertiary: #262626;
+  --color-border: #262626;
+  --color-border-subtle: #1f1f1f;
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a3a3a3;
+  --color-text-tertiary: #525252;
 
-  /* Semantic State Colors (same across modes) */
-  --state-momentum: #10b981;
+  /* Semantic State Colors */
+  --state-momentum: #22c55e;
   --state-ontrack: #3b82f6;
   --state-strategic: #8b5cf6;
   --state-drift: #f59e0b;
   --state-overload: #ef4444;
   --state-burnout: #dc2626;
 
-  /* Signal Colors (same across modes) */
-  --signal-stable: #10b981;
+  /* Signal Colors */
+  --signal-stable: #22c55e;
   --signal-warning: #f59e0b;
   --signal-critical: #ef4444;
 
-  /* Domain Colors (same across modes) */
+  /* Domain Colors */
   --domain-time: #f59e0b;
   --domain-focus: #8b5cf6;
-  --domain-habits: #10b981;
+  --domain-habits: #22c55e;
   --domain-goals: #3b82f6;
   --domain-money: #ec4899;
   --domain-study: #06b6d4;
@@ -114,34 +114,29 @@
   --foreground: var(--color-text-primary);
   --card: var(--color-bg-secondary);
   --card-foreground: var(--color-text-primary);
-  --popover: var(--color-bg-primary);
+  --popover: var(--color-bg-secondary);
   --popover-foreground: var(--color-text-primary);
-  --primary: var(--state-ontrack);
-  --primary-foreground: var(--color-bg-primary);
+  --primary: #fafafa;
+  --primary-foreground: #0a0a0a;
   --secondary: var(--color-bg-secondary);
   --secondary-foreground: var(--color-text-primary);
   --muted: var(--color-bg-tertiary);
   --muted-foreground: var(--color-text-tertiary);
-  --accent: var(--state-momentum);
-  --accent-foreground: var(--color-bg-primary);
+  --accent: var(--color-bg-tertiary);
+  --accent-foreground: var(--color-text-primary);
   --destructive: var(--state-overload);
   --destructive-foreground: #ffffff;
   --border: var(--color-border);
   --input: var(--color-bg-secondary);
-  --ring: var(--state-ontrack);
-  --chart-1: var(--domain-time);
-  --chart-2: var(--domain-focus);
-  --chart-3: var(--domain-habits);
-  --chart-4: var(--domain-goals);
-  --chart-5: var(--domain-money);
+  --ring: #fafafa;
   --sidebar: var(--color-bg-secondary);
   --sidebar-foreground: var(--color-text-primary);
-  --sidebar-primary: var(--state-ontrack);
-  --sidebar-primary-foreground: var(--color-bg-primary);
+  --sidebar-primary: var(--color-text-primary);
+  --sidebar-primary-foreground: #0a0a0a;
   --sidebar-accent: var(--color-bg-tertiary);
   --sidebar-accent-foreground: var(--color-text-primary);
   --sidebar-border: var(--color-border);
-  --sidebar-ring: var(--state-ontrack);
+  --sidebar-ring: #fafafa;
 }
 
 @theme inline {

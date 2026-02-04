@@ -1,19 +1,9 @@
 "use client";
 
-import { Settings, Moon, Sun, User } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { QuickAddBar } from "@/components/quick-add/quick-add-bar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export function Header() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -49,69 +39,25 @@ export function Header() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 border-b border-border bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-8">
-      {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 group">
-        <div className="w-10 h-10 rounded-lg overflow-hidden">
-          <Image
-            src="/Cortexia-icon.jpeg"
-            alt="CorteXia"
-            width={40}
-            height={40}
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <span className="text-lg font-semibold hidden sm:inline group-hover:text-primary transition-colors">
-          CorteXia
-        </span>
-      </Link>
-
-      {/* Quick Add Bar */}
-      <div className="flex-1 mx-8 flex justify-center">
+    <header className="hidden lg:flex fixed top-0 right-0 h-14 z-30 items-center justify-end px-6 gap-3 bg-transparent">
+      {/* Quick Add Bar - Centered */}
+      <div className="flex-1 flex justify-center max-w-xl">
         <QuickAddBar />
       </div>
 
-      {/* Right Section */}
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="hover:bg-secondary"
-        >
-          {theme === "light" ? (
-            <Moon className="w-5 h-5" />
-          ) : (
-            <Sun className="w-5 h-5" />
-          )}
-        </Button>
-
-        <Link href="/settings">
-          <Button variant="ghost" size="icon" className="hover:bg-secondary">
-            <Settings className="w-5 h-5" />
-          </Button>
-        </Link>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="hover:bg-secondary">
-              <User className="w-5 h-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/settings">Settings</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>Export Data</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              Clear All Data
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {/* Theme Toggle - Clean minimal */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleTheme}
+        className="h-8 w-8 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800"
+      >
+        {theme === "light" ? (
+          <Moon className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+        ) : (
+          <Sun className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+        )}
+      </Button>
     </header>
   );
 }
