@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from "react";
 import type {
   Task,
   Habit,
@@ -12,19 +12,19 @@ import type {
   LifeState,
   AIInsight,
   UserSettings,
-} from '../types';
+} from "../types";
 
 interface AppContextType {
   // Tasks
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Task;
+  addTask: (task: Omit<Task, "id" | "createdAt">) => Task;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   completeTask: (id: string) => void;
 
   // Habits
   habits: Habit[];
-  addHabit: (habit: Omit<Habit, 'id' | 'createdAt' | 'completions'>) => Habit;
+  addHabit: (habit: Omit<Habit, "id" | "createdAt" | "completions">) => Habit;
   updateHabit: (id: string, updates: Partial<Habit>) => void;
   deleteHabit: (id: string) => void;
   completeHabit: (id: string, date: string) => void;
@@ -32,33 +32,43 @@ interface AppContextType {
 
   // Finance
   transactions: Transaction[];
-  addTransaction: (transaction: Omit<Transaction, 'id' | 'createdAt'>) => Transaction;
+  addTransaction: (
+    transaction: Omit<Transaction, "id" | "createdAt">,
+  ) => Transaction;
   updateTransaction: (id: string, updates: Partial<Transaction>) => void;
   deleteTransaction: (id: string) => void;
-  getBudgetStatus: (category: string) => { spent: number; limit: number; percentage: number };
+  getBudgetStatus: (category: string) => {
+    spent: number;
+    limit: number;
+    percentage: number;
+  };
 
   // Time Tracking
   timeEntries: TimeEntry[];
-  addTimeEntry: (entry: Omit<TimeEntry, 'id' | 'createdAt'>) => TimeEntry;
+  addTimeEntry: (entry: Omit<TimeEntry, "id" | "createdAt">) => TimeEntry;
   updateTimeEntry: (id: string, updates: Partial<TimeEntry>) => void;
   deleteTimeEntry: (id: string) => void;
 
   // Goals
   goals: Goal[];
-  addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'completedAt'>) => Goal;
+  addGoal: (goal: Omit<Goal, "id" | "createdAt" | "completedAt">) => Goal;
   updateGoal: (id: string, updates: Partial<Goal>) => void;
   deleteGoal: (id: string) => void;
   completeMilestone: (goalId: string, milestoneId: string) => void;
 
   // Study
   studySessions: StudySession[];
-  addStudySession: (session: Omit<StudySession, 'id' | 'createdAt'>) => StudySession;
+  addStudySession: (
+    session: Omit<StudySession, "id" | "createdAt">,
+  ) => StudySession;
   updateStudySession: (id: string, updates: Partial<StudySession>) => void;
   deleteStudySession: (id: string) => void;
 
   // Journal
   journalEntries: JournalEntry[];
-  addJournalEntry: (entry: Omit<JournalEntry, 'id' | 'createdAt'>) => JournalEntry;
+  addJournalEntry: (
+    entry: Omit<JournalEntry, "id" | "createdAt">,
+  ) => JournalEntry;
   updateJournalEntry: (id: string, updates: Partial<JournalEntry>) => void;
   deleteJournalEntry: (id: string) => void;
 
@@ -69,7 +79,7 @@ interface AppContextType {
 
   // AI Insights
   insights: AIInsight[];
-  addInsight: (insight: Omit<AIInsight, 'id' | 'createdAt'>) => AIInsight;
+  addInsight: (insight: Omit<AIInsight, "id" | "createdAt">) => AIInsight;
   clearInsights: () => void;
   generateInsights: () => Promise<void>;
 
@@ -83,11 +93,24 @@ interface AppContextType {
 
   // Time Utils
   getWeeklyStats: () => { byCategory: Record<string, number>; total: number };
-  getTodayStats: () => { totalMinutes: number; deepFocus: number; totalInterruptions: number; entries: TimeEntry[] };
-  getFocusQualityBreakdown: () => Record<string, { hours: number; percentage: number }>;
+  getTodayStats: () => {
+    totalMinutes: number;
+    deepFocus: number;
+    totalInterruptions: number;
+    entries: TimeEntry[];
+  };
+  getFocusQualityBreakdown: () => Record<
+    string,
+    { hours: number; percentage: number }
+  >;
 
   // Goals Utils
-  getGoalStats: () => { total: number; completed: number; inProgress: number; avgProgress: number };
+  getGoalStats: () => {
+    total: number;
+    completed: number;
+    inProgress: number;
+    avgProgress: number;
+  };
 
   // Utils
   isLoading: boolean;
@@ -97,7 +120,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const DEFAULT_SETTINGS: UserSettings = {
-  theme: 'dark',
+  theme: "dark",
   notifications: {
     enabled: true,
     tasks: true,
@@ -109,14 +132,14 @@ const DEFAULT_SETTINGS: UserSettings = {
     aiAnalysis: true,
   },
   preferences: {
-    startOfWeek: 'monday',
-    timeFormat: '24h',
-    language: 'en',
+    startOfWeek: "monday",
+    timeFormat: "24h",
+    language: "en",
   },
 };
 
 const DEFAULT_LIFE_STATE: LifeState = {
-  status: 'on-track',
+  status: "on-track",
   momentum: 65,
   stress: 35,
   productivity: 70,
@@ -142,7 +165,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Load from localStorage on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('cortexia-data');
+      const saved = localStorage.getItem("cortexia-data");
       if (saved) {
         const data = JSON.parse(saved);
         setTasks(data.tasks || []);
@@ -156,7 +179,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setSettings(data.settings || DEFAULT_SETTINGS);
       }
     } catch (err) {
-      console.error('[v0] Failed to load data from localStorage:', err);
+      console.error("[v0] Failed to load data from localStorage:", err);
     }
   }, []);
 
@@ -174,14 +197,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         lifeState,
         settings,
       };
-      localStorage.setItem('cortexia-data', JSON.stringify(data));
+      localStorage.setItem("cortexia-data", JSON.stringify(data));
     } catch (err) {
-      console.error('[v0] Failed to save data to localStorage:', err);
+      console.error("[v0] Failed to save data to localStorage:", err);
     }
-  }, [tasks, habits, transactions, timeEntries, goals, studySessions, journalEntries, lifeState, settings]);
+  }, [
+    tasks,
+    habits,
+    transactions,
+    timeEntries,
+    goals,
+    studySessions,
+    journalEntries,
+    lifeState,
+    settings,
+  ]);
 
   // Task operations
-  const addTask = (task: Omit<Task, 'id' | 'createdAt'>) => {
+  const addTask = (task: Omit<Task, "id" | "createdAt">) => {
     const newTask: Task = {
       ...task,
       id: Date.now().toString(),
@@ -192,7 +225,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+    );
   };
 
   const deleteTask = (id: string) => {
@@ -203,14 +238,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTasks((prev) =>
       prev.map((t) =>
         t.id === id
-          ? { ...t, status: 'completed', completedAt: new Date().toISOString() }
-          : t
-      )
+          ? { ...t, status: "completed", completedAt: new Date().toISOString() }
+          : t,
+      ),
     );
   };
 
   // Habit operations
-  const addHabit = (habit: Omit<Habit, 'id' | 'createdAt' | 'completions'>) => {
+  const addHabit = (habit: Omit<Habit, "id" | "createdAt" | "completions">) => {
     const newHabit: Habit = {
       ...habit,
       id: Date.now().toString(),
@@ -222,7 +257,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateHabit = (id: string, updates: Partial<Habit>) => {
-    setHabits((prev) => prev.map((h) => (h.id === id ? { ...h, ...updates } : h)));
+    setHabits((prev) =>
+      prev.map((h) => (h.id === id ? { ...h, ...updates } : h)),
+    );
   };
 
   const deleteHabit = (id: string) => {
@@ -238,7 +275,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             return {
               ...h,
               completions: h.completions.map((c) =>
-                c.date === date ? { ...c, completed: !c.completed } : c
+                c.date === date ? { ...c, completed: !c.completed } : c,
               ),
             };
           }
@@ -248,7 +285,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           };
         }
         return h;
-      })
+      }),
     );
   };
 
@@ -282,7 +319,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Transaction operations
-  const addTransaction = (transaction: Omit<Transaction, 'id' | 'createdAt'>) => {
+  const addTransaction = (
+    transaction: Omit<Transaction, "id" | "createdAt">,
+  ) => {
     const newTransaction: Transaction = {
       ...transaction,
       id: Date.now().toString(),
@@ -294,7 +333,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateTransaction = (id: string, updates: Partial<Transaction>) => {
     setTransactions((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
     );
   };
 
@@ -304,7 +343,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const getBudgetStatus = (category: string) => {
     const spent = transactions
-      .filter((t) => t.category === category && t.type === 'expense')
+      .filter((t) => t.category === category && t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
 
     const limit = 500; // Default limit
@@ -316,7 +355,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Time entry operations
-  const addTimeEntry = (entry: Omit<TimeEntry, 'id' | 'createdAt'>) => {
+  const addTimeEntry = (entry: Omit<TimeEntry, "id" | "createdAt">) => {
     const newEntry: TimeEntry = {
       ...entry,
       id: Date.now().toString(),
@@ -328,7 +367,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateTimeEntry = (id: string, updates: Partial<TimeEntry>) => {
     setTimeEntries((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
     );
   };
 
@@ -337,7 +376,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Goal operations
-  const addGoal = (goal: Omit<Goal, 'id' | 'createdAt' | 'completedAt'>) => {
+  const addGoal = (goal: Omit<Goal, "id" | "createdAt" | "completedAt">) => {
     const newGoal: Goal = {
       ...goal,
       id: Date.now().toString(),
@@ -348,7 +387,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateGoal = (id: string, updates: Partial<Goal>) => {
-    setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...updates } : g)));
+    setGoals((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, ...updates } : g)),
+    );
   };
 
   const deleteGoal = (id: string) => {
@@ -363,18 +404,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             ...g,
             milestones: g.milestones.map((m) =>
               m.id === milestoneId
-                ? { ...m, completed: true, completedAt: new Date().toISOString() }
-                : m
+                ? {
+                    ...m,
+                    completed: true,
+                    completedAt: new Date().toISOString(),
+                  }
+                : m,
             ),
           };
         }
         return g;
-      })
+      }),
     );
   };
 
   // Study session operations
-  const addStudySession = (session: Omit<StudySession, 'id' | 'createdAt'>) => {
+  const addStudySession = (session: Omit<StudySession, "id" | "createdAt">) => {
     const newSession: StudySession = {
       ...session,
       id: Date.now().toString(),
@@ -386,7 +431,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateStudySession = (id: string, updates: Partial<StudySession>) => {
     setStudySessions((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updates } : s))
+      prev.map((s) => (s.id === id ? { ...s, ...updates } : s)),
     );
   };
 
@@ -395,7 +440,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Journal operations
-  const addJournalEntry = (entry: Omit<JournalEntry, 'id' | 'createdAt'>) => {
+  const addJournalEntry = (entry: Omit<JournalEntry, "id" | "createdAt">) => {
     const newEntry: JournalEntry = {
       ...entry,
       id: Date.now().toString(),
@@ -407,7 +452,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateJournalEntry = (id: string, updates: Partial<JournalEntry>) => {
     setJournalEntries((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, ...updates } : j))
+      prev.map((j) => (j.id === id ? { ...j, ...updates } : j)),
     );
   };
 
@@ -426,28 +471,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const calculateLifeState = () => {
     // Calculate based on metrics
-    const completionRate = tasks.length > 0 
-      ? tasks.filter((t) => t.status === 'completed').length / tasks.length 
-      : 0;
-    
-    const habitCompletionRate = habits.length > 0
-      ? habits.reduce((sum, h) => {
-          const today = new Date().toISOString().split('T')[0];
-          const completed = h.completions.find((c) => c.date === today)?.completed ? 1 : 0;
-          return sum + completed;
-        }, 0) / habits.length
-      : 0;
+    const completionRate =
+      tasks.length > 0
+        ? tasks.filter((t) => t.status === "completed").length / tasks.length
+        : 0;
 
-    const avgMood = journalEntries.length > 0
-      ? journalEntries.reduce((sum, j) => sum + j.mood, 0) / journalEntries.length
-      : 5;
+    const habitCompletionRate =
+      habits.length > 0
+        ? habits.reduce((sum, h) => {
+            const today = new Date().toISOString().split("T")[0];
+            const completed = h.completions.find((c) => c.date === today)
+              ?.completed
+              ? 1
+              : 0;
+            return sum + completed;
+          }, 0) / habits.length
+        : 0;
 
-    const avgEnergy = journalEntries.length > 0
-      ? journalEntries.reduce((sum, j) => sum + j.energy, 0) / journalEntries.length
-      : 5;
+    const avgMood =
+      journalEntries.length > 0
+        ? journalEntries.reduce((sum, j) => sum + j.mood, 0) /
+          journalEntries.length
+        : 5;
+
+    const avgEnergy =
+      journalEntries.length > 0
+        ? journalEntries.reduce((sum, j) => sum + j.energy, 0) /
+          journalEntries.length
+        : 5;
 
     const newState: LifeState = {
-      status: 'on-track',
+      status: "on-track",
       momentum: Math.round(completionRate * 100),
       stress: Math.round((10 - avgMood) * 10),
       productivity: Math.round(completionRate * 100),
@@ -456,15 +510,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       lastUpdated: new Date().toISOString(),
     };
 
-    if (newState.stress > 70) newState.status = 'overloaded';
-    else if (newState.momentum < 30) newState.status = 'drifting';
-    else if (newState.momentum > 80 && newState.stress < 40) newState.status = 'momentum';
+    if (newState.stress > 70) newState.status = "overloaded";
+    else if (newState.momentum < 30) newState.status = "drifting";
+    else if (newState.momentum > 80 && newState.stress < 40)
+      newState.status = "momentum";
 
     setLifeState(newState);
   };
 
   // Insights operations
-  const addInsight = (insight: Omit<AIInsight, 'id' | 'createdAt'>) => {
+  const addInsight = (insight: Omit<AIInsight, "id" | "createdAt">) => {
     const newInsight: AIInsight = {
       ...insight,
       id: Date.now().toString(),
@@ -481,31 +536,113 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const generateInsights = async () => {
     setIsLoading(true);
     try {
-      // Generate AI insights based on current data
-      const newInsights: Omit<AIInsight, 'id' | 'createdAt'>[] = [];
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+      // Try to get AI-powered insights from the backend
+      try {
+        // Get life score with AI explanation
+        const lifeScoreRes = await fetch(`${API_URL}/api/insights/life-score`);
+        if (lifeScoreRes.ok) {
+          const lifeScore = await lifeScoreRes.json();
+          if (lifeScore.explanation) {
+            addInsight({
+              type: "pattern",
+              title: `Life Score: ${lifeScore.score}/100`,
+              content: lifeScore.explanation,
+              severity:
+                lifeScore.score >= 70
+                  ? "success"
+                  : lifeScore.score >= 50
+                    ? "info"
+                    : "warning",
+              actionable: false,
+            });
+          }
+        }
+
+        // Get morning briefing
+        const briefingRes = await fetch(
+          `${API_URL}/api/insights/morning-briefing`,
+        );
+        if (briefingRes.ok) {
+          const { briefing } = await briefingRes.json();
+          if (briefing) {
+            addInsight({
+              type: "recommendation",
+              title: "Morning Briefing",
+              content: briefing,
+              severity: "info",
+              actionable: true,
+            });
+          }
+        }
+
+        // Ask AI for personalized recommendations
+        const context = {
+          tasks: tasks.slice(0, 10),
+          habits: habits.slice(0, 5),
+          goals: goals.slice(0, 5),
+          avgMood:
+            journalEntries.length > 0
+              ? journalEntries.slice(0, 7).reduce((sum, e) => sum + e.mood, 0) /
+                Math.min(journalEntries.length, 7)
+              : null,
+        };
+
+        const aiRes = await fetch(`${API_URL}/api/ai/ask`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question:
+              "Based on my current tasks, habits, and goals, what should I focus on today? Give 2-3 specific recommendations.",
+            context,
+          }),
+        });
+
+        if (aiRes.ok) {
+          const { response } = await aiRes.json();
+          if (response) {
+            addInsight({
+              type: "recommendation",
+              title: "AI Recommendations",
+              content: response,
+              severity: "info",
+              actionable: true,
+            });
+          }
+        }
+      } catch (apiError) {
+        console.log("API not available, using local insights:", apiError);
+      }
+
+      // Also add local pattern-based insights
+      const newInsights: Omit<AIInsight, "id" | "createdAt">[] = [];
 
       // Pattern: Habit consistency
       const goodHabits = habits.filter((h) => getHabitStreak(h.id) > 5);
       if (goodHabits.length > 0) {
         newInsights.push({
-          type: 'achievement',
-          title: 'Consistent Habits Detected',
+          type: "achievement",
+          title: "Consistent Habits Detected",
           content: `You've maintained ${goodHabits.length} habit(s) for over 5 days straight. Great momentum!`,
-          severity: 'success',
+          severity: "success",
           actionable: false,
         });
       }
 
       // Pattern: Task completion trend
-      const completedToday = tasks.filter((t) => 
-        t.completedAt && new Date(t.completedAt).toDateString() === new Date().toDateString()
+      const completedToday = tasks.filter(
+        (t) =>
+          t.completedAt &&
+          new Date(t.completedAt).toDateString() === new Date().toDateString(),
       ).length;
       if (completedToday >= 5) {
         newInsights.push({
-          type: 'achievement',
-          title: 'Productive Day',
+          type: "achievement",
+          title: "Productive Day",
           content: `You've completed ${completedToday} tasks today. You're crushing it!`,
-          severity: 'success',
+          severity: "success",
           actionable: false,
         });
       }
@@ -516,37 +653,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const tDate = new Date(t.date);
           const weekAgo = new Date();
           weekAgo.setDate(weekAgo.getDate() - 7);
-          return t.type === 'expense' && tDate > weekAgo;
+          return t.type === "expense" && tDate > weekAgo;
         })
         .reduce((sum, t) => sum + t.amount, 0);
 
       if (weekSpent > 500) {
         newInsights.push({
-          type: 'warning',
-          title: 'Spending Alert',
+          type: "warning",
+          title: "Spending Alert",
           content: `You've spent $${weekSpent.toFixed(2)} this week. Consider reviewing your budget.`,
-          severity: 'warning',
+          severity: "warning",
           actionable: true,
         });
       }
 
-      // Recommendation: Study consistency
-      const studyHours = studySessions.reduce((sum, s) => sum + s.duration, 0) / 60;
-      if (studyHours < 2) {
+      // Pattern: Overdue tasks
+      const overdueTasks = tasks.filter(
+        (t) =>
+          t.status !== "completed" &&
+          t.dueDate &&
+          new Date(t.dueDate) < new Date(),
+      );
+      if (overdueTasks.length > 0) {
         newInsights.push({
-          type: 'recommendation',
-          title: 'Study Time Low',
-          content: 'Consider dedicating more time to study sessions. Aim for 2-3 hours per day.',
-          severity: 'info',
+          type: "warning",
+          title: "Overdue Tasks",
+          content: `You have ${overdueTasks.length} overdue task(s). Consider prioritizing "${overdueTasks[0]?.title}".`,
+          severity: "warning",
           actionable: true,
         });
       }
 
-      setInsights([]);
+      // Add local insights
       newInsights.forEach((insight) => addInsight(insight));
     } catch (err) {
-      setError('Failed to generate insights');
-      console.error('[v0] Error generating insights:', err);
+      setError("Failed to generate insights");
+      console.error("[v0] Error generating insights:", err);
     } finally {
       setIsLoading(false);
     }
@@ -560,11 +702,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Finance utility functions
   const getFinanceStats = () => {
     const income = transactions
-      .filter((t) => t.type === 'income')
+      .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
 
     const expenses = transactions
-      .filter((t) => t.type === 'expense')
+      .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
 
     return {
@@ -577,7 +719,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const getExpensesByCategory = () => {
     const byCategory: Record<string, number> = {};
     transactions
-      .filter((t) => t.type === 'expense')
+      .filter((t) => t.type === "expense")
       .forEach((t) => {
         byCategory[t.category] = (byCategory[t.category] || 0) + t.amount;
       });
@@ -590,7 +732,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let total = 0;
 
     timeEntries.forEach((entry) => {
-      byCategory[entry.category] = (byCategory[entry.category] || 0) + entry.duration;
+      byCategory[entry.category] =
+        (byCategory[entry.category] || 0) + entry.duration;
       total += entry.duration;
     });
 
@@ -598,14 +741,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getTodayStats = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     const todayEntries = timeEntries.filter((e) => e.date === today);
 
     const totalMinutes = todayEntries.reduce((sum, e) => sum + e.duration, 0);
     const deepFocus = todayEntries
-      .filter((e) => e.focusQuality === 'deep')
+      .filter((e) => e.focusQuality === "deep")
       .reduce((sum, e) => sum + e.duration, 0);
-    const totalInterruptions = todayEntries.reduce((sum, e) => sum + e.interruptions, 0);
+    const totalInterruptions = todayEntries.reduce(
+      (sum, e) => sum + e.interruptions,
+      0,
+    );
 
     return {
       totalMinutes,
@@ -624,13 +770,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     let total = 0;
     timeEntries.forEach((entry) => {
-      const quality = entry.focusQuality || 'moderate';
+      const quality = entry.focusQuality || "moderate";
       breakdown[quality].hours += entry.duration / 60;
       total += entry.duration / 60;
     });
 
     Object.keys(breakdown).forEach((key) => {
-      breakdown[key].percentage = total > 0 ? (breakdown[key].hours / total) * 100 : 0;
+      breakdown[key].percentage =
+        total > 0 ? (breakdown[key].hours / total) * 100 : 0;
     });
 
     return breakdown;
@@ -639,13 +786,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Goals utility functions
   const getGoalStats = () => {
     const total = goals.length;
-    const completed = goals.filter((g) => g.status === 'completed').length;
-    const inProgress = goals.filter((g) => g.status === 'active').length;
-    const avgProgress = total > 0
-      ? goals.reduce((sum, g) => sum + g.progress, 0) / total
-      : 0;
+    const completed = goals.filter((g) => g.status === "completed").length;
+    const inProgress = goals.filter((g) => g.status === "active").length;
+    const avgProgress =
+      total > 0 ? goals.reduce((sum, g) => sum + g.progress, 0) / total : 0;
 
-    return { total, completed, inProgress, avgProgress: Math.round(avgProgress) };
+    return {
+      total,
+      completed,
+      inProgress,
+      avgProgress: Math.round(avgProgress),
+    };
   };
 
   const value: AppContextType = {
@@ -707,7 +858,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 export function useApp() {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useApp must be used within AppProvider');
+    throw new Error("useApp must be used within AppProvider");
   }
   return context;
 }

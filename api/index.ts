@@ -57,7 +57,7 @@ app.onError((err, c) => {
   return c.json({ error: err.message || "Internal Server Error" }, 500);
 });
 
-const port = parseInt(process.env.PORT || "8787");
+const port = parseInt(process.env.PORT || "3001");
 
 console.log(`🚀 CorteXia API running on http://localhost:${port}`);
 

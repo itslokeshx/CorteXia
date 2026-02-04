@@ -34,52 +34,66 @@ import {
 export default function SettingsPage() {
   const { settings, updateSettings, tasks, habits, transactions, timeEntries, goals, studySessions, journalEntries } = useApp();
   
-  // Local state for API key (stored separately for security)
-  const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [apiKeyStatus, setApiKeyStatus] = useState<'unknown' | 'valid' | 'invalid'>('unknown');
-  const [isTestingKey, setIsTestingKey] = useState(false);
+  // API connection state
+  const [apiStatus, setApiStatus] = useState<'unknown' | 'connected' | 'disconnected'>('unknown');
+  const [isTestingApi, setIsTestingApi] = useState(false);
   
   // Theme state
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark');
   
-  // Load API key from localStorage on mount
+  // Check API connection on mount
   useEffect(() => {
-    const savedKey = localStorage.getItem('gemini-api-key');
-    if (savedKey) {
-      setGeminiApiKey(savedKey);
-      setApiKeyStatus('valid'); // Assume valid if saved
-    }
+    checkApiConnection();
   }, []);
 
-  const handleSaveApiKey = () => {
-    localStorage.setItem('gemini-api-key', geminiApiKey);
-    toast.success('API key saved successfully');
+  const checkApiConnection = async () => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/health`);
+      if (response.ok) {
+        setApiStatus('connected');
+      } else {
+        setApiStatus('disconnected');
+      }
+    } catch {
+      setApiStatus('disconnected');
+    }
   };
 
-  const handleTestApiKey = async () => {
-    setIsTestingKey(true);
+  const handleTestApi = async () => {
+    setIsTestingApi(true);
     try {
-      // Test the API key by making a simple request
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiApiKey}`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      
+      // Test health endpoint
+      const healthRes = await fetch(`${API_URL}/health`);
+      if (!healthRes.ok) {
+        throw new Error('API not responding');
+      }
+
+      // Test AI endpoint
+      const aiRes = await fetch(`${API_URL}/api/ai/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Say "OK" if this works' }] }]
+          question: 'Say "OK" if AI is working',
+          context: {},
         }),
       });
-      
-      if (response.ok) {
-        setApiKeyStatus('valid');
-        toast.success('API key is valid!');
+
+      if (aiRes.ok) {
+        const { response } = await aiRes.json();
+        setApiStatus('connected');
+        toast.success(`API connected! AI response: "${response?.slice(0, 50)}..."`);
       } else {
-        setApiKeyStatus('invalid');
-        toast.error('API key is invalid or has insufficient permissions');
+        setApiStatus('connected');
+        toast.warning('API connected but AI may not be configured');
       }
     } catch (error) {
-      setApiKeyStatus('invalid');
-      toast.error('Failed to test API key');
+      setApiStatus('disconnected');
+      toast.error('Failed to connect to API. Make sure the backend is running.');
     } finally {
-      setIsTestingKey(false);
+      setIsTestingApi(false);
     }
   };
 
