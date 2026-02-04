@@ -1,9 +1,10 @@
 "use client";
 
-import { Brain, Settings, Moon, Sun, User } from "lucide-react";
+import { Settings, Moon, Sun, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { QuickAddBar } from "@/components/quick-add/quick-add-bar";
 import {
   DropdownMenu,
@@ -51,8 +52,14 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 h-16 border-b border-border bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-8">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2 group">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center">
-          <Brain className="w-6 h-6 text-white" />
+        <div className="w-10 h-10 rounded-lg overflow-hidden">
+          <Image
+            src="/Cortexia-icon.jpeg"
+            alt="CorteXia"
+            width={40}
+            height={40}
+            className="w-full h-full object-cover"
+          />
         </div>
         <span className="text-lg font-semibold hidden sm:inline group-hover:text-primary transition-colors">
           CorteXia
