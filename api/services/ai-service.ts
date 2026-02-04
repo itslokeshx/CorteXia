@@ -1,12 +1,31 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
-let genAI: GoogleGenerativeAI | null = null;
-let model: any = null;
+let groq: Groq | null = null;
 
-// Initialize Gemini only if API key is available
-if (process.env.GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+// Initialize Groq only if API key is available
+if (process.env.GROQ_API_KEY) {
+  groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+}
+
+// Helper to call Groq API
+async function callGroq(
+  prompt: string,
+  maxTokens: number = 500,
+): Promise<string | null> {
+  if (!groq) return null;
+
+  try {
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.7,
+      max_tokens: maxTokens,
+    });
+    return completion.choices[0]?.message?.content || null;
+  } catch (error) {
+    console.error("Groq API error:", error);
+    return null;
+  }
 }
 
 /**
@@ -18,14 +37,6 @@ export async function calculateTaskPriority(task: {
   dueDate?: string | null;
   category?: string;
 }): Promise<{ score: number; reasoning: string }> {
-  if (!model) {
-    // Fallback to rule-based scoring
-    return {
-      score: task.dueDate ? 70 : 50,
-      reasoning: "AI not available - using rule-based priority",
-    };
-  }
-
   const prompt = `
 Analyze this task and assign a priority score from 0-100 where:
 - 90-100: Critical, blocking everything else
@@ -44,28 +55,28 @@ Respond in JSON format only:
 {"score": <number 0-100>, "reasoning": "<brief explanation in 1-2 sentences>"}
   `.trim();
 
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+  const response = await callGroq(prompt, 150);
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return {
-        score: Math.min(100, Math.max(0, parsed.score)),
-        reasoning: parsed.reasoning,
-      };
+  if (response) {
+    try {
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          score: Math.min(100, Math.max(0, parsed.score)),
+          reasoning: parsed.reasoning,
+        };
+      }
+    } catch (error) {
+      console.error("AI priority parsing error:", error);
     }
-
-    throw new Error("Invalid response format");
-  } catch (error) {
-    console.error("AI priority calculation error:", error);
-    return {
-      score: task.dueDate ? 70 : 50,
-      reasoning: "AI calculation unavailable, using rule-based fallback",
-    };
   }
+
+  // Fallback to rule-based scoring
+  return {
+    score: task.dueDate ? 70 : 50,
+    reasoning: "Using rule-based priority calculation",
+  };
 }
 
 /**
@@ -78,23 +89,6 @@ export async function generateLifeScoreExplanation(data: {
   budget: { spent: number; limit: number };
   goals: { onTrack: number; total: number };
 }): Promise<string> {
-  if (!model) {
-    const insights: string[] = [];
-
-    if (data.tasks.pending > 5)
-      insights.push(`${data.tasks.pending} pending tasks need attention`);
-    if (data.habits.done < data.habits.total / 2)
-      insights.push("Habit completion below 50%");
-    if (data.budget.spent > data.budget.limit * 0.8)
-      insights.push("Budget at 80%+ utilization");
-    if (data.goals.onTrack >= data.goals.total / 2)
-      insights.push(`${data.goals.onTrack}/${data.goals.total} goals on track`);
-
-    return insights.length > 0
-      ? `• ${insights.join(" • ")}`
-      : "Keep up the good work!";
-  }
-
   const prompt = `
 Generate a concise life status explanation (max 60 words) based on these metrics:
 
@@ -111,14 +105,26 @@ Example: "Strong habit momentum • 3 urgent tasks need attention • Budget at 
 Your explanation (no extra text, just the bullet points):
   `.trim();
 
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text().trim();
-  } catch (error) {
-    console.error("AI explanation error:", error);
-    return "AI insights temporarily unavailable";
+  const response = await callGroq(prompt, 100);
+
+  if (response) {
+    return response.trim();
   }
+
+  // Fallback
+  const insights: string[] = [];
+  if (data.tasks.pending > 5)
+    insights.push(`${data.tasks.pending} pending tasks need attention`);
+  if (data.habits.done < data.habits.total / 2)
+    insights.push("Habit completion below 50%");
+  if (data.budget.spent > data.budget.limit * 0.8)
+    insights.push("Budget at 80%+ utilization");
+  if (data.goals.onTrack >= data.goals.total / 2)
+    insights.push(`${data.goals.onTrack}/${data.goals.total} goals on track`);
+
+  return insights.length > 0
+    ? `• ${insights.join(" • ")}`
+    : "Keep up the good work!";
 }
 
 /**
@@ -132,55 +138,35 @@ export async function generateWeeklySynthesis(data: {
   goals: any[];
   journalEntries: any[];
 }): Promise<string> {
-  if (!model) {
-    const taskCompleted = data.tasks.filter(
-      (t: any) => t.status === "completed",
-    ).length;
-    const habitsDone = data.habits.filter((h: any) => h.completed).length;
-    const totalSpent = data.transactions.reduce(
-      (sum: number, t: any) =>
-        t.type === "expense" ? sum + Math.abs(t.amount) : sum,
-      0,
-    );
-    const totalTimeMinutes = data.timeLogs.reduce(
-      (sum: number, t: any) => sum + (t.durationMinutes || 0),
-      0,
-    );
-
-    return `## Weekly Summary
-
-### Overview
-This week you completed **${taskCompleted} tasks** and logged **${Math.round(totalTimeMinutes / 60)} hours** of focused work.
-
-### Key Highlights
-- **Tasks:** ${taskCompleted} completed out of ${data.tasks.length} total
-- **Habits:** ${habitsDone} habits tracked
-- **Spending:** $${totalSpent.toFixed(2)} in expenses
-- **Goals:** ${data.goals.filter((g: any) => g.status === "active").length} active goals
-
-### Recommendations
-1. Focus on completing remaining tasks
-2. Maintain habit consistency
-3. Review budget allocations
-
-*AI-powered insights will be available when Gemini API is configured.*`;
-  }
+  const taskCompleted = data.tasks.filter(
+    (t: any) => t.status === "completed",
+  ).length;
+  const habitsDone = data.habits.filter((h: any) => h.completed).length;
+  const totalSpent = data.transactions.reduce(
+    (sum: number, t: any) =>
+      t.type === "expense" ? sum + Math.abs(t.amount) : sum,
+    0,
+  );
+  const totalTimeMinutes = data.timeLogs.reduce(
+    (sum: number, t: any) => sum + (t.durationMinutes || 0),
+    0,
+  );
 
   const prompt = `
 Generate a comprehensive weekly synthesis report (300-500 words) based on this user's data:
 
 TASKS:
-- Completed: ${data.tasks.filter((t: any) => t.status === "completed").length}
+- Completed: ${taskCompleted}
 - Pending: ${data.tasks.filter((t: any) => t.status !== "completed").length}
 
 HABITS:
 - Total check-ins: ${data.habits.length}
 
 TIME DISTRIBUTION:
-- Total logged: ${data.timeLogs.reduce((sum: number, t: any) => sum + (t.durationMinutes || 0), 0)} minutes
+- Total logged: ${totalTimeMinutes} minutes
 
 SPENDING:
-- Total: $${data.transactions.reduce((sum: number, t: any) => sum + Math.abs(t.amount || 0), 0).toFixed(2)}
+- Total: $${totalSpent.toFixed(2)}
 
 GOALS:
 - Active goals: ${data.goals.filter((g: any) => g.status === "active").length}
@@ -198,14 +184,30 @@ Format the report with:
 Use markdown formatting. Be specific, insightful, and actionable.
   `.trim();
 
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
-  } catch (error) {
-    console.error("Weekly synthesis error:", error);
-    return "Unable to generate synthesis at this time. Please try again later.";
+  const response = await callGroq(prompt, 800);
+
+  if (response) {
+    return response;
   }
+
+  // Fallback
+  return `## Weekly Summary
+
+### Overview
+This week you completed **${taskCompleted} tasks** and logged **${Math.round(totalTimeMinutes / 60)} hours** of focused work.
+
+### Key Highlights
+- **Tasks:** ${taskCompleted} completed out of ${data.tasks.length} total
+- **Habits:** ${habitsDone} habits tracked
+- **Spending:** $${totalSpent.toFixed(2)} in expenses
+- **Goals:** ${data.goals.filter((g: any) => g.status === "active").length} active goals
+
+### Recommendations
+1. Focus on completing remaining tasks
+2. Maintain habit consistency
+3. Review budget allocations
+
+*AI-powered insights available with Groq API configured.*`;
 }
 
 /**
@@ -324,18 +326,13 @@ export async function generateMorningBriefing(data: {
   upcomingDeadlines: any[];
   yesterdayMood?: number;
 }): Promise<string> {
-  if (!model) {
-    const urgent = data.pendingTasks.filter(
-      (t: any) => t.priority === "high" || t.priority === "urgent",
-    );
-    const habits = data.todayHabits.length;
-
-    return `Good morning! You have ${data.pendingTasks.length} tasks today${urgent.length > 0 ? ` (${urgent.length} urgent)` : ""}. ${habits} habits to track. Let's make it a great day!`;
-  }
+  const urgent = data.pendingTasks.filter(
+    (t: any) => t.priority === "high" || t.priority === "urgent",
+  );
 
   const prompt = `
 Generate a brief, motivational morning briefing (2-3 sentences) based on:
-- ${data.pendingTasks.length} pending tasks (${data.pendingTasks.filter((t: any) => t.priority === "high").length} high priority)
+- ${data.pendingTasks.length} pending tasks (${urgent.length} high priority)
 - ${data.todayHabits.length} habits to complete today
 - ${data.upcomingDeadlines.length} upcoming deadlines this week
 ${data.yesterdayMood ? `- Yesterday's mood: ${data.yesterdayMood}/10` : ""}
@@ -343,24 +340,20 @@ ${data.yesterdayMood ? `- Yesterday's mood: ${data.yesterdayMood}/10` : ""}
 Be encouraging but actionable. Start with "Good morning!"
   `.trim();
 
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text().trim();
-  } catch (error) {
-    console.error("Morning briefing error:", error);
-    return "Good morning! Let's make today count.";
+  const response = await callGroq(prompt, 100);
+
+  if (response) {
+    return response.trim();
   }
+
+  // Fallback
+  return `Good morning! You have ${data.pendingTasks.length} tasks today${urgent.length > 0 ? ` (${urgent.length} urgent)` : ""}. ${data.todayHabits.length} habits to track. Let's make it a great day!`;
 }
 
 /**
  * Ask AI general question about user's data
  */
 export async function askAI(question: string, context: any): Promise<string> {
-  if (!model) {
-    return "AI assistant is not available. Please configure your Gemini API key in settings to enable AI features.";
-  }
-
   const prompt = `
 You are an AI life coach assistant for CorteXia, a personal life management app. 
 The user has asked: "${question}"
@@ -374,14 +367,13 @@ Here's their current data context:
 Provide a helpful, actionable response based on their question. Keep it concise (2-4 sentences unless they ask for detail).
   `.trim();
 
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text().trim();
-  } catch (error) {
-    console.error("Ask AI error:", error);
-    return "Sorry, I couldn't process your question right now. Please try again.";
+  const response = await callGroq(prompt, 300);
+
+  if (response) {
+    return response.trim();
   }
+
+  return "AI assistant is currently unavailable. Please check your Groq API key configuration.";
 }
 
 // Helper function
