@@ -44,10 +44,13 @@ const formatActionSummary = (action: {
   type: string;
   data: Record<string, unknown>;
 }): string => {
-  const { type, data } = action;
+  if (!action || !action.type) {
+    return "Action completed";
+  }
+  const { type, data = {} } = action;
   switch (type) {
     case "create_task":
-      return `Created task: "${data.title}"`;
+      return `Created task: "${data.title || "Untitled"}"`;
     case "update_task":
       return `Updated task`;
     case "delete_task":
@@ -55,7 +58,7 @@ const formatActionSummary = (action: {
     case "complete_task":
       return `Completed task`;
     case "create_habit":
-      return `Created habit: "${data.name}"`;
+      return `Created habit: "${data.name || "Untitled"}"`;
     case "update_habit":
       return `Updated habit`;
     case "delete_habit":
@@ -63,7 +66,7 @@ const formatActionSummary = (action: {
     case "complete_habit":
       return `Marked habit as done`;
     case "create_goal":
-      return `Created goal: "${data.title}"`;
+      return `Created goal: "${data.title || "Untitled"}"`;
     case "update_goal":
       return `Updated goal`;
     case "delete_goal":
@@ -73,17 +76,17 @@ const formatActionSummary = (action: {
     case "add_tasks_to_goal":
       return `Added ${(data.tasks as any[])?.length || 0} tasks to goal`;
     case "add_expense":
-      return `Logged expense: $${data.amount}`;
+      return `Logged expense: $${data.amount || 0}`;
     case "add_income":
-      return `Logged income: $${data.amount}`;
+      return `Logged income: $${data.amount || 0}`;
     case "delete_transaction":
       return `Deleted transaction`;
     case "log_time":
-      return `Logged ${data.duration}min for "${data.task}"`;
+      return `Logged ${data.duration || 0}min for "${data.task || "Work"}"`;
     case "delete_time_entry":
       return `Deleted time entry`;
     case "log_study":
-      return `Logged ${data.duration}min studying ${data.subject}`;
+      return `Logged ${data.duration || 0}min studying ${data.subject || "General"}`;
     case "delete_study_session":
       return `Deleted study session`;
     case "create_journal":
@@ -93,9 +96,9 @@ const formatActionSummary = (action: {
     case "delete_journal":
       return `Deleted journal entry`;
     case "navigate":
-      return `Navigating to ${data.path}`;
+      return `Navigating to ${data.path || "/"}`;
     default:
-      return `${type.replace(/_/g, " ")}`;
+      return type ? type.replace(/_/g, " ") : "Action completed";
   }
 };
 
