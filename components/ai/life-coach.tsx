@@ -58,22 +58,35 @@ const DOMAIN_ICONS: Record<string, React.ElementType> = {
 };
 
 // Insight type styling
-const INSIGHT_STYLES: Record<string, { bg: string; icon: React.ElementType; color: string }> = {
-  strength: { bg: "bg-emerald-100 dark:bg-emerald-900/30", icon: TrendingUp, color: "text-emerald-500" },
-  warning: { bg: "bg-red-100 dark:bg-red-900/30", icon: AlertTriangle, color: "text-red-500" },
-  opportunity: { bg: "bg-blue-100 dark:bg-blue-900/30", icon: Lightbulb, color: "text-blue-500" },
-  suggestion: { bg: "bg-purple-100 dark:bg-purple-900/30", icon: Sparkles, color: "text-purple-500" },
+const INSIGHT_STYLES: Record<
+  string,
+  { bg: string; icon: React.ElementType; color: string }
+> = {
+  strength: {
+    bg: "bg-emerald-100 dark:bg-emerald-900/30",
+    icon: TrendingUp,
+    color: "text-emerald-500",
+  },
+  warning: {
+    bg: "bg-red-100 dark:bg-red-900/30",
+    icon: AlertTriangle,
+    color: "text-red-500",
+  },
+  opportunity: {
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    icon: Lightbulb,
+    color: "text-blue-500",
+  },
+  suggestion: {
+    bg: "bg-purple-100 dark:bg-purple-900/30",
+    icon: Sparkles,
+    color: "text-purple-500",
+  },
 };
 
 export function AILifeCoach() {
-  const {
-    tasks,
-    habits,
-    goals,
-    timeEntries,
-    journalEntries,
-    getFinanceStats,
-  } = useApp();
+  const { tasks, habits, goals, timeEntries, journalEntries, getFinanceStats } =
+    useApp();
 
   const [analysis, setAnalysis] = useState<LifeAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -92,10 +105,10 @@ export function AILifeCoach() {
     // Task analysis
     const pendingTasks = tasks.filter((t) => t.status !== "completed");
     const completedToday = tasks.filter(
-      (t) => t.status === "completed" && t.completedAt?.split("T")[0] === today
+      (t) => t.status === "completed" && t.completedAt?.split("T")[0] === today,
     ).length;
     const overdueTasks = tasks.filter(
-      (t) => t.status !== "completed" && t.dueDate && t.dueDate < today
+      (t) => t.status !== "completed" && t.dueDate && t.dueDate < today,
     ).length;
 
     if (completedToday >= 3) {
@@ -114,7 +127,8 @@ export function AILifeCoach() {
         type: "warning",
         domain: "tasks",
         title: `${overdueTasks} overdue tasks`,
-        description: "Consider prioritizing these or rescheduling to reduce stress.",
+        description:
+          "Consider prioritizing these or rescheduling to reduce stress.",
         action: "Review and reschedule overdue tasks",
       });
     }
@@ -122,12 +136,13 @@ export function AILifeCoach() {
     // Habit analysis
     const activeHabits = habits.filter((h) => h.active);
     const completedHabitsToday = habits.filter((h) =>
-      h.completions?.some((c) => c.date === today && c.completed)
+      h.completions?.some((c) => c.date === today && c.completed),
     ).length;
     const totalStreaks = habits.reduce((sum, h) => sum + (h.streak || 0), 0);
-    const habitCompletionRate = activeHabits.length > 0
-      ? (completedHabitsToday / activeHabits.length) * 100
-      : 0;
+    const habitCompletionRate =
+      activeHabits.length > 0
+        ? (completedHabitsToday / activeHabits.length) * 100
+        : 0;
 
     if (habitCompletionRate >= 80) {
       score += 15;
@@ -190,9 +205,10 @@ export function AILifeCoach() {
 
     // Goal analysis
     const activeGoals = goals.filter((g) => g.status === "active");
-    const avgProgress = activeGoals.length > 0
-      ? activeGoals.reduce((s, g) => s + g.progress, 0) / activeGoals.length
-      : 0;
+    const avgProgress =
+      activeGoals.length > 0
+        ? activeGoals.reduce((s, g) => s + g.progress, 0) / activeGoals.length
+        : 0;
 
     if (avgProgress >= 60) {
       score += 10;
@@ -210,7 +226,8 @@ export function AILifeCoach() {
         type: "opportunity",
         domain: "goals",
         title: `${stalledGoals.length} goals need attention`,
-        description: "Some goals haven't made progress yet. Break them into smaller steps.",
+        description:
+          "Some goals haven't made progress yet. Break them into smaller steps.",
         action: "Add milestones to stalled goals",
       });
     }
@@ -222,7 +239,8 @@ export function AILifeCoach() {
         type: "warning",
         domain: "finance",
         title: "High spending ratio",
-        description: "Expenses are at 80%+ of income. Review discretionary spending.",
+        description:
+          "Expenses are at 80%+ of income. Review discretionary spending.",
         action: "Review this month's expenses",
       });
     } else if (financeStats.savings > 0) {
@@ -243,9 +261,11 @@ export function AILifeCoach() {
       return entryDate >= weekAgo;
     });
 
-    const avgMood = recentJournals.length > 0
-      ? recentJournals.reduce((s, j) => s + (j.mood || 5), 0) / recentJournals.length
-      : 5;
+    const avgMood =
+      recentJournals.length > 0
+        ? recentJournals.reduce((s, j) => s + (j.mood || 5), 0) /
+          recentJournals.length
+        : 5;
 
     if (avgMood >= 7) {
       score += 10;
@@ -253,14 +273,16 @@ export function AILifeCoach() {
         type: "strength",
         domain: "wellbeing",
         title: "Great mood this week",
-        description: "Your journal entries show positive sentiment. Keep doing what works!",
+        description:
+          "Your journal entries show positive sentiment. Keep doing what works!",
       });
     } else if (avgMood < 4) {
       insights.push({
         type: "opportunity",
         domain: "wellbeing",
         title: "Consider self-care",
-        description: "Recent entries suggest low mood. Prioritize activities that recharge you.",
+        description:
+          "Recent entries suggest low mood. Prioritize activities that recharge you.",
         action: "Schedule relaxation or social time",
       });
     }
@@ -269,7 +291,9 @@ export function AILifeCoach() {
     const correlations: string[] = [];
 
     if (habitCompletionRate > 70 && avgMood > 6) {
-      correlations.push("High habit completion correlates with better mood scores");
+      correlations.push(
+        "High habit completion correlates with better mood scores",
+      );
     }
     if (todayMinutes > 120 && completedToday > 2) {
       correlations.push("Focused time blocks lead to more task completions");
@@ -290,11 +314,12 @@ export function AILifeCoach() {
     if (priorities.length === 0) priorities.push("Maintain momentum!");
 
     // Weekly focus
-    const weeklyFocus = stalledGoals.length > 0
-      ? "Focus on advancing stalled goals"
-      : avgProgress < 50
-        ? "Push goal progress forward"
-        : "Maintain balance across all areas";
+    const weeklyFocus =
+      stalledGoals.length > 0
+        ? "Focus on advancing stalled goals"
+        : avgProgress < 50
+          ? "Push goal progress forward"
+          : "Maintain balance across all areas";
 
     return {
       overallScore: Math.min(100, Math.max(0, score)),
@@ -340,11 +365,15 @@ export function AILifeCoach() {
       });
 
       const data = await response.json();
-      setCustomResponse(data.response || data.message || "Unable to generate response.");
+      setCustomResponse(
+        data.response || data.message || "Unable to generate response.",
+      );
     } catch {
       setCustomResponse(
         "I couldn't connect to the AI server. Here's what I can tell you: " +
-          generateLocalAnalysis().insights.map((i) => i.title).join(", ")
+          generateLocalAnalysis()
+            .insights.map((i) => i.title)
+            .join(", "),
       );
     } finally {
       setIsAskingQuestion(false);
@@ -373,7 +402,8 @@ export function AILifeCoach() {
                 <Sparkles className="w-5 h-5 text-yellow-500" />
               </h2>
               <p className="text-muted-foreground text-sm mt-1">
-                Get personalized insights based on your complete life data across all domains.
+                Get personalized insights based on your complete life data
+                across all domains.
               </p>
               <Button
                 onClick={handleAnalyze}
@@ -413,7 +443,9 @@ export function AILifeCoach() {
                   <div>
                     <p className="text-sm text-muted-foreground">Life Score</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-4xl font-bold">{analysis.overallScore}</span>
+                      <span className="text-4xl font-bold">
+                        {analysis.overallScore}
+                      </span>
                       <span className="text-muted-foreground">/100</span>
                       {analysis.trend === "up" && (
                         <TrendingUp className="w-5 h-5 text-emerald-500" />
@@ -424,7 +456,10 @@ export function AILifeCoach() {
                     </div>
                   </div>
                   <div className="w-20 h-20 relative">
-                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <svg
+                      className="w-full h-full -rotate-90"
+                      viewBox="0 0 100 100"
+                    >
                       <circle
                         cx="50"
                         cy="50"
@@ -446,11 +481,20 @@ export function AILifeCoach() {
                         initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
                         animate={{
                           strokeDashoffset:
-                            2 * Math.PI * 40 * (1 - analysis.overallScore / 100),
+                            2 *
+                            Math.PI *
+                            40 *
+                            (1 - analysis.overallScore / 100),
                         }}
                       />
                       <defs>
-                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <linearGradient
+                          id="gradient"
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="0%"
+                        >
                           <stop offset="0%" stopColor="#8B5CF6" />
                           <stop offset="100%" stopColor="#EC4899" />
                         </linearGradient>
@@ -505,15 +549,20 @@ export function AILifeCoach() {
                             className={cn(
                               "w-8 h-8 rounded-lg flex items-center justify-center",
                               style.color,
-                              "bg-white dark:bg-gray-900"
+                              "bg-white dark:bg-gray-900",
                             )}
                           >
                             <Icon className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-sm">{insight.title}</h4>
-                              <Badge variant="outline" className="text-[9px] gap-1">
+                              <h4 className="font-semibold text-sm">
+                                {insight.title}
+                              </h4>
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] gap-1"
+                              >
                                 <DomainIcon className="w-3 h-3" />
                                 {insight.domain}
                               </Badge>
@@ -569,7 +618,9 @@ export function AILifeCoach() {
                 <div className="flex items-center gap-3">
                   <Target className="w-6 h-6 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Weekly Focus</p>
+                    <p className="text-xs text-muted-foreground">
+                      Weekly Focus
+                    </p>
                     <p className="font-semibold">{analysis.weeklyFocus}</p>
                   </div>
                 </div>

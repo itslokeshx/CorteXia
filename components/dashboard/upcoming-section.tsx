@@ -24,7 +24,7 @@ interface UpcomingItem {
   subtitle: string;
   date?: string;
   time?: string;
-  priority?: "low" | "medium" | "high";
+  priority?: "low" | "medium" | "high" | "critical";
   icon: React.ElementType;
   href: string;
   color: string;
