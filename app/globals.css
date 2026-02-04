@@ -1,0 +1,195 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* CorteXia Design System - Light Mode */
+:root {
+  /* Neutral Colors */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8F9FA;
+  --color-bg-tertiary: #F0F1F3;
+  --color-border: #E5E7EB;
+  --color-border-subtle: #F0F1F3;
+  --color-text-primary: #0A0B0D;
+  --color-text-secondary: #4B5563;
+  --color-text-tertiary: #9CA3AF;
+
+  /* Semantic State Colors */
+  --state-momentum: #10B981;
+  --state-ontrack: #3B82F6;
+  --state-strategic: #8B5CF6;
+  --state-drift: #F59E0B;
+  --state-overload: #EF4444;
+  --state-burnout: #DC2626;
+
+  /* Signal Colors */
+  --signal-stable: #10B981;
+  --signal-warning: #F59E0B;
+  --signal-critical: #EF4444;
+
+  /* Domain Colors */
+  --domain-time: #F59E0B;
+  --domain-focus: #8B5CF6;
+  --domain-habits: #10B981;
+  --domain-goals: #3B82F6;
+  --domain-money: #EC4899;
+  --domain-study: #06B6D4;
+  --domain-screen: #EF4444;
+  --domain-energy: #FBBF24;
+
+  /* Standard tokens */
+  --background: var(--color-bg-primary);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-bg-secondary);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-bg-primary);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--state-ontrack);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--color-bg-secondary);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-bg-tertiary);
+  --muted-foreground: var(--color-text-tertiary);
+  --accent: var(--state-momentum);
+  --accent-foreground: #FFFFFF;
+  --destructive: var(--state-overload);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--color-border);
+  --input: var(--color-bg-secondary);
+  --ring: var(--state-ontrack);
+  --chart-1: var(--domain-time);
+  --chart-2: var(--domain-focus);
+  --chart-3: var(--domain-habits);
+  --chart-4: var(--domain-goals);
+  --chart-5: var(--domain-money);
+  --radius: 0.75rem;
+  --sidebar: var(--color-bg-primary);
+  --sidebar-foreground: var(--color-text-primary);
+  --sidebar-primary: var(--state-ontrack);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: var(--color-bg-secondary);
+  --sidebar-accent-foreground: var(--color-text-primary);
+  --sidebar-border: var(--color-border);
+  --sidebar-ring: var(--state-ontrack);
+}
+
+/* CorteXia Design System - Dark Mode */
+.dark {
+  /* Neutral Colors */
+  --color-bg-primary: #0A0B0D;
+  --color-bg-secondary: #151618;
+  --color-bg-tertiary: #1F2023;
+  --color-border: #2A2B2E;
+  --color-border-subtle: #1F2023;
+  --color-text-primary: #F9FAFB;
+  --color-text-secondary: #D1D5DB;
+  --color-text-tertiary: #6B7280;
+
+  /* Semantic State Colors (same across modes) */
+  --state-momentum: #10B981;
+  --state-ontrack: #3B82F6;
+  --state-strategic: #8B5CF6;
+  --state-drift: #F59E0B;
+  --state-overload: #EF4444;
+  --state-burnout: #DC2626;
+
+  /* Signal Colors (same across modes) */
+  --signal-stable: #10B981;
+  --signal-warning: #F59E0B;
+  --signal-critical: #EF4444;
+
+  /* Domain Colors (same across modes) */
+  --domain-time: #F59E0B;
+  --domain-focus: #8B5CF6;
+  --domain-habits: #10B981;
+  --domain-goals: #3B82F6;
+  --domain-money: #EC4899;
+  --domain-study: #06B6D4;
+  --domain-screen: #EF4444;
+  --domain-energy: #FBBF24;
+
+  /* Standard tokens */
+  --background: var(--color-bg-primary);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-bg-secondary);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-bg-primary);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--state-ontrack);
+  --primary-foreground: var(--color-bg-primary);
+  --secondary: var(--color-bg-secondary);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-bg-tertiary);
+  --muted-foreground: var(--color-text-tertiary);
+  --accent: var(--state-momentum);
+  --accent-foreground: var(--color-bg-primary);
+  --destructive: var(--state-overload);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--color-border);
+  --input: var(--color-bg-secondary);
+  --ring: var(--state-ontrack);
+  --chart-1: var(--domain-time);
+  --chart-2: var(--domain-focus);
+  --chart-3: var(--domain-habits);
+  --chart-4: var(--domain-goals);
+  --chart-5: var(--domain-money);
+  --sidebar: var(--color-bg-secondary);
+  --sidebar-foreground: var(--color-text-primary);
+  --sidebar-primary: var(--state-ontrack);
+  --sidebar-primary-foreground: var(--color-bg-primary);
+  --sidebar-accent: var(--color-bg-tertiary);
+  --sidebar-accent-foreground: var(--color-text-primary);
+  --sidebar-border: var(--color-border);
+  --sidebar-ring: var(--state-ontrack);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
