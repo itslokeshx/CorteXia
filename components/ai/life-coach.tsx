@@ -348,33 +348,151 @@ export function AILifeCoach() {
     setIsAskingQuestion(true);
     setCustomResponse(null);
 
-    try {
-      const response = await fetch("http://localhost:3001/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userQuestion,
-          context: {
-            tasks: tasks.slice(0, 10),
-            habits: habits.slice(0, 10),
-            goals: goals.slice(0, 5),
-            timeEntries: timeEntries.slice(0, 10),
-            journalEntries: journalEntries.slice(0, 5),
-            transactions: [],
-          },
-        }),
-      });
+    // Simulate brief loading for better UX
+    await new Promise((resolve) => setTimeout(resolve, 600));
 
-      const data = await response.json();
-      setCustomResponse(
-        data.response || data.message || "Unable to generate response.",
-      );
+    try {
+      // Generate intelligent local response based on question keywords
+      const question = userQuestion.toLowerCase();
+      const localAnalysis = generateLocalAnalysis();
+      let response = "";
+
+      // Task-related questions
+      if (
+        question.includes("task") ||
+        question.includes("todo") ||
+        question.includes("overdue")
+      ) {
+        const overdueTasks = tasks.filter(
+          (t) => !t.completed && t.dueDate && new Date(t.dueDate) < new Date(),
+        );
+        const todayTasks = tasks.filter((t) => t.dueDate === today);
+        const completedToday = tasks.filter(
+          (t) => t.completed && t.completedAt?.startsWith(today),
+        ).length;
+
+        if (overdueTasks.length > 0) {
+          response = `📋 You have ${overdueTasks.length} overdue task${overdueTasks.length > 1 ? "s" : ""} that need attention. I'd suggest tackling "${overdueTasks[0]?.title}" first as it's been waiting the longest. Breaking it into smaller steps can help if it feels overwhelming.`;
+        } else if (todayTasks.length > 0) {
+          response = `📋 You have ${todayTasks.length} task${todayTasks.length > 1 ? "s" : ""} due today. You've completed ${completedToday} so far. ${completedToday > 0 ? "Great progress!" : "Let's get started!"} Focus on your highest priority items first.`;
+        } else {
+          response = `📋 Your task management looks good! No overdue items. You have ${tasks.filter((t) => !t.completed).length} active tasks. Consider reviewing and prioritizing them for the week ahead.`;
+        }
+      }
+      // Habit-related questions
+      else if (
+        question.includes("habit") ||
+        question.includes("streak") ||
+        question.includes("routine")
+      ) {
+        const activeHabits = habits.filter((h) => h.isActive);
+        const completedHabitsToday = habits.filter((h) =>
+          h.completedDates?.includes(today),
+        ).length;
+        const topStreak = Math.max(
+          ...habits.map((h) => h.currentStreak || 0),
+          0,
+        );
+
+        response = `🔥 You have ${activeHabits.length} active habit${activeHabits.length > 1 ? "s" : ""}, and you've completed ${completedHabitsToday} today. ${topStreak > 5 ? `Amazing! Your longest streak is ${topStreak} days - keep that momentum going!` : "Building consistency takes time. Try habit stacking - attach a new habit to an existing routine."} ${completedHabitsToday < activeHabits.length ? `\n\nYou still have ${activeHabits.length - completedHabitsToday} habit${activeHabits.length - completedHabitsToday > 1 ? "s" : ""} to complete today.` : "\n\n✨ You've completed all habits for today!"}`;
+      }
+      // Goal-related questions
+      else if (
+        question.includes("goal") ||
+        question.includes("progress") ||
+        question.includes("achieve")
+      ) {
+        const activeGoals = goals.filter(
+          (g) => g.status === "active" || g.status === "in-progress",
+        );
+        const avgProgress =
+          activeGoals.length > 0
+            ? Math.round(
+                activeGoals.reduce((s, g) => s + (g.progress || 0), 0) /
+                  activeGoals.length,
+              )
+            : 0;
+
+        response = `🎯 You're working on ${activeGoals.length} goal${activeGoals.length > 1 ? "s" : ""} with an average progress of ${avgProgress}%. ${avgProgress > 50 ? "You're making solid progress!" : "Consider breaking your goals into smaller milestones to build momentum."} ${activeGoals.length > 0 ? `\n\nFocus tip: Your goal "${activeGoals[0]?.title}" is at ${activeGoals[0]?.progress || 0}% - what's the next small step you can take?` : ""}`;
+      }
+      // Time/productivity questions
+      else if (
+        question.includes("time") ||
+        question.includes("productive") ||
+        question.includes("focus")
+      ) {
+        const todayMinutes = timeEntries
+          .filter((t) => t.date === today)
+          .reduce((s, t) => s + (t.duration || 0), 0);
+        const weekEntries = timeEntries.filter((t) => {
+          const entryDate = new Date(t.date);
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return entryDate >= weekAgo;
+        });
+        const weekMinutes = weekEntries.reduce(
+          (s, t) => s + (t.duration || 0),
+          0,
+        );
+
+        response = `⏱️ You've logged ${Math.round((todayMinutes / 60) * 10) / 10} hours of focused time today, and ${Math.round(weekMinutes / 60)} hours this week. ${todayMinutes > 120 ? "Excellent focus today!" : "Consider time-blocking your most important tasks for peak productivity."}\n\nTip: The Pomodoro technique (25 min work, 5 min break) can help maintain focus and prevent burnout.`;
+      }
+      // Finance questions
+      else if (
+        question.includes("money") ||
+        question.includes("budget") ||
+        question.includes("spend") ||
+        question.includes("finance") ||
+        question.includes("save")
+      ) {
+        const { totalIncome, totalExpenses, netBalance } = financeStats;
+        const savingsRate =
+          totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0;
+
+        response = `💰 This month: Income $${totalIncome.toLocaleString()}, Expenses $${totalExpenses.toLocaleString()}, Net ${netBalance >= 0 ? "+" : ""}$${netBalance.toLocaleString()}. ${savingsRate > 20 ? `Great job! You're saving ${savingsRate}% of your income.` : savingsRate > 0 ? `You're saving ${savingsRate}% - aim for 20%+ if possible.` : "Consider reviewing your expenses to find areas to cut back."}`;
+      }
+      // Wellbeing/mood questions
+      else if (
+        question.includes("mood") ||
+        question.includes("feel") ||
+        question.includes("wellbeing") ||
+        question.includes("journal")
+      ) {
+        const recentJournals = journalEntries.filter((j) => {
+          const entryDate = new Date(j.date);
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return entryDate >= weekAgo;
+        });
+        const avgMood =
+          recentJournals.length > 0
+            ? recentJournals.reduce((s, j) => s + (j.mood || 5), 0) /
+              recentJournals.length
+            : 5;
+
+        response = `💚 Based on your journal entries, your average mood this week is ${avgMood.toFixed(1)}/10. ${avgMood >= 7 ? "You're in a great headspace! Keep doing what works." : avgMood >= 5 ? "You're doing okay. Remember to take breaks and do things that recharge you." : "It seems like you've been having a tough time. Be gentle with yourself and prioritize self-care."}\n\n${recentJournals.length < 3 ? "Regular journaling can help you identify patterns in your mood and energy." : ""}`;
+      }
+      // General/advice questions
+      else if (
+        question.includes("advice") ||
+        question.includes("help") ||
+        question.includes("suggest") ||
+        question.includes("recommend")
+      ) {
+        const priorities = localAnalysis.dailyPriorities;
+        response = `Based on your data, here are my recommendations:\n\n${priorities.map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n📌 Weekly focus: ${localAnalysis.weeklyFocus}\n\nYour life score is ${localAnalysis.overallScore}/100 - ${localAnalysis.overallScore > 70 ? "you're doing great!" : localAnalysis.overallScore > 50 ? "there's room for improvement in some areas." : "let's work on building better routines."}`;
+      }
+      // Default response with overview
+      else {
+        const insights = localAnalysis.insights;
+        const topInsight = insights[0];
+        response = `Here's a quick overview of your current state:\n\n📊 Life Score: ${localAnalysis.overallScore}/100 (${localAnalysis.trend === "up" ? "↗️ trending up" : localAnalysis.trend === "down" ? "↘️ trending down" : "→ stable"})\n\n${topInsight ? `💡 Key insight: ${topInsight.title} - ${topInsight.description}` : ""}\n\n📌 Today's focus: ${localAnalysis.dailyPriorities[0] || "Maintain your momentum!"}\n\nFeel free to ask me about specific areas like tasks, habits, goals, time, finances, or wellbeing!`;
+      }
+
+      setCustomResponse(response);
     } catch {
       setCustomResponse(
-        "I couldn't connect to the AI server. Here's what I can tell you: " +
-          generateLocalAnalysis()
-            .insights.map((i) => i.title)
-            .join(", "),
+        "I'm here to help! Try asking about your tasks, habits, goals, productivity, finances, or wellbeing.",
       );
     } finally {
       setIsAskingQuestion(false);
