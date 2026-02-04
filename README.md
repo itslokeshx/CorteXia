@@ -2,9 +2,11 @@
 
 > **Your life, unified. Understood. Optimized.**
 
-CorteXia is an AI-powered life management system that brings together tasks, habits, time tracking, finances, study sessions, and screen time into **one intelligent dashboard**. Powered by **Gemini 3**, it doesn't just store your data—it **understands it**, finds hidden patterns across domains, and gives you actionable insights you'd never see on your own.
+## 📋 Project Status: In Planning
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/cortexia)
+**CorteXia** is a comprehensive AI-powered life management system designed to bring together tasks, habits, time tracking, finances, study sessions, and screen time into **one intelligent dashboard**. Powered by **Gemini 3**, it won't just store your data—it will **understand it**, find hidden patterns across domains, and deliver actionable insights you'd never see on your own.
+
+This document outlines the complete vision, architecture, and implementation plan for CorteXia.
 
 ---
 
@@ -23,7 +25,7 @@ Modern life is fragmented across dozens of apps:
 
 You can't see that your Instagram binge _caused_ your gym streak to break, which _triggered_ task procrastination, which _led_ to stress eating and overspending.
 
-**CorteXia sees the connections you can't.**
+**CorteXia will see the connections you can't.**
 
 ---
 
@@ -31,9 +33,9 @@ You can't see that your Instagram binge _caused_ your gym streak to break, which
 
 ### 🤖 Cross-Domain AI Reasoning (Powered by Gemini 3)
 
-This isn't another dashboard. It's an AI that **understands your behavioral patterns**.
+This won't be just another dashboard. It will be an AI that **understands your behavioral patterns**.
 
-**Example Insights:**
+**Example Insights CorteXia Will Provide:**
 
 ```
 🔍 PATTERN DETECTED:
@@ -61,11 +63,11 @@ Schedule gym at 7am before work energy dips.
 
 ---
 
-## 🎨 Features
+## 🎨 Planned Features
 
 ### 📊 Unified Dashboard
 
-One screen. Your entire life.
+**Vision:** One screen. Your entire life.
 
 - **Today's Overview**: Tasks, habits, time, finance, study—all at a glance
 - **AI Insights Panel**: Real-time pattern detection and recommendations
@@ -109,7 +111,7 @@ The UI transforms based on your intent:
 
 #### 📈 Weekly Synthesis
 
-Every Sunday, Gemini 3 analyzes your week and generates:
+Every Sunday, Gemini 3 will analyze your week and generate:
 
 - **Wins**: What worked
 - **Losses**: What didn't
@@ -120,7 +122,7 @@ Every Sunday, Gemini 3 analyzes your week and generates:
 
 #### ☀️ Morning Briefing
 
-Every morning, get:
+Every morning, you'll receive:
 
 - Energy forecast (based on sleep, habits)
 - Top 3 critical tasks (AI-prioritized)
@@ -131,7 +133,7 @@ Every morning, get:
 
 #### 🔍 Pattern Detection
 
-Gemini 3 continuously scans for:
+Gemini 3 will continuously scan for:
 
 - **Cascade Effects**: How one behavior triggers others
 - **Resource Leaks**: Where time/money/attention bleeds
@@ -141,7 +143,7 @@ Gemini 3 continuously scans for:
 
 #### 🎯 Smart Prioritization
 
-AI ranks tasks using:
+The AI will rank tasks using:
 
 - Importance to long-term goals
 - Deadline urgency
@@ -169,11 +171,11 @@ Connect daily actions to long-term vision:
 - Monthly targets
 - Weekly objectives
 
-**AI shows you:** "Today's 2-hour study session moves you 1.3% closer to becoming an ML engineer."
+**The AI will show you:** "Today's 2-hour study session moves you 1.3% closer to becoming an ML engineer."
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Planned Tech Stack
 
 ### Frontend
 
@@ -234,111 +236,150 @@ Connect daily actions to long-term vision:
 
 ---
 
-## 🚀 Quick Start
+## �️ Development Roadmap
 
-### Prerequisites
+### Phase 1: Foundation (Days 1-2)
 
-- **Node.js 20+**
-- **npm** or **pnpm**
-- **Supabase account** (free tier)
-- **Gemini API key** (from Google AI Studio)
+- [ ] Project setup (React + Vite + TypeScript)
+- [ ] Install and configure tech stack
+- [ ] Setup Supabase database
+- [ ] Create database schema with Drizzle ORM
+- [ ] Setup backend API with Hono
+- [ ] Configure Vercel deployment
 
-### Installation
+### Phase 2: Core Data Layer (Days 2-3)
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/cortexia.git
-cd cortexia
+- [ ] Implement Tasks API (CRUD operations)
+- [ ] Implement Habits API with check-in system
+- [ ] Implement Finance API with budget tracking
+- [ ] Implement Time Tracking API
+- [ ] Create frontend API client with TanStack Query
+- [ ] Build data fetching hooks
 
-# Install dependencies
-npm install
+### Phase 3: Gemini 3 Integration (Day 3)
 
-# Setup environment variables
-cp .env.example .env
-```
+- [ ] Setup Gemini API client
+- [ ] Create AI prompt templates
+- [ ] Implement AI Service layer
+- [ ] Build Weekly Synthesis generator
+- [ ] Build Morning Briefing generator
+- [ ] Build Pattern Detection engine
+- [ ] Build Priority Calculator
 
-### Environment Setup
+### Phase 4: Dashboard UI (Day 4)
 
-Create a `.env` file with:
+- [ ] Create unified dashboard layout
+- [ ] Build TodayOverview component
+- [ ] Build TasksWidget with AI prioritization
+- [ ] Build HabitsWidget with streak tracking
+- [ ] Build TimeWidget with visualization
+- [ ] Build FinanceWidget with budget status
+- [ ] Build AI Insights Panel (★ Star Feature)
+
+### Phase 5: Detail Pages & Analytics (Day 5)
+
+- [ ] Build Tasks Page with filters
+- [ ] Build Habits Page with StreakCalendar
+- [ ] Build Time Analytics Page with charts
+- [ ] Build Finance Page with spending charts
+- [ ] Build AI Insights Page (detailed view)
+- [ ] Build Goals Page with hierarchy visualization
+
+### Phase 6: Agentic Modes & Polish (Day 6)
+
+- [ ] Implement Focus Mode (minimalist view)
+- [ ] Implement Wise Mode (analytics emphasis)
+- [ ] Implement Auto Mode (AI-generated plans)
+- [ ] Add dark mode support
+- [ ] Add loading states and animations
+- [ ] Add error handling and toast notifications
+- [ ] Mobile responsiveness
+
+### Phase 7: Demo & Submission (Day 7)
+
+- [ ] Create realistic demo data
+- [ ] Test complete user flows
+- [ ] Record 3-minute demo video
+- [ ] Write comprehensive documentation
+- [ ] Final deployment to Vercel
+- [ ] Submit to hackathon
+
+### Technical Requirements
+
+**Prerequisites for Development:**
+
+- Node.js 20+
+- npm or pnpm
+- Supabase account (free tier)
+- Gemini API key (from Google AI Studio)
+
+**Environment Variables Needed:**
 
 ```env
-# Database (Supabase)
-DATABASE_URL=postgresql://user:pass@host:5432/dbname
-
-# Gemini AI
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# App Config
+DATABASE_URL=postgresql://...
+GEMINI_API_KEY=your_key_here
 NODE_ENV=development
 PORT=3000
 FRONTEND_URL=http://localhost:5173
 ```
 
-### Database Setup
-
-```bash
-# Run migrations
-npm run db:migrate
-
-# (Optional) Seed demo data
-npm run db:seed
-```
-
-### Run Development Server
-
-```bash
-# Start backend API
-npm run dev:api
-
-# In another terminal, start frontend
-npm run dev:frontend
-
-# Or run both concurrently
-npm run dev
-```
-
-Visit **http://localhost:5173**
-
 ---
 
-## 📖 Usage Guide
+## 📖 Feature Specifications
 
-### 1️⃣ Add Your First Task
+### Core User Interactions
 
-Click the **"+ Add Task"** button in the dashboard
+#### 1️⃣ Task Management
 
-- Set priority, deadline, estimated time
-- Gemini 3 auto-prioritizes based on your goals
+- Universal quick-add bar with natural language parsing
+- AI-powered automatic prioritization
+- Visual priority indicators (critical, high, medium, low)
+- Deadline tracking with urgency alerts
+- Time estimation and actual time logging
+- Goal alignment visualization
+- Drag-and-drop reordering
 
-### 2️⃣ Track a Habit
+#### 2️⃣ Habit Tracking
 
-Navigate to **Habits** → **Add Habit**
+- Daily check-in system with one-tap confirmation
+- GitHub-style streak calendar visualization
+- Current streak and longest streak tracking
+- AI-powered "at risk" warnings before streak breaks
+- Habit correlation analysis
+- Customizable frequency (daily, weekly, custom)
 
-- Choose frequency (daily/weekly)
-- Check in each day to build your streak
-- AI detects when habits are at risk of breaking
+#### 3️⃣ Time Tracking
 
-### 3️⃣ Log Your Time
+- Manual time logging with category selection
+- Focus quality rating (1-5 scale)
+- Deep work vs shallow work classification
+- Planned vs actual time comparison
+- Weekly time distribution charts
+- Resource leak detection (unplanned time sinks)
 
-Use the quick-add bar: "Studied ML for 2 hours"
+#### 4️⃣ Financial Tracking
 
-- AI parses and categorizes automatically
-- View weekly analytics to see where time actually goes
+- Quick expense/income logging
+- Automatic categorization
+- Budget vs actual spending tracking
+- Weekly/monthly budget alerts
+- Overspending warnings
+- Spending by category visualization
 
-### 4️⃣ Get AI Insights
+#### 5️⃣ AI Insights
 
-Click **"Generate Weekly Synthesis"** in the AI Insights panel
+- On-demand weekly synthesis generation
+- Automatic morning briefings
+- Real-time pattern detection
+- Cross-domain correlation analysis
+- Actionable recommendations with evidence
+- Dismiss or act on insights
 
-- Gemini 3 analyzes your entire week
-- Identifies patterns, root causes, and actionable strategies
+#### 6️⃣ Mode Switching
 
-### 5️⃣ Switch Modes
-
-Use the mode toggle in the header:
-
-- **Focus**: Deep work session
-- **Wise**: Weekly review
-- **Auto**: Let AI plan your week
+- **Focus Mode**: Minimalist view for execution
+- **Wise Mode**: Expanded analytics for reflection
+- **Auto Mode**: AI-generated weekly plans
 
 ---
 
@@ -412,15 +453,15 @@ const synthesis = await geminiModel.generateContent(prompt);
 
 ---
 
-## 📊 API Documentation
+## 📊 Planned API Architecture
 
-### Base URL
+### Base URL (When Deployed)
 
 ```
 https://cortexia.vercel.app/api
 ```
 
-### Endpoints
+### API Endpoints Specification
 
 #### Tasks
 
@@ -489,76 +530,139 @@ cortexia/
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing Strategy
 
-```bash
-# Run unit tests
-npm run test
+**Planned Testing Approach:**
 
-# Run integration tests
-npm run test:integration
+### Unit Testing
 
-# Run E2E tests (Playwright)
-npm run test:e2e
+- Component testing with React Testing Library
+- Service layer testing for AI prompt generation
+- Utility function testing
+- Database query testing
 
-# Type check
-npm run type-check
+### Integration Testing
 
-# Lint
-npm run lint
-```
+- API endpoint testing
+- Database integration tests
+- Gemini 3 API integration tests
 
----
+### End-to-End Testing
 
-## 🚀 Deployment
+- User flow testing with Playwright
+- Critical path testing (add task → get AI insights)
+- Cross-domain pattern detection validation
 
-### Deploy to Vercel (Recommended)
+### Quality Assurance
 
-1. **Push to GitHub**
-2. **Import to Vercel**
-3. **Set environment variables** in Vercel dashboard
-4. **Deploy!**
-
-Or use the button:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/cortexia)
-
-### Manual Deployment
-
-```bash
-# Build frontend
-npm run build
-
-# Deploy to Vercel
-vercel --prod
-```
+- TypeScript strict mode for type safety
+- ESLint for code quality
+- Prettier for code formatting
+- Pre-commit hooks with Husky
 
 ---
 
-## 🎥 Demo Video
+## 🚀 Planned Deployment Strategy
 
-[▶️ Watch 3-minute demo](https://youtu.be/your-video-id)
+### Platform: Vercel
 
-**Highlights:**
+**Why Vercel:**
 
-- 0:30 - Unified dashboard walkthrough
-- 1:00 - Gemini 3 pattern detection in action
-- 2:00 - Agentic mode switching
-- 2:30 - Goal connection visualization
+- Zero-config deployment for Next.js/Vite apps
+- Serverless functions for backend API
+- Automatic CI/CD on git push
+- Edge network for global performance
+- Free tier perfect for demos
+- Preview deployments for testing
+
+### Deployment Steps (When Ready)
+
+1. **Setup Repository**
+   - Push code to GitHub
+   - Connect repository to Vercel
+
+2. **Configure Environment**
+   - Add DATABASE_URL (Supabase)
+   - Add GEMINI_API_KEY
+   - Set NODE_ENV=production
+
+3. **Deploy**
+   - Automatic deployment on main branch push
+   - Preview deployments for PRs
+   - Production URL: cortexia.vercel.app
+
+### Infrastructure
+
+- **Frontend**: Vercel Edge Network
+- **Backend**: Vercel Serverless Functions
+- **Database**: Supabase (PostgreSQL)
+- **AI**: Google Gemini 3 API
+
+---
+
+## 🎥 Demo Video Plan
+
+### Planned Video Structure (3 minutes)
+
+**Timeline:**
+
+**0:00-0:30** - Problem Introduction
+
+- Show fragmented app landscape
+- Demonstrate data disconnect
+- Voice: "I'm drowning in productivity tools"
+
+**0:30-1:00** - Solution Introduction
+
+- Open CorteXia dashboard
+- Pan across unified view
+- Voice: "One system. Everything integrated."
+
+**1:00-2:00** - AI Reasoning Showcase (★ Money Shot)
+
+- Click "Generate AI Analysis"
+- Show Gemini 3 API call
+- Display pattern detection visual
+- Highlight cross-domain connections
+- Voice: "Gemini 3 connects the dots I couldn't see"
+
+**2:00-2:30** - Mode Switching Demo
+
+- Switch to Focus Mode → minimal UI
+- Switch to Wise Mode → analytics expand
+- Switch to Auto Mode → AI-generated plan
+- Voice: "Adapts to how I want to work"
+
+**2:30-3:00** - Vision & Close
+
+- Show goal connection map
+- Display future roadmap
+- Voice: "This isn't just an app. This is my life, understood."
+- Final frame: "Powered by Gemini 3. Built for everyone."
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+**Project Status:** This project is currently in the planning phase. Once development begins, we'll welcome contributions!
 
-### Development Workflow
+### Planned Development Workflow
 
-1. Fork the repo
+1. Fork the repository (when available)
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Follow TypeScript and ESLint standards
+4. Write tests for new features
+5. Commit with descriptive messages
+6. Open a Pull Request with detailed description
+
+### Areas We'll Need Help With
+
+- Frontend component development
+- AI prompt engineering and optimization
+- Data visualization improvements
+- Mobile responsiveness
+- Testing and QA
+- Documentation
 
 ---
 
@@ -577,16 +681,19 @@ This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE
 
 ---
 
-## 📞 Contact
+## 📞 Project Information
 
-**Project Link:** [https://github.com/yourusername/cortexia](https://github.com/yourusername/cortexia)
+**Repository:** [https://github.com/yourusername/cortexia](https://github.com/yourusername/cortexia) _(Coming Soon)_
 
-**Live Demo:** [https://cortexia.vercel.app](https://cortexia.vercel.app)
+**Project Status:** Planning & Design Phase
+
+**Planned Launch:** Post-Hackathon Development
 
 **Creator:** Your Name
 
 - Twitter: [@yourhandle](https://twitter.com/yourhandle)
 - Email: your.email@example.com
+- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
 
 ---
 
@@ -594,39 +701,72 @@ This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE
 
 ### For Judges:
 
-1. **Gemini 3 Showcases Intelligence**
+1. **Gemini 3 Showcases True Intelligence**
    - Not just another CRUD app with AI slapped on
-   - Deep integration showing cross-domain reasoning
-   - Real behavioral insights that matter
+   - Deep cross-domain reasoning demonstrating Gemini 3's capabilities
+   - Real behavioral insights that actually matter to users
+   - Novel use of long context windows for multi-domain analysis
 
 2. **Solves a Universal Problem**
    - Everyone struggles with fragmented productivity tools
-   - Immediate "I need this" reaction
+   - Immediate "I need this" reaction from judges
+   - $50B+ productivity software market validation
 
 3. **Technical Excellence**
-   - Clean architecture
-   - Type-safe end-to-end
-   - Production-ready code quality
-   - Scalable design
+   - Clean, scalable architecture
+   - Type-safe end-to-end (TypeScript everywhere)
+   - Production-ready code quality from day one
+   - Modern tech stack (React 18, Vercel, Supabase)
 
-4. **Beautiful UX**
+4. **Exceptional UX Design**
    - Modern, professional interface
-   - Thoughtful interactions
-   - Adaptive (3 modes)
+   - Thoughtful interactions and animations
+   - Adaptive UI with 3 agentic modes
+   - Accessibility built-in (ARIA, keyboard navigation)
 
-5. **Complete Vision**
-   - Clear roadmap for growth
-   - Multi-user potential
-   - Integration opportunities
+5. **Complete Vision with Roadmap**
+   - Clear 7-day implementation timeline
+   - Post-hackathon growth strategy
+   - Multi-user/team mode potential
+   - API integration opportunities (Calendar, Banking, Fitness trackers)
+   - Monetization path (freemium model)
+
+### Competitive Advantages
+
+- **vs Notion**: AI that actually understands behavioral patterns
+- **vs Todoist**: Cross-domain insights, not just task management
+- **vs Mint**: Connects financial decisions to life patterns
+- **vs Forest**: Gamification with real intelligence behind it
+
+### Market Opportunity
+
+- **TAM**: 500M+ knowledge workers globally
+- **Problem Validation**: Average person uses 8-12 productivity apps
+- **Willingness to Pay**: $10-20/month for unified solution
+- **Network Effect**: Habit data improves AI recommendations
 
 ---
 
 <div align="center">
 
-**Built with ❤️ and Gemini 3**
+**To Be Built with ❤️ and Gemini 3**
 
-⭐ **If this project resonates with you, give it a star!** ⭐
+⭐ **Interested in this project? Star the repo when it launches!** ⭐
 
-[View Demo](https://cortexia.vercel.app) • [Report Bug](https://github.com/yourusername/cortexia/issues) • [Request Feature](https://github.com/yourusername/cortexia/issues)
+---
+
+### 📅 Project Timeline
+
+**Planning Phase:** February 2026  
+**Development:** 7-Day Hackathon Sprint  
+**Launch:** Post-Hackathon Refinement
+
+---
+
+_This README represents the complete technical specification and vision for CorteXia.  
+The project will be built using the architecture and features detailed above._
+
+**Tech Stack:** React • TypeScript • Gemini 3 • PostgreSQL • Vercel  
+**Status:** 📋 Planning → 🚧 Development Soon → 🚀 Launch
 
 </div>
