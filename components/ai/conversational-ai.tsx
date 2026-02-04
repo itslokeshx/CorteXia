@@ -302,10 +302,10 @@ export function ConversationalAI() {
     return (
       <motion.button
         className={cn(
-          "fixed z-50 w-14 h-14 rounded-full flex items-center justify-center",
+          "fixed z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center",
           "bg-primary text-primary-foreground shadow-lg",
           "hover:scale-105 transition-transform",
-          isMinimized ? "bottom-20 right-6" : "bottom-6 right-6",
+          "bottom-4 right-4 sm:bottom-6 sm:right-6",
         )}
         onClick={() => {
           setIsOpen(true);
@@ -317,10 +317,10 @@ export function ConversationalAI() {
         animate={{ scale: 1 }}
         exit={{ scale: 0 }}
       >
-        <Sparkles className="w-6 h-6" />
+        <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
         {messages.length > 0 && (
           <motion.div
-            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center"
+            className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-red-500 text-white text-[10px] sm:text-xs flex items-center justify-center"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
           >
@@ -333,54 +333,74 @@ export function ConversationalAI() {
 
   return (
     <motion.div
-      className="fixed bottom-6 right-6 z-50 w-[400px] h-[600px] rounded-2xl border bg-background shadow-2xl flex flex-col overflow-hidden"
-      initial={{ scale: 0.9, opacity: 0, y: 20 }}
+      className={cn(
+        "fixed z-50 flex flex-col overflow-hidden",
+        "bg-background border shadow-2xl",
+        // Mobile: full screen with safe areas
+        "inset-0 rounded-none sm:rounded-2xl",
+        // Desktop: fixed size and position
+        "sm:inset-auto sm:bottom-4 sm:right-4 md:bottom-6 md:right-6",
+        "sm:w-[360px] sm:h-[500px] md:w-[400px] md:h-[560px]",
+        "sm:max-h-[calc(100vh-2rem)] md:max-h-[calc(100vh-3rem)]",
+      )}
+      initial={{ scale: 0.95, opacity: 0, y: 20 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
-      exit={{ scale: 0.9, opacity: 0, y: 20 }}
+      exit={{ scale: 0.95, opacity: 0, y: 20 }}
+      transition={{ duration: 0.2 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-primary/10 to-transparent">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-primary" />
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b bg-gradient-to-r from-primary/10 to-transparent flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold">Cortexia AI</h3>
-            <p className="text-xs text-muted-foreground">Your life assistant</p>
+            <h3 className="font-semibold text-sm sm:text-base">Cortexia AI</h3>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              Your life assistant
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1">
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => setIsMinimized(true)}
           >
             <Minus className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
+            onClick={() => setIsOpen(false)}
+          >
             <X className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-3 sm:p-4" ref={scrollRef}>
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center py-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-              <Bot className="w-8 h-8 text-primary" />
+          <div className="flex flex-col items-center justify-center h-full text-center py-6 sm:py-8">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 sm:mb-4">
+              <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
             </div>
-            <h4 className="font-semibold mb-2">Hi! I'm Cortexia</h4>
-            <p className="text-sm text-muted-foreground mb-6 max-w-[280px]">
+            <h4 className="font-semibold mb-2 text-sm sm:text-base">
+              Hi! I'm Cortexia
+            </h4>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-[260px] sm:max-w-[280px] px-2">
               Your AI life assistant. I can help you manage tasks, analyze
               patterns, and optimize your productivity.
             </p>
-            <div className="flex flex-col gap-2 w-full max-w-[280px]">
+            <div className="flex flex-col gap-2 w-full max-w-[260px] sm:max-w-[280px]">
               {QUICK_ACTIONS.map((action) => (
                 <Button
                   key={action.action}
                   variant="outline"
-                  className="justify-start gap-2"
+                  className="justify-start gap-2 text-sm"
                   onClick={() => handleQuickAction(action.action)}
                 >
                   <action.icon className="w-4 h-4" />
@@ -390,50 +410,50 @@ export function ConversationalAI() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {messages.map((message) => (
               <motion.div
                 key={message.id}
                 className={cn(
-                  "flex gap-3",
+                  "flex gap-2 sm:gap-3",
                   message.role === "user" ? "justify-end" : "justify-start",
                 )}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
                 {message.role === "assistant" && (
-                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex-shrink-0 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-primary" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/20 flex-shrink-0 flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                   </div>
                 )}
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-2xl px-4 py-2.5",
+                    "max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5",
                     message.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted",
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap">
+                  <p className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed">
                     {message.content}
                   </p>
-                  <span className="text-[10px] opacity-70 mt-1 block">
+                  <span className="text-[9px] sm:text-[10px] opacity-70 mt-1 block">
                     {message.timestamp}
                   </span>
 
                   {/* Suggestions */}
                   {message.suggestions && message.suggestions.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
+                    <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/50 space-y-1.5 sm:space-y-2">
                       {message.suggestions.map((suggestion, i) => (
                         <Button
                           key={i}
                           variant="secondary"
                           size="sm"
-                          className="w-full justify-start text-xs"
+                          className="w-full justify-start text-[10px] sm:text-xs h-7 sm:h-8"
                           onClick={() => handleSuggestion(suggestion)}
                         >
-                          <Lightbulb className="w-3 h-3 mr-2" />
-                          {suggestion.text}
+                          <Lightbulb className="w-3 h-3 mr-1.5 sm:mr-2 flex-shrink-0" />
+                          <span className="truncate">{suggestion.text}</span>
                         </Button>
                       ))}
                     </div>
@@ -441,7 +461,7 @@ export function ConversationalAI() {
 
                   {/* Actions executed */}
                   {message.actions && message.actions.length > 0 && (
-                    <div className="mt-2 flex items-center gap-1 text-xs text-emerald-600">
+                    <div className="mt-2 flex items-center gap-1 text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-400">
                       <CheckCircle2 className="w-3 h-3" />
                       {message.actions.length} action
                       {message.actions.length > 1 ? "s" : ""} executed
@@ -449,8 +469,8 @@ export function ConversationalAI() {
                   )}
                 </div>
                 {message.role === "user" && (
-                  <div className="w-8 h-8 rounded-lg bg-secondary flex-shrink-0 flex items-center justify-center">
-                    <User className="w-4 h-4" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-secondary flex-shrink-0 flex items-center justify-center">
+                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                 )}
               </motion.div>
@@ -459,17 +479,17 @@ export function ConversationalAI() {
             {/* Loading indicator */}
             {isLoading && (
               <motion.div
-                className="flex gap-3"
+                className="flex gap-2 sm:gap-3"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <div className="w-8 h-8 rounded-lg bg-primary/20 flex-shrink-0 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-primary" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/20 flex-shrink-0 flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                 </div>
-                <div className="bg-muted rounded-2xl px-4 py-3">
+                <div className="bg-muted rounded-2xl px-3 sm:px-4 py-2 sm:py-3">
                   <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                    <span className="text-xs sm:text-sm text-muted-foreground">
                       Thinking...
                     </span>
                   </div>
@@ -482,45 +502,48 @@ export function ConversationalAI() {
 
       {/* Quick Actions (when there are messages) */}
       {messages.length > 0 && (
-        <div className="px-4 py-2 border-t flex gap-2 overflow-x-auto">
+        <div className="px-3 sm:px-4 py-2 border-t flex gap-1.5 sm:gap-2 overflow-x-auto flex-shrink-0 scrollbar-none">
           {QUICK_ACTIONS.map((action) => (
             <Button
               key={action.action}
               variant="outline"
               size="sm"
-              className="flex-shrink-0 gap-1.5 text-xs"
+              className="flex-shrink-0 gap-1 sm:gap-1.5 text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3"
               onClick={() => handleQuickAction(action.action)}
             >
               <action.icon className="w-3 h-3" />
-              {action.label}
+              <span className="hidden xs:inline">{action.label}</span>
             </Button>
           ))}
         </div>
       )}
 
       {/* Input */}
-      <div className="p-4 border-t">
+      <div className="p-3 sm:p-4 border-t flex-shrink-0 bg-background">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             sendMessage(input);
           }}
-          className="flex gap-2"
+          className="flex gap-1.5 sm:gap-2"
         >
           <Input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask me anything..."
-            className="flex-1"
+            className="flex-1 h-9 sm:h-10 text-sm"
             disabled={isLoading}
           />
           <Button
             type="button"
             variant="outline"
             size="icon"
+            className={cn(
+              "h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0",
+              isListening && "text-red-500 border-red-500",
+            )}
             onClick={toggleVoiceInput}
-            className={cn(isListening && "text-red-500 border-red-500")}
           >
             {isListening ? (
               <MicOff className="w-4 h-4" />
@@ -531,6 +554,7 @@ export function ConversationalAI() {
           <Button
             type="submit"
             size="icon"
+            className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0"
             disabled={!input.trim() || isLoading}
           >
             <Send className="w-4 h-4" />

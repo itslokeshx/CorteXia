@@ -193,18 +193,17 @@ export default function InsightsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 pb-32">
-        <div className="flex items-start justify-between">
+      <div className="max-w-5xl mx-auto space-y-6 pb-24">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-balance">AI Insights</h1>
-            <p className="text-muted-foreground mt-2">
-              Deep analytics and personalized recommendations based on your life
-              data.
+            <h1 className="text-2xl md:text-3xl font-bold">AI Insights</h1>
+            <p className="text-muted-foreground text-sm md:text-base mt-1">
+              Deep analytics and personalized recommendations
             </p>
           </div>
           <div className="flex gap-2">
             {insights.length > 0 && (
-              <Button variant="outline" onClick={clearInsights}>
+              <Button variant="outline" size="sm" onClick={clearInsights}>
                 Clear
               </Button>
             )}
@@ -214,13 +213,13 @@ export default function InsightsPage() {
               disabled={isLoading}
             >
               <Sparkles className="h-4 w-4" />
-              {isLoading ? "Analyzing..." : "Generate Insights"}
+              {isLoading ? "Analyzing..." : "Generate"}
             </Button>
           </div>
         </div>
 
         {/* Analytics Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {/* Radar Chart - Life Balance */}
           <RadarChart
             data={radarData}
@@ -245,35 +244,36 @@ export default function InsightsPage() {
 
         {/* AI Generated Insights */}
         {insights.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">AI Analysis</h2>
+          <div className="space-y-3 md:space-y-4">
+            <h2 className="text-lg md:text-2xl font-semibold">AI Analysis</h2>
             {insights.map((insight) => (
               <Card
                 key={insight.id}
-                className={`border-l-4 ${
+                className={`border-l-4 border-border/50 ${
                   insight.severity === "critical"
                     ? "border-l-red-500"
                     : insight.severity === "warning"
-                      ? "border-l-yellow-500"
+                      ? "border-l-amber-500"
                       : insight.severity === "success"
-                        ? "border-l-green-500"
+                        ? "border-l-emerald-500"
                         : "border-l-blue-500"
                 }`}
               >
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-4">
+                <CardContent className="pt-4 md:pt-6 px-4 md:px-6">
+                  <div className="flex items-start gap-3 md:gap-4">
                     {getIcon(insight.type)}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{insight.title}</h3>
-                      <p className="text-muted-foreground mt-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base md:text-lg">{insight.title}</h3>
+                      <p className="text-muted-foreground text-sm mt-1 md:mt-2">
                         {insight.content}
                       </p>
-                      <div className="flex items-center gap-2 mt-3">
-                        <Badge variant="outline" className="capitalize">
+                      <div className="flex items-center gap-2 mt-2 md:mt-3 flex-wrap">
+                        <Badge variant="outline" className="capitalize text-[10px] md:text-xs">
                           {insight.type}
                         </Badge>
                         <Badge
                           variant={insight.actionable ? "default" : "secondary"}
+                          className="text-[10px] md:text-xs"
                         >
                           {insight.actionable ? "Actionable" : "Info"}
                         </Badge>
@@ -287,62 +287,59 @@ export default function InsightsPage() {
         )}
 
         {/* Insight Categories */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-500" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <Card className="hover:shadow-md transition-shadow border-border/50">
+            <CardHeader className="pb-2 px-4 md:px-6">
+              <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
                 Patterns
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                AI detects correlations between your habits, productivity, and
-                wellbeing.
+            <CardContent className="px-4 md:px-6">
+              <p className="text-xs md:text-sm text-muted-foreground">
+                AI detects correlations between habits and wellbeing.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lightbulb className="h-5 w-5 text-yellow-500" />
-                Recommendations
+          <Card className="hover:shadow-md transition-shadow border-border/50">
+            <CardHeader className="pb-2 px-4 md:px-6">
+              <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                <Lightbulb className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
+                Tips
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Personalized suggestions to optimize your time and reach goals
-                faster.
+            <CardContent className="px-4 md:px-6">
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Personalized suggestions to optimize your time.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-red-500" />
+          <Card className="hover:shadow-md transition-shadow border-border/50">
+            <CardHeader className="pb-2 px-4 md:px-6">
+              <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-red-500" />
                 Warnings
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Alerts about burnout risk, overcommitment, or concerning
-                patterns.
+            <CardContent className="px-4 md:px-6">
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Alerts about burnout risk and overcommitment.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                Achievements
+          <Card className="hover:shadow-md transition-shadow border-border/50">
+            <CardHeader className="pb-2 px-4 md:px-6">
+              <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+                <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 text-emerald-500" />
+                Wins
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Recognition of your progress, milestones, and positive trends.
+            <CardContent className="px-4 md:px-6">
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Recognition of your progress and milestones.
               </p>
             </CardContent>
           </Card>
