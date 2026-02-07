@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Home,
@@ -72,25 +73,20 @@ export function CollapsibleSidebar() {
       <Link
         href={item.href}
         className={cn(
-          "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+          "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-normal transition-all duration-150",
           collapsed ? "justify-center" : "",
           isActive
-            ? "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300"
-            : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)]",
+            ? "bg-[#ececf1] dark:bg-[#2a2b32] text-gray-900 dark:text-white"
+            : "text-gray-700 dark:text-gray-300 hover:bg-[#ececf1] dark:hover:bg-[#2a2b32]",
         )}
         title={collapsed ? item.label : undefined}
       >
-        {isActive && (
-          <motion.div
-            layoutId="sidebar-active"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-purple-600 dark:bg-purple-400"
-            transition={{ type: "spring", stiffness: 350, damping: 30 }}
-          />
-        )}
         <Icon
           className={cn(
             "w-[18px] h-[18px] flex-shrink-0",
-            isActive && "text-purple-600 dark:text-purple-400",
+            isActive
+              ? "text-gray-900 dark:text-white"
+              : "text-gray-600 dark:text-gray-400",
           )}
         />
         {!collapsed && <span className="truncate">{item.label}</span>}
@@ -134,8 +130,14 @@ export function CollapsibleSidebar() {
           >
             <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                  <Brain className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0">
+                  <Image
+                    src="/Cortexia-icon.jpeg"
+                    alt="CorteXia"
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <span className="font-semibold tracking-tight">CorteXia</span>
               </div>
@@ -163,19 +165,25 @@ export function CollapsibleSidebar() {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-white dark:bg-[var(--color-bg-primary)] border-r border-[var(--color-border)] transition-all duration-300 ease-out",
+          "hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-[#f9fafb] dark:bg-[#171717] transition-all duration-300 ease-out",
           isCollapsed ? "w-[68px]" : "w-[260px]",
         )}
       >
         {/* Logo */}
         <div
           className={cn(
-            "flex items-center border-b border-[var(--color-border)] h-16 px-4",
+            "flex items-center h-14 px-3",
             isCollapsed ? "justify-center" : "gap-2.5",
           )}
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-            <Brain className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+            <Image
+              src="/Cortexia-icon.jpeg"
+              alt="CorteXia"
+              width={32}
+              height={32}
+              className="w-full h-full object-cover"
+            />
           </div>
           {!isCollapsed && (
             <motion.div
@@ -183,10 +191,10 @@ export function CollapsibleSidebar() {
               animate={{ opacity: 1 }}
               className="flex flex-col min-w-0"
             >
-              <span className="font-bold text-base tracking-tight">
+              <span className="font-semibold text-sm tracking-tight">
                 CorteXia
               </span>
-              <span className="text-[10px] text-[var(--color-text-tertiary)] uppercase tracking-widest">
+              <span className="text-[9px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Life OS
               </span>
             </motion.div>
@@ -194,20 +202,20 @@ export function CollapsibleSidebar() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5 scrollbar-thin">
+        <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5 scrollbar-thin">
           {navItems.map((item) => (
             <NavLink key={item.href} item={item} collapsed={isCollapsed} />
           ))}
         </nav>
 
         {/* Bottom */}
-        <div className="p-3 border-t border-[var(--color-border)] space-y-0.5">
+        <div className="px-2 py-2 border-t border-gray-200 dark:border-gray-700 space-y-0.5">
           {bottomItems.map((item) => (
             <NavLink key={item.href} item={item} collapsed={isCollapsed} />
           ))}
           <button
             onClick={toggleCollapse}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-all text-xs"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-[#ececf1] dark:hover:bg-[#2a2b32] transition-all text-xs"
           >
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4" />
