@@ -75,21 +75,6 @@ const MOOD_EMOJIS = [
   },
 ];
 
-const WRITING_PROMPTS = [
-  "What am I grateful for today?",
-  "What challenged me today and what did I learn?",
-  "What made me smile today?",
-  "How did I grow or improve today?",
-  "What would I do differently tomorrow?",
-];
-
-const REFLECTION_PROMPTS = [
-  "Reflect on one thing you accomplished today, no matter how small.",
-  "What emotion defined your day? Explore why.",
-  "Describe a conversation that impacted you today.",
-  "What's one thing you want to let go of after today?",
-  "If today were a chapter in a book, what would its title be?",
-];
 
 export default function JournalPage() {
   const { journalEntries = [], addJournalEntry, deleteJournalEntry } = useApp();
@@ -111,7 +96,7 @@ export default function JournalPage() {
   // Calendar states
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-  const [reflectionIdx, setReflectionIdx] = useState(0);
+
 
   // ═══ DERIVED DATA ════════════════════════════════════════════════════════
   const sortedEntries = useMemo(() => {
@@ -211,10 +196,7 @@ export default function JournalPage() {
     setShowNewEntryModal(false);
   };
 
-  const applyPrompt = (prompt: string) => {
-    setNewEntry((prev) => ({ ...prev, content: prompt }));
-    setShowNewEntryModal(true);
-  };
+
 
   const getMoodConfig = (value: number) => {
     return MOOD_EMOJIS.reduce((prev, curr) =>
@@ -511,55 +493,24 @@ export default function JournalPage() {
               </div>
             </div>
 
-            {/* Reflection Prompt */}
-            <div className="p-3 rounded-lg border border-[var(--color-border)] bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
-              <div className="flex items-center gap-1 mb-1.5">
-                <Sparkles className="w-3 h-3 text-purple-500" />
-                <span className="text-xs font-medium text-[var(--color-text-primary)]">
-                  Reflection Prompt
-                </span>
+            {/* New Entry CTA */}
+            <div className="p-4 rounded-lg border border-[var(--color-border)] bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 text-center">
+              <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center mx-auto mb-3 shadow-sm text-purple-500">
+                <Sparkles className="w-5 h-5" />
               </div>
-              <p className="text-xs italic text-[var(--color-text-secondary)] mb-2">
-                {REFLECTION_PROMPTS[reflectionIdx]}
-              </p>
-              <div className="flex gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-[10px] h-6 px-2"
-                  onClick={() => applyPrompt(REFLECTION_PROMPTS[reflectionIdx])}
-                >
-                  Use prompt
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-[10px] h-6 px-2 text-[var(--color-text-tertiary)]"
-                  onClick={() =>
-                    setReflectionIdx((i) => (i + 1) % REFLECTION_PROMPTS.length)
-                  }
-                >
-                  Next →
-                </Button>
-              </div>
-            </div>
-
-            {/* Writing Prompts */}
-            <div className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
-              <h3 className="text-xs font-medium text-[var(--color-text-primary)] mb-1.5">
-                Writing Prompts
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">
+                Ready to reflect?
               </h3>
-              <div className="space-y-0.5">
-                {WRITING_PROMPTS.map((prompt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => applyPrompt(prompt)}
-                    className="w-full text-left p-2 rounded hover:bg-[var(--color-bg-tertiary)] text-[10px] text-[var(--color-text-secondary)] transition-colors"
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
+              <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+                Take a moment to capture your thoughts and feelings.
+              </p>
+              <Button
+                size="sm"
+                className="w-full text-xs h-8"
+                onClick={() => setShowNewEntryModal(true)}
+              >
+                Write New Entry
+              </Button>
             </div>
           </div>
         </div>
