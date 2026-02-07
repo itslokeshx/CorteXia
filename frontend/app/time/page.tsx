@@ -91,9 +91,6 @@ function VisualTimeBlock({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
       className={cn(
         "absolute left-1 right-1 rounded-lg border-l-4 px-2 py-1 cursor-pointer group transition-all hover:shadow-lg",
         CATEGORY_LIGHT_COLORS[block.category],
@@ -394,8 +391,6 @@ function PomodoroTimer() {
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={2 * Math.PI * 45}
-              initial={{ strokeDashoffset: 2 * Math.PI * 45 }}
-              animate={{
                 strokeDashoffset: 2 * Math.PI * 45 * (1 - progress / 100),
               }}
             />

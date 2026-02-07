@@ -425,12 +425,7 @@ export default function GoalsPage() {
 
     return (
       <AppLayout>
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          className="pb-12 max-w-3xl mx-auto"
-        >
+        <motion.div className="pb-12 max-w-3xl mx-auto">
           {/* Back */}
           <button
             onClick={() => setSelectedGoalId(null)}
@@ -540,12 +535,7 @@ export default function GoalsPage() {
 
             {/* Overall bar */}
             <div className="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-6">
-              <motion.div
-                className="h-full bg-gray-900 dark:bg-gray-100 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${health.progress}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
+              <motion.div className="h-full bg-gray-900 dark:bg-gray-100 rounded-full" />
             </div>
 
             {/* Quarter accordion */}
@@ -563,10 +553,7 @@ export default function GoalsPage() {
                       onClick={() => toggleQuarter(quarter.id)}
                       className="flex items-center gap-3 w-full py-3 px-4 rounded-xl hover:bg-[var(--color-bg-secondary)] transition-colors"
                     >
-                      <motion.div
-                        animate={{ rotate: isOpen ? 0 : -90 }}
-                        transition={{ duration: 0.15 }}
-                      >
+                      <motion.div>
                         <ChevronDown className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                       </motion.div>
                       <span className="text-sm font-medium text-[var(--color-text-primary)]">
@@ -581,13 +568,7 @@ export default function GoalsPage() {
 
                     <AnimatePresence initial={false}>
                       {isOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="overflow-hidden"
-                        >
+                        <motion.div className="overflow-hidden">
                           <div className="pl-7 space-y-0.5">
                             {quarter.months.map((month) => {
                               const mProg = monthProgress(month);
@@ -600,10 +581,7 @@ export default function GoalsPage() {
                                     onClick={() => toggleMonth(mKey)}
                                     className="flex items-center gap-3 w-full py-2.5 px-3 rounded-lg hover:bg-[var(--color-bg-secondary)] transition-colors"
                                   >
-                                    <motion.div
-                                      animate={{ rotate: mOpen ? 0 : -90 }}
-                                      transition={{ duration: 0.15 }}
-                                    >
+                                    <motion.div>
                                       <ChevronDown className="w-3.5 h-3.5 text-[var(--color-text-tertiary)]" />
                                     </motion.div>
                                     <span className="text-sm text-[var(--color-text-primary)]">
@@ -776,12 +754,7 @@ export default function GoalsPage() {
                   </span>
                 </div>
                 <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${health.consistency}%` }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                  />
+                  <motion.div className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full" />
                 </div>
               </div>
 
@@ -796,12 +769,7 @@ export default function GoalsPage() {
                   </span>
                 </div>
                 <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${health.timeInvested}%` }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                  />
+                  <motion.div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full" />
                 </div>
               </div>
 
@@ -816,12 +784,7 @@ export default function GoalsPage() {
                   </span>
                 </div>
                 <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${health.momentum}%` }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
-                  />
+                  <motion.div className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full" />
                 </div>
               </div>
             </div>
@@ -845,12 +808,7 @@ export default function GoalsPage() {
 
   return (
     <AppLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className="pb-12 max-w-3xl mx-auto"
-      >
+      <motion.div className="pb-12 max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
@@ -924,10 +882,6 @@ export default function GoalsPage() {
                   <motion.button
                     key={goal.id}
                     layout
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ delay: i * 0.02 }}
                     onClick={() => setSelectedGoalId(goal.id)}
                     className={cn(
                       "w-full text-left p-4 rounded-xl border transition-all duration-200 group",
@@ -990,11 +944,7 @@ export default function GoalsPage() {
                 );
               })
             ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20"
-              >
+              <motion.div className="text-center py-20">
                 <p className="text-sm text-[var(--color-text-tertiary)]">
                   No goals yet. What do you want to achieve?
                 </p>

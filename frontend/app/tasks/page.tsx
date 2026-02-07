@@ -356,9 +356,6 @@ export default function TasksPage() {
   return (
     <AppLayout>
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.15, ease: "easeOut" }}
         className="pb-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto"
       >
         {/* Header + Tabs */}
@@ -478,8 +475,6 @@ export default function TasksPage() {
                       ))}
                       {collapsed && pending.length > 5 && (
                         <motion.button
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
                           onClick={() => toggleSection(view)}
                           className="w-full py-2 text-[12px] text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 font-medium"
                         >
@@ -488,8 +483,6 @@ export default function TasksPage() {
                       )}
                       {!collapsed && pending.length > 5 && (
                         <motion.button
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
                           onClick={() => toggleSection(view)}
                           className="w-full py-2 text-[12px] text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 font-medium"
                         >
@@ -502,8 +495,6 @@ export default function TasksPage() {
               </>
             ) : (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
                 className="text-center py-12"
               >
                 <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3">
@@ -721,10 +712,6 @@ export default function TasksPage() {
               <AnimatePresence>
                 {formTimeBlock && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-2 ml-6">
@@ -859,10 +846,6 @@ function TaskCard({
     return (
       <motion.div
         layout
-        initial={{ opacity: 0, y: 2 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ delay: i * 0.01, duration: 0.12 }}
         className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 opacity-60"
       >
         <div
@@ -887,10 +870,6 @@ function TaskCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -12, height: 0 }}
-      transition={{ delay: i * 0.02, duration: 0.15 }}
       className={cn(
         "group p-2.5 sm:p-3 rounded-lg border transition-all duration-150",
         isDone

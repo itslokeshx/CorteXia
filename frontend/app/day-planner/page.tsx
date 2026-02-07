@@ -267,12 +267,7 @@ export default function DayPlannerPage() {
 
   return (
     <AppLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-        className="space-y-4 pb-12"
-      >
+      <motion.div className="space-y-4 pb-12">
         {/* ──────────────────── Header ──────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
@@ -553,9 +548,6 @@ export default function DayPlannerPage() {
                 return (
                   <motion.div
                     key={block.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2 }}
                     className={cn(
                       "absolute left-1 right-2 rounded-lg border-l-[3px] p-2 group cursor-pointer",
                       "transition-all duration-150 hover:shadow-sm hover:brightness-105",
@@ -620,7 +612,10 @@ export default function DayPlannerPage() {
                   <div className="absolute -top-[5px] left-0 flex items-center gap-1.5">
                     <motion.div
                       className="w-[10px] h-[10px] rounded-full bg-red-500 -ml-[5px]"
-                      animate={{ scale: [1, 1.3, 1] }}
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [1, 0.8, 1],
+                      }}
                       transition={{
                         repeat: Infinity,
                         duration: 2,

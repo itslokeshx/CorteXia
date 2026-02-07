@@ -208,8 +208,6 @@ export default function JournalPage() {
   return (
     <AppLayout>
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
         className="max-w-7xl mx-auto p-3 sm:p-4"
       >
         {/* ═══ HEADER ═══ */}
@@ -268,10 +266,6 @@ export default function JournalPage() {
                   <motion.div
                     key={entry.id}
                     layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
                     onClick={() => setExpandedEntry(entry)}
                     className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-all cursor-pointer group"
                   >
@@ -472,9 +466,6 @@ export default function JournalPage() {
                     >
                       {day.mood !== null ? (
                         <motion.div
-                          initial={{ height: 0 }}
-                          animate={{ height: `${(day.mood / 10) * 100}%` }}
-                          transition={{ duration: 0.3, delay: i * 0.02 }}
                           className={cn(
                             "w-full rounded-t-sm min-h-[3px]",
                             day.mood > 6

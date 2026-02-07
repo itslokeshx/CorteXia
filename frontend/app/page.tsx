@@ -303,8 +303,6 @@ export default function DashboardPage() {
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           >
             <Brain className="w-10 h-10 text-gray-400" />
           </motion.div>
@@ -318,8 +316,6 @@ export default function DashboardPage() {
       <div className="space-y-6 pb-16 max-w-5xl mx-auto">
         {/* ═══ HEADER ═══ */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between"
         >
           <div>
@@ -348,9 +344,6 @@ export default function DashboardPage() {
 
         {/* ═══ PROGRESS OVERVIEW ═══ */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
           className="grid grid-cols-2 lg:grid-cols-4 gap-3"
         >
           <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
@@ -413,9 +406,6 @@ export default function DashboardPage() {
         {/* ═══ TODAY'S PRIORITIES - TASKS ═══ */
         }
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
           className="space-y-3"
         >
           <div className="flex items-center justify-between">
@@ -472,10 +462,6 @@ export default function DashboardPage() {
                   <motion.div
                     key={task.id}
                     layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ delay: i * 0.05 }}
                     className="group flex items-center gap-3 p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-gray-300 dark:hover:border-gray-600 transition-all"
                   >
                     {/* Checkbox */}
@@ -582,9 +568,6 @@ export default function DashboardPage() {
         {/* ═══ TODAY'S HABITS ═══ */}
         {todayHabits.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
             className="space-y-3"
           >
             <div className="flex items-center justify-between">
@@ -606,9 +589,6 @@ export default function DashboardPage() {
               {todayHabits.map((habit, i) => (
                 <motion.button
                   key={habit.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5 + i * 0.05 }}
                   onClick={() => completeHabit(habit.id, today)}
                   disabled={habit.completed}
                   className={cn(
@@ -656,9 +636,6 @@ export default function DashboardPage() {
 
         {/* ═══ QUICK ACTIONS ═══ */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
           className="space-y-3"
         >
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
@@ -709,9 +686,6 @@ export default function DashboardPage() {
             ].map((action, i) => (
               <motion.button
                 key={action.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 + i * 0.05 }}
                 onClick={action.onClick}
                 className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all text-center group"
               >
@@ -727,9 +701,6 @@ export default function DashboardPage() {
         {/* ═══ AI INSIGHTS ═══ */}
         {aiInsights.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
             className="space-y-3"
           >
             <div className="flex items-center gap-2">
@@ -766,9 +737,6 @@ export default function DashboardPage() {
                 return (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.6 + i * 0.1 }}
                     className={cn(
                       "p-4 rounded-xl border flex items-start justify-between gap-4",
                       config.bg,

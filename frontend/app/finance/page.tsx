@@ -184,8 +184,6 @@ export default function FinancePage() {
   return (
     <AppLayout>
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
         className="space-y-6 pb-12"
       >
         {/* Header */}
@@ -374,9 +372,6 @@ export default function FinancePage() {
                         </div>
                         <div className="h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden">
                           <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${pct}%` }}
-                            transition={{ duration: 0.6, ease: "easeOut" }}
                             className="h-full rounded-full bg-gray-900 dark:bg-gray-100"
                           />
                         </div>
@@ -432,9 +427,6 @@ export default function FinancePage() {
                 return (
                   <motion.div
                     key={tx.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
                     className="flex items-center gap-3 p-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl group"
                   >
                     <div

@@ -629,8 +629,6 @@ export default function AICoachPage() {
                   {currentSession.messages.map((message) => (
                     <motion.div
                       key={message.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
                       className={cn(
                         "flex",
                         message.role === "user"
@@ -671,7 +669,9 @@ export default function AICoachPage() {
                           <motion.div
                             key={i}
                             className="w-2 h-2 bg-gray-500 rounded-full"
-                            animate={{ y: [0, -8, 0] }}
+                            animate={{
+                              y: [0, -8, 0],
+                            }}
                             transition={{
                               repeat: Infinity,
                               duration: 0.6,

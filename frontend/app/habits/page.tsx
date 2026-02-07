@@ -305,12 +305,7 @@ export default function HabitsPage() {
 
   return (
     <AppLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className="space-y-6 pb-12"
-      >
+      <motion.div className="space-y-6 pb-12">
         {/* ═══ Header Section ═══ */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
@@ -521,7 +516,7 @@ export default function HabitsPage() {
                 return (
                   <motion.div
                     key={habit.id}
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
                       delay: i * 0.04,
@@ -550,7 +545,6 @@ export default function HabitsPage() {
                             ? { scale: [1, 1.2, 1] }
                             : {}
                         }
-                        transition={{ duration: 0.2 }}
                         className={cn(
                           "w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
                           habit.isCompleted
@@ -632,7 +626,6 @@ export default function HabitsPage() {
                           animate={{
                             rotate: selectedHabit === habit.id ? 180 : 0,
                           }}
-                          transition={{ duration: 0.2 }}
                         >
                           <ChevronDown className="w-4 h-4" />
                         </motion.div>
@@ -646,7 +639,7 @@ export default function HabitsPage() {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: "easeOut" }}
+                          transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
                           <div className="px-4 pb-4 pt-2 border-t border-[var(--color-border)]">

@@ -195,9 +195,6 @@ export default function TimeTrackerPage() {
     return (
       <AnimatePresence>
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{
             background:
@@ -213,9 +210,6 @@ export default function TimeTrackerPage() {
 
           <div className="flex flex-col items-center gap-8">
             <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
             >
               <Badge className="bg-white/10 text-white/90 border-white/20 backdrop-blur-sm text-sm px-4 py-1.5">
                 {selectedPreset.label}
@@ -242,9 +236,6 @@ export default function TimeTrackerPage() {
                   strokeLinecap="round"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
-                  initial={{ strokeDashoffset: circumference }}
-                  animate={{ strokeDashoffset }}
-                  transition={{ duration: 0.5, ease: "linear" }}
                 />
                 <defs>
                   <linearGradient
@@ -306,8 +297,6 @@ export default function TimeTrackerPage() {
   return (
     <AppLayout>
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
         className="space-y-6 pb-12"
       >
         <div>
