@@ -1,7 +1,6 @@
 "use client";
 
 import { CollapsibleSidebar } from "./collapsible-sidebar";
-import { OmnipotentChatbot } from "@/components/ai/omnipotent-chatbot";
 import { ReactNode, useState, useEffect } from "react";
 import { useApp } from "@/lib/context/app-context";
 import { cn } from "@/lib/utils";
@@ -28,7 +27,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
       >
         <div className="max-w-[1200px] mx-auto">{children}</div>
       </main>
-      <OmnipotentChatbot />
     </div>
   );
 }

@@ -791,7 +791,7 @@ export function ConversationalAI() {
       <motion.button
         className={cn(
           "fixed z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center",
-          "bg-primary text-primary-foreground shadow-lg",
+          "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-lg",
           "hover:scale-105 transition-transform",
           "bottom-4 right-4 sm:bottom-6 sm:right-6",
         )}

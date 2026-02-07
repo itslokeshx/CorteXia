@@ -12,7 +12,7 @@ export interface Task {
     | "focus"
     | "leisure";
   priority: "low" | "medium" | "high" | "critical";
-  status: "todo" | "in-progress" | "completed";
+  status: "todo" | "in-progress" | "completed" | "blocked";
   dueDate?: string;
   dueTime?: string; // HH:mm format
   scheduledFor?: "today" | "tomorrow" | "week" | "month" | "year";

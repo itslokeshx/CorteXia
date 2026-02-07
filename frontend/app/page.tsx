@@ -17,13 +17,13 @@ import {
   Brain,
   Sparkles,
   Wallet,
-  BookOpen,
   ChevronRight,
   Plus,
   Timer,
   Play,
   PenLine,
   DollarSign,
+  StickyNote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -51,6 +51,9 @@ export default function DashboardPage() {
     habits,
     addTask,
     addTransaction,
+    addJournalEntry,
+    updateJournalEntry,
+    journalEntries,
     completeTask,
     uncompleteTask,
     completeHabit,
@@ -66,6 +69,7 @@ export default function DashboardPage() {
   // Quick add modals
   const [showQuickTask, setShowQuickTask] = useState(false);
   const [showQuickExpense, setShowQuickExpense] = useState(false);
+  const [showQuickNote, setShowQuickNote] = useState(false);
   const [quickTaskTitle, setQuickTaskTitle] = useState("");
   const [quickTaskPriority, setQuickTaskPriority] = useState<
     "medium" | "high" | "critical"
@@ -73,6 +77,7 @@ export default function DashboardPage() {
   const [quickExpenseDesc, setQuickExpenseDesc] = useState("");
   const [quickExpenseAmount, setQuickExpenseAmount] = useState("");
   const [quickExpenseCat, setQuickExpenseCat] = useState("food");
+  const [quickNote, setQuickNote] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -288,6 +293,34 @@ export default function DashboardPage() {
     setShowQuickExpense(false);
   };
 
+  const handleQuickNote = () => {
+    if (!quickNote.trim()) return;
+    // Find today's journal entry or create one
+    const todayEntry = journalEntries.find((j) => j.date === today);
+    if (todayEntry) {
+      // Append note to existing entry
+      const separator = todayEntry.content ? "\n\n" : "";
+      const timestamp = format(new Date(), "h:mm a");
+      updateJournalEntry(todayEntry.id, {
+        content: `${todayEntry.content}${separator}📝 [${timestamp}] ${quickNote.trim()}`,
+      });
+    } else {
+      // Create new journal entry for today
+      const timestamp = format(new Date(), "h:mm a");
+      addJournalEntry({
+        date: today,
+        title: format(new Date(), "EEEE, MMMM d"),
+        content: `📝 [${timestamp}] ${quickNote.trim()}`,
+        mood: 6,
+        energy: 6,
+        focus: 6,
+        tags: ["quick-note"],
+      });
+    }
+    setQuickNote("");
+    setShowQuickNote(false);
+  };
+
   const toggleTask = (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
@@ -302,8 +335,7 @@ export default function DashboardPage() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <motion.div
-          >
+          <motion.div>
             <Brain className="w-10 h-10 text-gray-400" />
           </motion.div>
         </div>
@@ -315,9 +347,7 @@ export default function DashboardPage() {
     <AppLayout>
       <div className="space-y-6 pb-16 max-w-5xl mx-auto">
         {/* ═══ HEADER ═══ */}
-        <motion.div
-          className="flex items-center justify-between"
-        >
+        <motion.div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
               {now.getHours() < 12
@@ -343,9 +373,7 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* ═══ PROGRESS OVERVIEW ═══ */}
-        <motion.div
-          className="grid grid-cols-2 lg:grid-cols-4 gap-3"
-        >
+        <motion.div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
@@ -403,11 +431,8 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* ═══ TODAY'S PRIORITIES - TASKS ═══ */
-        }
-        <motion.div
-          className="space-y-3"
-        >
+        {/* ═══ TODAY'S PRIORITIES - TASKS ═══ */}
+        <motion.div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -567,9 +592,7 @@ export default function DashboardPage() {
 
         {/* ═══ TODAY'S HABITS ═══ */}
         {todayHabits.length > 0 && (
-          <motion.div
-            className="space-y-3"
-          >
+          <motion.div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Flame className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -635,9 +658,7 @@ export default function DashboardPage() {
         )}
 
         {/* ═══ QUICK ACTIONS ═══ */}
-        <motion.div
-          className="space-y-3"
-        >
+        <motion.div className="space-y-3">
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
             Quick Actions
           </h2>
@@ -679,9 +700,9 @@ export default function DashboardPage() {
                 onClick: () => router.push("/goals"),
               },
               {
-                icon: BookOpen,
-                label: "Study",
-                onClick: () => router.push("/study"),
+                icon: StickyNote,
+                label: "Quick Note",
+                onClick: () => setShowQuickNote(true),
               },
             ].map((action, i) => (
               <motion.button
@@ -700,9 +721,7 @@ export default function DashboardPage() {
 
         {/* ═══ AI INSIGHTS ═══ */}
         {aiInsights.length > 0 && (
-          <motion.div
-            className="space-y-3"
-          >
+          <motion.div className="space-y-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
@@ -869,6 +888,38 @@ export default function DashboardPage() {
                 disabled={!quickExpenseDesc.trim() || !quickExpenseAmount}
               >
                 Log Expense
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Quick Note Modal */}
+        <Dialog open={showQuickNote} onOpenChange={setShowQuickNote}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Quick Note</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 py-4">
+              <p className="text-xs text-[var(--color-text-tertiary)]">
+                This note will be saved to today's journal entry.
+              </p>
+              <textarea
+                placeholder="What's on your mind?"
+                value={quickNote}
+                onChange={(e) => setQuickNote(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.metaKey) handleQuickNote();
+                }}
+                className="flex w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-sm placeholder:text-[var(--color-text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500/40 focus-visible:ring-offset-0 min-h-[120px] resize-none"
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowQuickNote(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleQuickNote} disabled={!quickNote.trim()}>
+                Save Note
               </Button>
             </DialogFooter>
           </DialogContent>

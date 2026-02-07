@@ -3,9 +3,13 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useApp } from "@/lib/context/app-context";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { Brain, Send, Plus, Sparkles, Wind } from "lucide-react";
+import { format, subDays } from "date-fns";
+import type { UserState, CoachSession, CoachMessage } from "@/lib/types";
 import {
   Dialog,
   DialogContent,
@@ -13,42 +17,17 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useApp } from "@/lib/context/app-context";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Brain,
-  Heart,
-  Send,
-  Plus,
-  Sparkles,
-  AlertTriangle,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  CheckSquare,
-  Flame,
-  Target,
-  DollarSign,
-  Moon,
-  Wind,
-  History,
-  ArrowRight,
-} from "lucide-react";
-import { format, subDays, parseISO, differenceInDays, isToday } from "date-fns";
-import type { UserState, CoachSession, CoachMessage } from "@/lib/types";
 
-// ── Quick action buttons ──────────────────────────────────────────────
+// ── Quick actions ─────────────────────────────────────────────────────
 const QUICK_ACTIONS = [
   { emoji: "😤", label: "I'm stressed", type: "stress" as const },
   { emoji: "😔", label: "Feeling down", type: "venting" as const },
-  { emoji: "🎉", label: "Celebrate a win", type: "celebration" as const },
+  { emoji: "🎉", label: "Celebrate", type: "celebration" as const },
   { emoji: "💭", label: "Need to vent", type: "venting" as const },
-  { emoji: "🧘", label: "Breathing exercise", type: "exercise" as const },
+  { emoji: "🧘", label: "Breathe", type: "exercise" as const },
   { emoji: "📋", label: "Plan my day", type: "planning" as const },
 ];
 
-// ── Helper: mood emoji ────────────────────────────────────────────────
 const getMoodEmoji = (value: number) => {
   if (value >= 8) return "😄";
   if (value >= 6) return "😊";
@@ -57,20 +36,6 @@ const getMoodEmoji = (value: number) => {
   return "😢";
 };
 
-// ── Helper: trend icon ────────────────────────────────────────────────
-const getTrendIcon = (trend: "up" | "down" | "stable") => {
-  switch (trend) {
-    case "up":
-      return <TrendingUp className="h-3 w-3 text-green-500" />;
-    case "down":
-      return <TrendingDown className="h-3 w-3 text-red-500" />;
-    default:
-      return <Minus className="h-3 w-3 text-neutral-400" />;
-  }
-};
-
-// ═══════════════════════════════════════════════════════════════════════
-// Page component
 // ═══════════════════════════════════════════════════════════════════════
 export default function AICoachPage() {
   const { tasks, habits, goals, journalEntries, transactions, timeEntries } =
@@ -83,21 +48,18 @@ export default function AICoachPage() {
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [isBreathingExercise, setIsBreathingExercise] = useState(false);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentSession?.messages]);
 
-  // ── Calculate comprehensive user state ──────────────────────────────
+  // ── User state ──────────────────────────────────────────────────────
   const userState: UserState = useMemo(() => {
     const today = new Date();
     const todayStr = format(today, "yyyy-MM-dd");
     const last7Days = subDays(today, 7);
 
-    // Recent journal entries for mood / energy / stress
     const recentJournals = journalEntries
       .filter((j) => new Date(j.date) >= last7Days)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -118,7 +80,6 @@ export default function AICoachPage() {
           recentJournals.length
         : 5;
 
-    // Mood trend (first half vs second half of the week)
     const firstHalf = recentJournals.slice(
       Math.floor(recentJournals.length / 2),
     );
@@ -141,7 +102,6 @@ export default function AICoachPage() {
           ? "down"
           : "stable";
 
-    // Tasks analysis
     const pendingTasks = tasks.filter((t) => t.status !== "completed");
     const overdueTasks = pendingTasks.filter(
       (t) => t.dueDate && t.dueDate < todayStr,
@@ -150,25 +110,16 @@ export default function AICoachPage() {
       (t) => t.status === "completed" && t.completedAt?.startsWith(todayStr),
     );
 
-    // Habits at risk
     const habitsAtRisk = habits.filter((h) => {
       if (!h.active || h.streak <= 3) return false;
-      const done = h.completions?.some(
-        (c) => c.date === todayStr && c.completed,
-      );
-      return !done;
+      return !h.completions?.some((c) => c.date === todayStr && c.completed);
     });
     const activeStreaks = habits.filter((h) => h.active && h.streak > 0);
 
-    // Goals analysis
     const activeGoals = goals.filter((g) => g.status === "active");
-    const strugglingGoals = activeGoals.filter(
-      (g) =>
-        g.status === "at_risk" || g.status === "failing" || g.progress < 30,
-    );
+    const strugglingGoals = activeGoals.filter((g) => g.progress < 30);
     const onTrackGoals = activeGoals.filter((g) => g.progress >= 50);
 
-    // Budget analysis
     const thisMonth = new Date();
     const monthlyExpenses = transactions
       .filter(
@@ -178,17 +129,11 @@ export default function AICoachPage() {
           new Date(t.date).getFullYear() === thisMonth.getFullYear(),
       )
       .reduce((sum, t) => sum + t.amount, 0);
-    const monthlyBudget = 2500;
     const daysInMonth = new Date(
       thisMonth.getFullYear(),
       thisMonth.getMonth() + 1,
       0,
     ).getDate();
-    const daysRemaining = daysInMonth - thisMonth.getDate();
-
-    // Sleep (default)
-    const avgSleep = 7;
-    const sleepDebt = 0;
 
     return {
       mood: {
@@ -197,7 +142,7 @@ export default function AICoachPage() {
       },
       energy: { value: Math.round(avgEnergy), trend: "stable" as const },
       stress: { value: Math.round(avgStress), trend: "stable" as const },
-      sleep: { avgHours: avgSleep, debt: sleepDebt },
+      sleep: { avgHours: 7, debt: 0 },
       tasks: {
         pending: pendingTasks.length,
         overdue: overdueTasks.length,
@@ -212,8 +157,8 @@ export default function AICoachPage() {
         struggling: strugglingGoals.length,
       },
       budget: {
-        percentUsed: Math.round((monthlyExpenses / monthlyBudget) * 100),
-        daysRemaining,
+        percentUsed: Math.round((monthlyExpenses / 2500) * 100),
+        daysRemaining: daysInMonth - thisMonth.getDate(),
       },
     };
   }, [tasks, habits, goals, journalEntries, transactions, timeEntries]);
@@ -223,35 +168,29 @@ export default function AICoachPage() {
     const issues: string[] = [];
     const positives: string[] = [];
 
-    if (userState.mood.value >= 7)
-      positives.push("Your mood has been good lately");
+    if (userState.mood.value >= 7) positives.push("your mood has been good");
     else if (userState.mood.value <= 4) issues.push("your mood seems low");
-
     if (userState.tasks.overdue > 2)
       issues.push(`${userState.tasks.overdue} overdue tasks`);
     if (userState.tasks.completedToday > 0)
       positives.push(`completed ${userState.tasks.completedToday} tasks today`);
-
     if (userState.habits.atRisk > 0)
       issues.push(`${userState.habits.atRisk} habit streaks at risk`);
     if (userState.habits.streaksActive > 2)
       positives.push(`${userState.habits.streaksActive} active streaks`);
-
     if (userState.goals.struggling > 0)
       issues.push(`${userState.goals.struggling} goals need attention`);
-
     if (userState.budget.percentUsed > 90)
       issues.push("budget almost depleted");
 
-    if (issues.length === 0 && positives.length > 0) {
-      return `Great job! ${positives.join(", ")}. Keep up the momentum!`;
-    } else if (issues.length > 0) {
-      return `You're managing well overall, but ${issues.join(", ")} need attention. ${positives.length > 0 ? `On the bright side, ${positives.join(", ")}.` : ""}`;
-    }
+    if (issues.length === 0 && positives.length > 0)
+      return `Great job! ${positives.join(", ")}. Keep it up!`;
+    if (issues.length > 0)
+      return `You're doing well overall, but ${issues.join(", ")} need attention.${positives.length > 0 ? ` On the bright side, ${positives.join(", ")}.` : ""}`;
     return "Everything looks balanced. How can I help you today?";
   }, [userState]);
 
-  // ── Start a new coaching session ────────────────────────────────────
+  // ── Start session ───────────────────────────────────────────────────
   const startNewSession = useCallback(
     (type: CoachSession["sessionType"] = "general") => {
       const session: CoachSession = {
@@ -269,32 +208,19 @@ export default function AICoachPage() {
             ? "Good afternoon"
             : "Good evening";
 
-      let openingMessage = "";
-
-      switch (type) {
-        case "stress":
-          openingMessage = `${greeting}! I can see you're feeling stressed. That's completely valid. Let's work through this together. What's weighing on your mind right now?`;
-          break;
-        case "venting":
-          openingMessage = `${greeting}! I'm here to listen without judgment. Take your time and share whatever is on your mind. This is a safe space.`;
-          break;
-        case "celebration":
-          openingMessage = `${greeting}! 🎉 I love hearing about wins! What amazing thing happened that you want to celebrate?`;
-          break;
-        case "planning":
-          openingMessage = `${greeting}! Let's plan your day for success. Looking at your schedule, you have ${userState.tasks.pending} pending tasks${userState.tasks.overdue > 0 ? ` (${userState.tasks.overdue} overdue)` : ""}. What would you like to prioritize?`;
-          break;
-        case "check-in":
-          openingMessage = `${greeting}! I've been looking at your recent activity. ${aiAssessment} How are you feeling right now?`;
-          break;
-        default:
-          openingMessage = `${greeting}! I'm your AI coach, here to help you navigate life's challenges and celebrate your wins. ${aiAssessment} What's on your mind?`;
-      }
+      const messages: Record<string, string> = {
+        stress: `${greeting}! I can see you're feeling stressed. Let's work through this together. What's weighing on your mind?`,
+        venting: `${greeting}! I'm here to listen without judgment. Take your time and share whatever is on your mind.`,
+        celebration: `${greeting}! 🎉 I love hearing about wins! What amazing thing happened?`,
+        planning: `${greeting}! Let's plan your day. You have ${userState.tasks.pending} pending tasks${userState.tasks.overdue > 0 ? ` (${userState.tasks.overdue} overdue)` : ""}. What would you like to prioritize?`,
+        "check-in": `${greeting}! ${aiAssessment} How are you feeling right now?`,
+        general: `${greeting}! ${aiAssessment} What's on your mind?`,
+      };
 
       const aiMessage: CoachMessage = {
         id: `cm-${Date.now()}`,
         role: "assistant",
-        content: openingMessage,
+        content: messages[type] || messages.general,
         timestamp: new Date().toISOString(),
       };
 
@@ -305,7 +231,7 @@ export default function AICoachPage() {
     [userState, aiAssessment],
   );
 
-  // ── Send a message ──────────────────────────────────────────────────
+  // ── Send message ────────────────────────────────────────────────────
   const sendMessage = useCallback(async () => {
     if (!input.trim() || !currentSession || isThinking) return;
 
@@ -324,12 +250,10 @@ export default function AICoachPage() {
     setInput("");
     setIsThinking(true);
 
-    // Simulate AI thinking
     await new Promise((resolve) =>
       setTimeout(resolve, 1000 + Math.random() * 1000),
     );
 
-    // Generate contextual response based on keywords
     const userContent = input.toLowerCase();
     let responseContent = "";
 
@@ -338,18 +262,18 @@ export default function AICoachPage() {
       userContent.includes("anxious") ||
       userContent.includes("overwhelmed")
     ) {
-      responseContent = `I hear you, and it's completely normal to feel this way. Let's break this down together. Looking at your current load: you have ${userState.tasks.pending} pending tasks and ${userState.habits.atRisk} habits at risk. \n\nHere's what I suggest:\n1. Take 3 deep breaths right now\n2. Identify the ONE most important task\n3. Block 30 minutes to focus just on that\n\nWould you like me to help you prioritize or start a breathing exercise?`;
+      responseContent = `I hear you. Let's break this down:\n\n• You have ${userState.tasks.pending} pending tasks\n• ${userState.habits.atRisk} habits at risk\n\nHere's what I suggest:\n1. Take 3 deep breaths right now\n2. Identify the ONE most important task\n3. Block 30 minutes to focus just on that\n\nWould you like a breathing exercise or help prioritizing?`;
     } else if (
       userContent.includes("tired") ||
       userContent.includes("exhausted")
     ) {
-      responseContent = `Rest is productive too. Your body is telling you something important. Based on your recent activity, you've been pushing hard. \n\nMaybe it's time to:\n• Take a 15-minute power nap\n• Go for a short walk\n• Do something enjoyable without guilt\n\nRemember: recovery is part of peak performance. What sounds most appealing right now?`;
+      responseContent = `Rest is productive too. Your body is telling you something important.\n\nConsider:\n• A 15-minute power nap\n• A short walk\n• Something enjoyable without guilt\n\nRecovery is part of peak performance. What sounds good right now?`;
     } else if (
       userContent.includes("happy") ||
       userContent.includes("great") ||
       userContent.includes("good")
     ) {
-      responseContent = `That's wonderful to hear! 🌟 Positive moments are worth savoring. What made today special? I'd love to celebrate with you and maybe identify what contributed to this feeling so we can create more of it.`;
+      responseContent = `That's wonderful! 🌟 Positive moments are worth savoring. What made today special? Let's identify what contributed so we can create more of it.`;
     } else if (
       userContent.includes("help") &&
       userContent.includes("priorit")
@@ -360,20 +284,20 @@ export default function AICoachPage() {
           t.dueDate < format(new Date(), "yyyy-MM-dd") &&
           t.status !== "completed",
       );
-      responseContent = `Let's get your priorities sorted! Based on your tasks, here's what I recommend:\n\n**Urgent (do today):**\n${
+      responseContent = `Let's sort your priorities:\n\n**Urgent:**\n${
         overdueTasks
           .slice(0, 3)
           .map((t) => `• ${t.title}`)
           .join("\n") || "• No overdue tasks! 🎉"
-      }\n\n**Important (schedule time):**\n${
+      }\n\n**Important:**\n${
         tasks
           .filter((t) => t.priority === "high" && t.status !== "completed")
           .slice(0, 3)
           .map((t) => `• ${t.title}`)
           .join("\n") || "• No high-priority tasks"
-      }\n\nWould you like me to help you time-block these?`;
+      }\n\nWant me to help time-block these?`;
     } else {
-      responseContent = `Thank you for sharing that with me. I'm here to support you in any way I can. Based on what you've told me and your current state:\n\n• Mood: ${getMoodEmoji(userState.mood.value)} ${userState.mood.value}/10\n• Tasks: ${userState.tasks.pending} pending\n• Habits: ${userState.habits.streaksActive} active streaks\n\nHow can I best help you right now? We could:\n1. Talk through what's on your mind\n2. Create an action plan\n3. Do a quick mindfulness exercise`;
+      responseContent = `Thanks for sharing. Here's where you stand:\n\n• Mood: ${getMoodEmoji(userState.mood.value)} ${userState.mood.value}/10\n• Tasks: ${userState.tasks.pending} pending\n• Streaks: ${userState.habits.streaksActive} active\n\nHow can I help? We could:\n1. Talk through what's on your mind\n2. Create an action plan\n3. Do a mindfulness exercise`;
     }
 
     const aiMessage: CoachMessage = {
@@ -394,390 +318,170 @@ export default function AICoachPage() {
     setIsThinking(false);
   }, [input, currentSession, isThinking, userState, tasks]);
 
-  // ── Generate insights ───────────────────────────────────────────────
-  const insights = useMemo(() => {
-    const list: {
-      icon: string;
-      text: string;
-      type: "suggestion" | "warning" | "pattern" | "insight";
-    }[] = [];
-
-    if (userState.mood.value < 6 && userState.habits.streaksActive > 0) {
-      list.push({
-        icon: "📈",
-        text: "Your mood tends to improve on days you exercise. Consider moving today.",
-        type: "suggestion",
-      });
-    }
-
-    if (userState.tasks.overdue > 2) {
-      list.push({
-        icon: "⚠️",
-        text: `${userState.tasks.overdue} overdue tasks may be adding to your stress. Want help prioritizing?`,
-        type: "warning",
-      });
-    }
-
-    if (userState.habits.atRisk > 0) {
-      list.push({
-        icon: "🔥",
-        text: `${userState.habits.atRisk} habit streaks at risk of breaking today. Don't lose your progress!`,
-        type: "warning",
-      });
-    }
-
-    list.push({
-      icon: "💡",
-      text: "Based on your patterns, 9-11 AM tends to be your peak focus time.",
-      type: "insight",
-    });
-
-    if (userState.budget.percentUsed > 80) {
-      list.push({
-        icon: "💰",
-        text: `Budget ${userState.budget.percentUsed}% used with ${userState.budget.daysRemaining} days left in the month.`,
-        type: "warning",
-      });
-    }
-
-    return list;
-  }, [userState]);
-
-  // ────────────────────────────────────────────────────────────────────
-  // RENDER
-  // ────────────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────
   return (
     <AppLayout>
-      <div className="space-y-6 pb-24">
-        {/* ── 1. Header ──────────────────────────────────────────── */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Brain className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-              AI Coach
-            </h1>
-            <p className="text-sm text-[var(--color-text-tertiary)] mt-1">
-              Your personal mental health &amp; productivity companion
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
-              <History className="h-4 w-4" />
-              History
-            </Button>
-            <Button
-              onClick={() => startNewSession("general")}
-              className="gap-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
-            >
-              <Plus className="h-4 w-4" />
-              New Session
-            </Button>
-          </div>
-        </div>
-
-        {/* ── 2. Your Current State Dashboard ────────────────────── */}
-        <Card className="rounded-xl border bg-[var(--color-bg-secondary)]">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Your Current State
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Metrics grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {/* Mood */}
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)]">
-                <span className="text-2xl">
-                  {getMoodEmoji(userState.mood.value)}
-                </span>
-                <div>
-                  <p className="text-xs text-[var(--color-text-tertiary)]">
-                    Mood
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-semibold">
-                      {userState.mood.value}/10
-                    </span>
-                    {getTrendIcon(userState.mood.trend)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Energy */}
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)]">
-                <span className="text-2xl">⚡</span>
-                <div>
-                  <p className="text-xs text-[var(--color-text-tertiary)]">
-                    Energy
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-semibold">
-                      {userState.energy.value}/10
-                    </span>
-                    {getTrendIcon(userState.energy.trend)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Stress */}
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)]">
-                <span className="text-2xl">📊</span>
-                <div>
-                  <p className="text-xs text-[var(--color-text-tertiary)]">
-                    Stress
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-semibold">
-                      {userState.stress.value}/10
-                    </span>
-                    {getTrendIcon(userState.stress.trend)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Sleep */}
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)]">
-                <span className="text-2xl">🛏️</span>
-                <div>
-                  <p className="text-xs text-[var(--color-text-tertiary)]">
-                    Sleep
-                  </p>
-                  <span className="text-sm font-semibold">
-                    {userState.sleep.avgHours}h avg
-                  </span>
-                </div>
-              </div>
+      <div className="flex flex-col h-[calc(100vh-6rem)] max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <Brain className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             </div>
-
-            {/* Quick Stats Row */}
-            <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <CheckSquare className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                <span
-                  className={userState.tasks.overdue > 0 ? "text-red-600" : ""}
-                >
-                  {userState.tasks.overdue > 0
-                    ? `${userState.tasks.overdue} tasks overdue`
-                    : `${userState.tasks.pending} tasks pending`}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Flame
-                  className={cn(
-                    "h-4 w-4",
-                    userState.habits.atRisk > 0
-                      ? "text-orange-500"
-                      : "text-green-500",
-                  )}
-                />
-                <span>
-                  {userState.habits.atRisk > 0
-                    ? `${userState.habits.atRisk} habits at risk`
-                    : `${userState.habits.streaksActive} active streaks`}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                <span>
-                  {userState.goals.struggling > 0
-                    ? `${userState.goals.struggling} goals struggling`
-                    : `${userState.goals.onTrack} goals on track`}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-green-500" />
-                <span
-                  className={
-                    userState.budget.percentUsed > 90 ? "text-red-600" : ""
-                  }
-                >
-                  Budget {userState.budget.percentUsed}% used
-                </span>
-              </div>
-            </div>
-
-            {/* AI Assessment Banner */}
-            <div className="mt-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-              <p className="text-sm">
-                <span className="font-bold">AI Assessment:</span> {aiAssessment}
+            <div>
+              <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                AI Coach
+              </h1>
+              <p className="text-xs text-[var(--color-text-tertiary)]">
+                Your personal companion
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <Button
+            onClick={() => startNewSession("general")}
+            size="sm"
+            className="gap-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
+          >
+            <Plus className="h-3.5 w-3.5" /> New Chat
+          </Button>
+        </div>
 
-        {/* ── 3. Chat Area ───────────────────────────────────────── */}
-        <Card className="rounded-xl border min-h-[500px] flex flex-col">
-          <CardContent className="flex-1 flex flex-col p-0">
-            {/* Messages area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[500px]">
-              {!currentSession ? (
-                /* Empty state */
-                <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                  <Brain className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Ready to chat?</h3>
-                  <p className="text-sm text-neutral-500 mb-6 max-w-md">
-                    I&apos;m here to listen, support, and help you navigate
-                    whatever you&apos;re going through. Start a session or
-                    choose a quick action below.
-                  </p>
-                  <Button onClick={() => startNewSession("check-in")}>
-                    Start Check-in
-                  </Button>
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden min-h-0">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+            {!currentSession ? (
+              <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+                  <Sparkles className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                 </div>
-              ) : (
-                <>
-                  {currentSession.messages.map((message) => (
-                    <motion.div
-                      key={message.id}
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+                  How are you today?
+                </h3>
+                <p className="text-sm text-[var(--color-text-tertiary)] mb-8 max-w-sm">
+                  I&apos;m here to listen, support, and help you navigate your
+                  day.
+                </p>
+
+                {/* Quick actions */}
+                <div className="flex flex-wrap justify-center gap-2 max-w-md">
+                  {QUICK_ACTIONS.map((action) => (
+                    <button
+                      key={action.label}
+                      onClick={() => {
+                        if (action.type === "exercise") {
+                          setIsBreathingExercise(true);
+                        } else {
+                          startNewSession(action.type);
+                        }
+                      }}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all text-sm"
+                    >
+                      <span className="text-base">{action.emoji}</span>
+                      <span className="text-[var(--color-text-primary)] font-medium text-xs">
+                        {action.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => startNewSession("check-in")}
+                  className="mt-6 px-6 py-2.5 rounded-xl bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Start Check-in
+                </button>
+              </div>
+            ) : (
+              <>
+                {currentSession.messages.map((message) => (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={cn(
+                      "flex",
+                      message.role === "user" ? "justify-end" : "justify-start",
+                    )}
+                  >
+                    <div
                       className={cn(
-                        "flex",
+                        "max-w-[85%] sm:max-w-[75%] px-4 py-3 rounded-2xl",
                         message.role === "user"
-                          ? "justify-end"
-                          : "justify-start",
+                          ? "rounded-br-md bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
+                          : "rounded-bl-md bg-gray-100 dark:bg-gray-800 text-[var(--color-text-primary)]",
                       )}
                     >
-                      <div
+                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                        {message.content}
+                      </p>
+                      <p
                         className={cn(
-                          "max-w-[80%] p-4 rounded-2xl",
+                          "text-[10px] mt-1.5",
                           message.role === "user"
-                            ? "rounded-br-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
-                            : "rounded-bl-sm bg-gray-100 dark:bg-neutral-800",
+                            ? "text-gray-400 dark:text-gray-600"
+                            : "text-[var(--color-text-tertiary)]",
                         )}
                       >
-                        <p className="text-sm whitespace-pre-wrap break-words">
-                          {message.content}
-                        </p>
-                        <p
-                          className={cn(
-                            "text-xs mt-1",
-                            message.role === "user"
-                              ? "text-gray-300 dark:text-gray-700"
-                              : "text-neutral-400",
-                          )}
-                        >
-                          {format(new Date(message.timestamp), "h:mm a")}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-
-                  {/* Thinking indicator */}
-                  {isThinking && (
-                    <div className="flex items-center gap-2 text-neutral-500">
-                      <motion.div className="flex gap-1">
-                        {[0, 1, 2].map((i) => (
-                          <motion.div
-                            key={i}
-                            className="w-2 h-2 bg-gray-500 rounded-full"
-                            animate={{
-                              y: [0, -8, 0],
-                            }}
-                            transition={{
-                              repeat: Infinity,
-                              duration: 0.6,
-                              delay: i * 0.2,
-                            }}
-                          />
-                        ))}
-                      </motion.div>
-                      <span className="text-sm">Thinking...</span>
+                        {format(new Date(message.timestamp), "h:mm a")}
+                      </p>
                     </div>
-                  )}
+                  </motion.div>
+                ))}
 
-                  <div ref={messagesEndRef} />
-                </>
-              )}
-            </div>
+                {isThinking && (
+                  <div className="flex items-center gap-2 text-[var(--color-text-tertiary)]">
+                    <motion.div className="flex gap-1">
+                      {[0, 1, 2].map((i) => (
+                        <motion.div
+                          key={i}
+                          className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full"
+                          animate={{ y: [0, -6, 0] }}
+                          transition={{
+                            repeat: Infinity,
+                            duration: 0.6,
+                            delay: i * 0.2,
+                          }}
+                        />
+                      ))}
+                    </motion.div>
+                    <span className="text-xs">Thinking...</span>
+                  </div>
+                )}
 
-            {/* Input area */}
-            {currentSession && (
-              <div className="border-t border-neutral-200 dark:border-neutral-700 p-3">
-                <div className="flex gap-2">
-                  <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && !e.shiftKey && sendMessage()
-                    }
-                    placeholder="Share what's on your mind..."
-                    className="flex-1"
-                    disabled={isThinking}
-                  />
-                  <Button
-                    onClick={sendMessage}
-                    disabled={!input.trim() || isThinking}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                <div ref={messagesEndRef} />
+              </>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* ── 4. Quick Actions ───────────────────────────────────── */}
-        <Card className="rounded-xl border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {QUICK_ACTIONS.map((action) => (
+          {/* Input */}
+          {currentSession && (
+            <div className="border-t border-[var(--color-border)] p-3 sm:p-4 flex-shrink-0 bg-[var(--color-bg-primary)]">
+              <div className="flex gap-2">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && !e.shiftKey && sendMessage()
+                  }
+                  placeholder="Share what's on your mind..."
+                  className="flex-1 h-10"
+                  disabled={isThinking}
+                />
                 <Button
-                  key={action.label}
-                  variant="outline"
-                  onClick={() => {
-                    if (action.type === "exercise") {
-                      setIsBreathingExercise(true);
-                    } else {
-                      startNewSession(action.type);
-                    }
-                  }}
-                  className="text-sm rounded-lg gap-2"
+                  onClick={sendMessage}
+                  disabled={!input.trim() || isThinking}
+                  className="h-10 px-4 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
                 >
-                  <span>{action.emoji}</span>
-                  {action.label}
+                  <Send className="h-4 w-4" />
                 </Button>
-              ))}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* ── 5. Insights & Patterns ─────────────────────────────── */}
-        <Card className="rounded-xl border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              Insights &amp; Patterns
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {insights.map((insight, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "flex items-start gap-3 p-3 rounded-lg text-sm border-l-[3px]",
-                    insight.type === "warning" &&
-                      "border-l-amber-500 bg-amber-50 dark:bg-amber-900/20",
-                    insight.type === "suggestion" &&
-                      "border-l-green-500 bg-green-50 dark:bg-green-900/20",
-                    insight.type === "pattern" &&
-                      "border-l-gray-500 bg-gray-100 dark:bg-gray-800",
-                    insight.type === "insight" &&
-                      "border-l-gray-500 bg-gray-100 dark:bg-gray-800",
-                  )}
-                >
-                  <span className="text-lg">{insight.icon}</span>
-                  <p>{insight.text}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
       </div>
 
-      {/* ── 6. Breathing Exercise Modal ────────────────────────────── */}
+      {/* Breathing Exercise Modal */}
       <BreathingExerciseModal
         open={isBreathingExercise}
         onClose={() => setIsBreathingExercise(false)}
@@ -786,8 +490,6 @@ export default function AICoachPage() {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// Breathing Exercise Modal
 // ═══════════════════════════════════════════════════════════════════════
 function BreathingExerciseModal({
   open,
@@ -809,7 +511,6 @@ function BreathingExerciseModal({
       setIsActive(false);
       return;
     }
-
     if (!isActive) return;
 
     const interval = setInterval(() => {
@@ -836,25 +537,23 @@ function BreathingExerciseModal({
         <DialogHeader>
           <DialogTitle>Breathing Exercise</DialogTitle>
         </DialogHeader>
-
         <div className="py-8">
           {!isActive ? (
             <div className="space-y-4">
-              <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-                <Wind className="w-12 h-12 text-white" />
+              <div className="w-28 h-28 mx-auto rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                <Wind className="w-10 h-10 text-white" />
               </div>
-              <p className="text-neutral-500 text-sm">
-                This 4-7-8 breathing technique helps reduce anxiety and promote
-                relaxation.
+              <p className="text-sm text-[var(--color-text-tertiary)]">
+                4-7-8 technique to reduce anxiety and promote relaxation.
               </p>
               <Button onClick={() => setIsActive(true)} className="mt-4">
-                Start Exercise
+                Start
               </Button>
             </div>
           ) : (
             <>
               <motion.div
-                className="w-32 h-32 mx-auto rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center"
+                className="w-28 h-28 mx-auto rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center"
                 animate={{
                   scale:
                     phase === "inhale" ? 1.3 : phase === "exhale" ? 0.8 : 1.1,
@@ -864,26 +563,25 @@ function BreathingExerciseModal({
                     phase === "inhale" ? 4 : phase === "exhale" ? 8 : 0.5,
                 }}
               >
-                <span className="text-4xl font-bold text-white">{count}</span>
+                <span className="text-3xl font-bold text-white">{count}</span>
               </motion.div>
-
-              <h2 className="text-2xl font-bold mt-8 capitalize">{phase}</h2>
-              <p className="text-neutral-500 mt-2 text-sm">
+              <h2 className="text-xl font-bold mt-6 capitalize text-[var(--color-text-primary)]">
+                {phase}
+              </h2>
+              <p className="text-sm text-[var(--color-text-tertiary)] mt-1">
                 {phase === "inhale" && "Breathe in slowly through your nose"}
                 {phase === "hold" && "Hold your breath gently"}
                 {phase === "exhale" && "Release slowly through your mouth"}
               </p>
-
-              <p className="mt-6 text-sm text-neutral-400">
-                Completed cycles: {cycles}
+              <p className="mt-4 text-xs text-[var(--color-text-tertiary)]">
+                Cycles: {cycles}
               </p>
             </>
           )}
         </div>
-
         <DialogFooter>
           <Button onClick={onClose} variant="outline" className="w-full">
-            {isActive ? "End Exercise" : "Close"}
+            {isActive ? "End" : "Close"}
           </Button>
         </DialogFooter>
       </DialogContent>

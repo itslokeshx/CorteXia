@@ -24,6 +24,7 @@ import {
   Pencil,
   Filter,
   ArrowUpDown,
+  Ban,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -327,6 +328,51 @@ export default function TasksPage() {
     );
   };
 
+  const handleBlockTask = useCallback(
+    (task: Task) => {
+      updateTask(task.id, { status: "blocked" });
+      // Sync to day planner: create a "blocked" block in localStorage
+      try {
+        const saved = localStorage.getItem("cortexia-planner-blocks");
+        const blocks = saved ? JSON.parse(saved) : [];
+        const blockDate = task.dueDate || format(new Date(), "yyyy-MM-dd");
+        // Remove any existing blocked entry for this task to avoid duplicates
+        const filtered = blocks.filter(
+          (b: { id: string }) => !b.id.startsWith(`blocked-${task.id}-`),
+        );
+        // Parse task time or default to 9am-10am
+        const startH = task.dueTime ? parseInt(task.dueTime.split(":")[0]) : 9;
+        const startM = task.dueTime ? parseInt(task.dueTime.split(":")[1]) : 0;
+        const duration = task.timeEstimate || 60;
+        const endTotalM = startH * 60 + startM + duration;
+        const endH = Math.min(Math.floor(endTotalM / 60), 23);
+        const endM = endTotalM % 60;
+        const newBlock = {
+          id: `blocked-${task.id}-${Date.now()}`,
+          title: `🚫 ${task.title} (Blocked)`,
+          date: blockDate,
+          type: "blocked",
+          startHour: startH,
+          startMinute: startM,
+          endHour: endH,
+          endMinute: endM,
+          notes: `Task blocked - was scheduled for this time`,
+          completed: false,
+        };
+        filtered.push(newBlock);
+        localStorage.setItem(
+          "cortexia-planner-blocks",
+          JSON.stringify(filtered),
+        );
+        // Dispatch custom event so the planner picks up the change immediately
+        window.dispatchEvent(new Event("planner-blocks-updated"));
+      } catch {
+        /* ignore */
+      }
+    },
+    [updateTask],
+  );
+
   const toggleTaskComplete = (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
@@ -355,9 +401,7 @@ export default function TasksPage() {
 
   return (
     <AppLayout>
-      <motion.div
-        className="pb-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto"
-      >
+      <motion.div className="pb-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         {/* Header + Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -464,6 +508,7 @@ export default function TasksPage() {
                           onDelete={deleteTask}
                           onEdit={() => openEdit(task)}
                           onStartTimer={() => handleStartTimer(task)}
+                          onBlock={handleBlockTask}
                           addingSubtask={addingSubtask}
                           setAddingSubtask={setAddingSubtask}
                           newSubtaskText={newSubtaskText}
@@ -494,9 +539,7 @@ export default function TasksPage() {
                 })()}
               </>
             ) : (
-              <motion.div
-                className="text-center py-12"
-              >
+              <motion.div className="text-center py-12">
                 <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3">
                   <Check className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </div>
@@ -539,6 +582,7 @@ export default function TasksPage() {
                     onDelete={deleteTask}
                     onEdit={() => openEdit(task)}
                     onStartTimer={() => handleStartTimer(task)}
+                    onBlock={handleBlockTask}
                     addingSubtask={addingSubtask}
                     setAddingSubtask={setAddingSubtask}
                     newSubtaskText={newSubtaskText}
@@ -711,9 +755,7 @@ export default function TasksPage() {
               </label>
               <AnimatePresence>
                 {formTimeBlock && (
-                  <motion.div
-                    className="overflow-hidden"
-                  >
+                  <motion.div className="overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-2 ml-6">
                       <Input
                         type="time"
@@ -803,6 +845,7 @@ interface TaskCardProps {
   onDelete: (id: string) => void;
   onEdit: () => void;
   onStartTimer: () => void;
+  onBlock: (task: Task) => void;
   addingSubtask: string | null;
   setAddingSubtask: (id: string | null) => void;
   newSubtaskText: string;
@@ -824,6 +867,7 @@ function TaskCard({
   onDelete,
   onEdit,
   onStartTimer,
+  onBlock,
   addingSubtask,
   setAddingSubtask,
   newSubtaskText,
@@ -834,6 +878,7 @@ function TaskCard({
   compact,
 }: TaskCardProps) {
   const isDone = task.status === "completed";
+  const isBlocked = task.status === "blocked";
   const due = fmtDue(task);
   const priority =
     priorityConfig[task.priority as keyof typeof priorityConfig] ||
@@ -874,7 +919,9 @@ function TaskCard({
         "group p-2.5 sm:p-3 rounded-lg border transition-all duration-150",
         isDone
           ? "border-green-200 dark:border-green-800/50 bg-green-50/50 dark:bg-green-900/10 opacity-60"
-          : "border-gray-200 dark:border-gray-700 bg-[var(--color-bg-secondary)] hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm hover:-translate-y-[1px]",
+          : isBlocked
+            ? "border-red-200 dark:border-red-800/50 bg-red-50/30 dark:bg-red-900/10"
+            : "border-gray-200 dark:border-gray-700 bg-[var(--color-bg-secondary)] hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm hover:-translate-y-[1px]",
       )}
     >
       <div className="flex items-start gap-2.5 mb-1.5">
@@ -931,6 +978,11 @@ function TaskCard({
         >
           {priority.label}
         </span>
+        {isBlocked && (
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800">
+            Blocked
+          </span>
+        )}
         {goal && (
           <>
             <span className="text-gray-300 dark:text-gray-600 text-[11px]">
@@ -1045,6 +1097,24 @@ function TaskCard({
           <Trash2 className="w-3 h-3" />
           <span className="hidden xs:inline">Delete</span>
         </button>
+        {!isDone && !isBlocked && (
+          <button
+            onClick={() => onBlock(task)}
+            className="flex items-center gap-0.5 text-[11px] font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          >
+            <Ban className="w-3 h-3" />
+            <span className="hidden xs:inline">Block</span>
+          </button>
+        )}
+        {isBlocked && (
+          <button
+            onClick={() => updateTask(task.id, { status: "todo" })}
+            className="flex items-center gap-0.5 text-[11px] font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors"
+          >
+            <Check className="w-3 h-3" />
+            <span className="hidden xs:inline">Unblock</span>
+          </button>
+        )}
         {!isDone && (
           <button
             onClick={onStartTimer}
