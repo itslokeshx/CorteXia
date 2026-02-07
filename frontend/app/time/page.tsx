@@ -391,8 +391,7 @@ function PomodoroTimer() {
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={2 * Math.PI * 45}
-                strokeDashoffset: 2 * Math.PI * 45 * (1 - progress / 100),
-              }}
+              strokeDashoffset={2 * Math.PI * 45 * (1 - progress / 100)}
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
