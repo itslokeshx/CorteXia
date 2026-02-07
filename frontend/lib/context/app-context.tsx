@@ -1,6 +1,32 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
+import { useAuth } from "@/lib/context/auth-context";
+import {
+  fetchAllUserData,
+  syncTask,
+  syncHabit,
+  syncHabitCompletion,
+  syncTransaction,
+  syncTimeEntry,
+  syncGoal,
+  syncStudySession,
+  syncJournalEntry,
+  syncSettings,
+  deleteTaskSync,
+  deleteHabitSync,
+  deleteTransactionSync,
+  deleteTimeEntrySync,
+  deleteGoalSync,
+  deleteStudySessionSync,
+  deleteJournalEntrySync,
+} from "@/lib/supabase-data";
 import type {
   Task,
   Habit,
@@ -13,6 +39,10 @@ import type {
   AIInsight,
   UserSettings,
 } from "../types";
+
+// ═══════════════════════════════════════════════════════════════
+// CONTEXT TYPE
+// ═══════════════════════════════════════════════════════════════
 
 interface AppContextType {
   // Tasks
@@ -115,10 +145,15 @@ interface AppContextType {
 
   // Utils
   isLoading: boolean;
+  dataReady: boolean;
   error: string | null;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+// ═══════════════════════════════════════════════════════════════
+// DEFAULTS
+// ═══════════════════════════════════════════════════════════════
 
 const DEFAULT_SETTINGS: UserSettings = {
   theme: "dark",
@@ -149,7 +184,13 @@ const DEFAULT_LIFE_STATE: LifeState = {
   lastUpdated: new Date().toISOString(),
 };
 
+// ═══════════════════════════════════════════════════════════════
+// PROVIDER — 100% SUPABASE, ZERO localStorage
+// ═══════════════════════════════════════════════════════════════
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { user, isAuthenticated } = useAuth();
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -161,9 +202,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [insights, setInsights] = useState<AIInsight[]>([]);
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(false);
+  const [dataReady, setDataReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to deduplicate arrays by id (fixes legacy duplicate key issues)
+  const hydratedRef = useRef(false);
+  const userId = user?.id ?? null;
+
+  // Helper to deduplicate arrays by id
   const deduplicateById = <T extends { id: string }>(arr: T[]): T[] => {
     const seen = new Set<string>();
     return arr.filter((item) => {
@@ -173,63 +218,70 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("cortexia-data");
-      if (saved) {
-        const data = JSON.parse(saved);
-        // Deduplicate all arrays to fix any legacy duplicate IDs
-        setTasks(deduplicateById(data.tasks || []));
-        setHabits(deduplicateById(data.habits || []));
-        setTransactions(deduplicateById(data.transactions || []));
-        setTimeEntries(deduplicateById(data.timeEntries || []));
-        setGoals(deduplicateById(data.goals || []));
-        setStudySessions(deduplicateById(data.studySessions || []));
-        setJournalEntries(deduplicateById(data.journalEntries || []));
-        setLifeState(data.lifeState || DEFAULT_LIFE_STATE);
-        setSettings(data.settings || DEFAULT_SETTINGS);
-      }
-    } catch (err) {
-      console.error("[v0] Failed to load data from localStorage:", err);
-    }
-  }, []);
-
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    try {
-      const data = {
-        tasks,
-        habits,
-        transactions,
-        timeEntries,
-        goals,
-        studySessions,
-        journalEntries,
-        lifeState,
-        settings,
-      };
-      localStorage.setItem("cortexia-data", JSON.stringify(data));
-    } catch (err) {
-      console.error("[v0] Failed to save data to localStorage:", err);
-    }
-  }, [
-    tasks,
-    habits,
-    transactions,
-    timeEntries,
-    goals,
-    studySessions,
-    journalEntries,
-    lifeState,
-    settings,
-  ]);
-
-  // Unique ID generator to prevent duplicate keys
+  // Unique ID generator
   const generateId = () =>
     `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
-  // Task operations
+  // ═══════════════════════════════════════════════════════════
+  // HYDRATE FROM SUPABASE ON LOGIN
+  // ═══════════════════════════════════════════════════════════
+
+  useEffect(() => {
+    if (!isAuthenticated || !userId || hydratedRef.current) return;
+
+    const hydrate = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await fetchAllUserData(userId);
+        if (data) {
+          setTasks(deduplicateById(data.tasks));
+          setHabits(deduplicateById(data.habits));
+          setTransactions(deduplicateById(data.transactions));
+          setTimeEntries(deduplicateById(data.timeEntries));
+          setGoals(deduplicateById(data.goals));
+          setStudySessions(deduplicateById(data.studySessions));
+          setJournalEntries(deduplicateById(data.journalEntries));
+          if (data.settings) {
+            setSettings((prev) => ({ ...prev, ...data.settings }));
+          }
+        }
+        hydratedRef.current = true;
+        setDataReady(true);
+      } catch (err) {
+        console.error("Failed to load data from Supabase:", err);
+        setError("Failed to load your data. Please refresh.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    hydrate();
+  }, [isAuthenticated, userId]);
+
+  // Reset on logout
+  useEffect(() => {
+    if (!isAuthenticated) {
+      hydratedRef.current = false;
+      setDataReady(false);
+      setTasks([]);
+      setHabits([]);
+      setTransactions([]);
+      setTimeEntries([]);
+      setGoals([]);
+      setStudySessions([]);
+      setJournalEntries([]);
+      setLifeState(DEFAULT_LIFE_STATE);
+      setInsights([]);
+      setSettings(DEFAULT_SETTINGS);
+    }
+  }, [isAuthenticated]);
+
+  // ═══════════════════════════════════════════════════════════
+  // TASK OPERATIONS
+  // ═══════════════════════════════════════════════════════════
+
   const addTask = (task: Omit<Task, "id" | "createdAt">) => {
     const newTask: Task = {
       ...task,
@@ -237,38 +289,58 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTasks((prev) => [newTask, ...prev]);
+    if (userId) syncTask(newTask, userId);
     return newTask;
   };
 
   const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-    );
+    setTasks((prev) => {
+      const updated = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
+      const task = updated.find((t) => t.id === id);
+      if (task && userId) syncTask(task, userId);
+      return updated;
+    });
   };
 
   const deleteTask = (id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    if (userId) deleteTaskSync(id, userId);
   };
 
   const completeTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) =>
+    setTasks((prev) => {
+      const updated = prev.map((t) =>
         t.id === id
-          ? { ...t, status: "completed", completedAt: new Date().toISOString() }
+          ? {
+              ...t,
+              status: "completed" as const,
+              completedAt: new Date().toISOString(),
+            }
           : t,
-      ),
-    );
+      );
+      const task = updated.find((t) => t.id === id);
+      if (task && userId) syncTask(task, userId);
+      return updated;
+    });
   };
 
   const uncompleteTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, status: "todo", completedAt: undefined } : t,
-      ),
-    );
+    setTasks((prev) => {
+      const updated = prev.map((t) =>
+        t.id === id
+          ? { ...t, status: "todo" as const, completedAt: undefined }
+          : t,
+      );
+      const task = updated.find((t) => t.id === id);
+      if (task && userId) syncTask(task, userId);
+      return updated;
+    });
   };
 
-  // Habit operations
+  // ═══════════════════════════════════════════════════════════
+  // HABIT OPERATIONS
+  // ═══════════════════════════════════════════════════════════
+
   const addHabit = (habit: Omit<Habit, "id" | "createdAt" | "completions">) => {
     const newHabit: Habit = {
       ...habit,
@@ -277,38 +349,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       completions: [],
     };
     setHabits((prev) => [newHabit, ...prev]);
+    if (userId) syncHabit(newHabit, userId);
     return newHabit;
   };
 
   const updateHabit = (id: string, updates: Partial<Habit>) => {
-    setHabits((prev) =>
-      prev.map((h) => (h.id === id ? { ...h, ...updates } : h)),
-    );
+    setHabits((prev) => {
+      const updated = prev.map((h) => (h.id === id ? { ...h, ...updates } : h));
+      const habit = updated.find((h) => h.id === id);
+      if (habit && userId) syncHabit(habit, userId);
+      return updated;
+    });
   };
 
   const deleteHabit = (id: string) => {
     setHabits((prev) => prev.filter((h) => h.id !== id));
+    if (userId) deleteHabitSync(id, userId);
   };
 
   const completeHabit = (id: string, date: string) => {
     setHabits((prev) =>
       prev.map((h) => {
-        if (h.id === id) {
-          const existing = h.completions.find((c) => c.date === date);
-          if (existing) {
-            return {
-              ...h,
-              completions: h.completions.map((c) =>
-                c.date === date ? { ...c, completed: !c.completed } : c,
-              ),
-            };
-          }
-          return {
-            ...h,
-            completions: [...h.completions, { date, completed: true }],
-          };
+        if (h.id !== id) return h;
+
+        const existing = h.completions.find((c) => c.date === date);
+        const newCompleted = existing ? !existing.completed : true;
+
+        const updatedCompletions = existing
+          ? h.completions.map((c) =>
+              c.date === date ? { ...c, completed: newCompleted } : c,
+            )
+          : [...h.completions, { date, completed: true }];
+
+        if (userId) {
+          syncHabitCompletion(h.id, userId, date, newCompleted);
         }
-        return h;
+
+        return { ...h, completions: updatedCompletions };
       }),
     );
   };
@@ -342,7 +419,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return streak;
   };
 
-  // Transaction operations
+  // ═══════════════════════════════════════════════════════════
+  // TRANSACTION OPERATIONS
+  // ═══════════════════════════════════════════════════════════
+
   const addTransaction = (
     transaction: Omit<Transaction, "id" | "createdAt">,
   ) => {
@@ -352,17 +432,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTransactions((prev) => [newTransaction, ...prev]);
+    if (userId) syncTransaction(newTransaction, userId);
     return newTransaction;
   };
 
   const updateTransaction = (id: string, updates: Partial<Transaction>) => {
-    setTransactions((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-    );
+    setTransactions((prev) => {
+      const updated = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
+      const tx = updated.find((t) => t.id === id);
+      if (tx && userId) syncTransaction(tx, userId);
+      return updated;
+    });
   };
 
   const deleteTransaction = (id: string) => {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
+    if (userId) deleteTransactionSync(id, userId);
   };
 
   const getBudgetStatus = (category: string) => {
@@ -370,15 +455,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .filter((t) => t.category === category && t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const limit = 500; // Default limit
-    return {
-      spent,
-      limit,
-      percentage: (spent / limit) * 100,
-    };
+    const limit = 500;
+    return { spent, limit, percentage: (spent / limit) * 100 };
   };
 
-  // Time entry operations
+  // ═══════════════════════════════════════════════════════════
+  // TIME ENTRY OPERATIONS
+  // ═══════════════════════════════════════════════════════════
+
   const addTimeEntry = (entry: Omit<TimeEntry, "id" | "createdAt">) => {
     const newEntry: TimeEntry = {
       ...entry,
@@ -386,20 +470,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTimeEntries((prev) => [newEntry, ...prev]);
+    if (userId) syncTimeEntry(newEntry, userId);
     return newEntry;
   };
 
   const updateTimeEntry = (id: string, updates: Partial<TimeEntry>) => {
-    setTimeEntries((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-    );
+    setTimeEntries((prev) => {
+      const updated = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
+      const entry = updated.find((t) => t.id === id);
+      if (entry && userId) syncTimeEntry(entry, userId);
+      return updated;
+    });
   };
 
   const deleteTimeEntry = (id: string) => {
     setTimeEntries((prev) => prev.filter((t) => t.id !== id));
+    if (userId) deleteTimeEntrySync(id, userId);
   };
 
-  // Goal operations
+  // ═══════════════════════════════════════════════════════════
+  // GOAL OPERATIONS
+  // ═══════════════════════════════════════════════════════════
+
   const addGoal = (goal: Omit<Goal, "id" | "createdAt" | "completedAt">) => {
     const newGoal: Goal = {
       ...goal,
@@ -407,42 +499,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setGoals((prev) => [newGoal, ...prev]);
+    if (userId) syncGoal(newGoal, userId);
     return newGoal;
   };
 
   const updateGoal = (id: string, updates: Partial<Goal>) => {
-    setGoals((prev) =>
-      prev.map((g) => (g.id === id ? { ...g, ...updates } : g)),
-    );
+    setGoals((prev) => {
+      const updated = prev.map((g) => (g.id === id ? { ...g, ...updates } : g));
+      const goal = updated.find((g) => g.id === id);
+      if (goal && userId) syncGoal(goal, userId);
+      return updated;
+    });
   };
 
   const deleteGoal = (id: string) => {
     setGoals((prev) => prev.filter((g) => g.id !== id));
+    if (userId) deleteGoalSync(id, userId);
   };
 
   const completeMilestone = (goalId: string, milestoneId: string) => {
-    setGoals((prev) =>
-      prev.map((g) => {
-        if (g.id === goalId) {
-          return {
-            ...g,
-            milestones: g.milestones.map((m) =>
-              m.id === milestoneId
-                ? {
-                    ...m,
-                    completed: true,
-                    completedAt: new Date().toISOString(),
-                  }
-                : m,
-            ),
-          };
-        }
-        return g;
-      }),
-    );
+    setGoals((prev) => {
+      const updated = prev.map((g) => {
+        if (g.id !== goalId) return g;
+        return {
+          ...g,
+          milestones: g.milestones.map((m) =>
+            m.id === milestoneId
+              ? { ...m, completed: true, completedAt: new Date().toISOString() }
+              : m,
+          ),
+        };
+      });
+      const goal = updated.find((g) => g.id === goalId);
+      if (goal && userId) syncGoal(goal, userId);
+      return updated;
+    });
   };
 
-  // Study session operations
+  // ═══════════════════════════════════════════════════════════
+  // STUDY SESSION OPERATIONS
+  // ═══════════════════════════════════════════════════════════
+
   const addStudySession = (session: Omit<StudySession, "id" | "createdAt">) => {
     const newSession: StudySession = {
       ...session,
@@ -450,20 +547,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setStudySessions((prev) => [newSession, ...prev]);
+    if (userId) syncStudySession(newSession, userId);
     return newSession;
   };
 
   const updateStudySession = (id: string, updates: Partial<StudySession>) => {
-    setStudySessions((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updates } : s)),
-    );
+    setStudySessions((prev) => {
+      const updated = prev.map((s) => (s.id === id ? { ...s, ...updates } : s));
+      const session = updated.find((s) => s.id === id);
+      if (session && userId) syncStudySession(session, userId);
+      return updated;
+    });
   };
 
   const deleteStudySession = (id: string) => {
     setStudySessions((prev) => prev.filter((s) => s.id !== id));
+    if (userId) deleteStudySessionSync(id, userId);
   };
 
-  // Journal operations
+  // ═══════════════════════════════════════════════════════════
+  // JOURNAL OPERATIONS
+  // ═══════════════════════════════════════════════════════════
+
   const addJournalEntry = (entry: Omit<JournalEntry, "id" | "createdAt">) => {
     const newEntry: JournalEntry = {
       ...entry,
@@ -471,20 +576,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setJournalEntries((prev) => [newEntry, ...prev]);
+    if (userId) syncJournalEntry(newEntry, userId);
     return newEntry;
   };
 
   const updateJournalEntry = (id: string, updates: Partial<JournalEntry>) => {
-    setJournalEntries((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, ...updates } : j)),
-    );
+    setJournalEntries((prev) => {
+      const updated = prev.map((j) => (j.id === id ? { ...j, ...updates } : j));
+      const entry = updated.find((j) => j.id === id);
+      if (entry && userId) syncJournalEntry(entry, userId);
+      return updated;
+    });
   };
 
   const deleteJournalEntry = (id: string) => {
     setJournalEntries((prev) => prev.filter((j) => j.id !== id));
+    if (userId) deleteJournalEntrySync(id, userId);
   };
 
-  // Life state operations
+  // ═══════════════════════════════════════════════════════════
+  // LIFE STATE
+  // ═══════════════════════════════════════════════════════════
+
   const updateLifeState = (updates: Partial<LifeState>) => {
     setLifeState((prev) => ({
       ...prev,
@@ -494,7 +607,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const calculateLifeState = () => {
-    // Calculate based on metrics
     const completionRate =
       tasks.length > 0
         ? tasks.filter((t) => t.status === "completed").length / tasks.length
@@ -518,12 +630,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           journalEntries.length
         : 5;
 
-    const avgEnergy =
-      journalEntries.length > 0
-        ? journalEntries.reduce((sum, j) => sum + j.energy, 0) /
-          journalEntries.length
-        : 5;
-
     const newState: LifeState = {
       status: "on-track",
       momentum: Math.round(completionRate * 100),
@@ -542,7 +648,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setLifeState(newState);
   };
 
-  // Insights operations
+  // ═══════════════════════════════════════════════════════════
+  // INSIGHTS
+  // ═══════════════════════════════════════════════════════════
+
   const addInsight = (insight: Omit<AIInsight, "id" | "createdAt">) => {
     const newInsight: AIInsight = {
       ...insight,
@@ -553,109 +662,64 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return newInsight;
   };
 
-  const clearInsights = () => {
-    setInsights([]);
-  };
+  const clearInsights = () => setInsights([]);
 
   const generateInsights = async () => {
     setIsLoading(true);
     try {
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-      // Try to get AI-powered insights from the backend
       try {
-        // Get life score with AI explanation
-        const lifeScoreRes = await fetch(`${API_URL}/api/insights/life-score`);
-        if (lifeScoreRes.ok) {
-          const lifeScore = await lifeScoreRes.json();
-          if (lifeScore.explanation) {
-            addInsight({
-              type: "pattern",
-              title: `Life Score: ${lifeScore.score}/100`,
-              content: lifeScore.explanation,
-              severity:
-                lifeScore.score >= 70
-                  ? "success"
-                  : lifeScore.score >= 50
-                    ? "info"
-                    : "warning",
-              actionable: false,
-            });
-          }
-        }
-
-        // Get morning briefing
-        const briefingRes = await fetch(
-          `${API_URL}/api/insights/morning-briefing`,
-        );
-        if (briefingRes.ok) {
-          const { briefing } = await briefingRes.json();
-          if (briefing) {
-            addInsight({
-              type: "recommendation",
-              title: "Morning Briefing",
-              content: briefing,
-              severity: "info",
-              actionable: true,
-            });
-          }
-        }
-
-        // Ask AI for personalized recommendations
-        const context = {
-          tasks: tasks.slice(0, 10),
-          habits: habits.slice(0, 5),
-          goals: goals.slice(0, 5),
-          avgMood:
-            journalEntries.length > 0
-              ? journalEntries.slice(0, 7).reduce((sum, e) => sum + e.mood, 0) /
-                Math.min(journalEntries.length, 7)
-              : null,
-        };
-
-        const aiRes = await fetch(`${API_URL}/api/ai/ask`, {
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const aiRes = await fetch(`${apiUrl}/api/ai/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            question:
+            message:
               "Based on my current tasks, habits, and goals, what should I focus on today? Give 2-3 specific recommendations.",
-            context,
+            userData: {
+              tasks,
+              habits,
+              transactions,
+              timeEntries,
+              goals,
+              studySessions,
+              journalEntries,
+              lifeState,
+              settings,
+            },
           }),
         });
 
         if (aiRes.ok) {
-          const { response } = await aiRes.json();
-          if (response) {
+          const { message } = await aiRes.json();
+          if (message) {
             addInsight({
               type: "recommendation",
               title: "AI Recommendations",
-              content: response,
+              content: message,
               severity: "info",
               actionable: true,
             });
           }
         }
-      } catch (apiError) {
-        console.log("API not available, using local insights:", apiError);
+      } catch {
+        // AI not available
       }
 
-      // Also add local pattern-based insights
+      // Local pattern-based insights
       const newInsights: Omit<AIInsight, "id" | "createdAt">[] = [];
 
-      // Pattern: Habit consistency
       const goodHabits = habits.filter((h) => getHabitStreak(h.id) > 5);
       if (goodHabits.length > 0) {
         newInsights.push({
           type: "achievement",
           title: "Consistent Habits Detected",
-          content: `You've maintained ${goodHabits.length} habit(s) for over 5 days straight. Great momentum!`,
+          content: `You've maintained ${goodHabits.length} habit(s) for over 5 days straight!`,
           severity: "success",
           actionable: false,
         });
       }
 
-      // Pattern: Task completion trend
       const completedToday = tasks.filter(
         (t) =>
           t.completedAt &&
@@ -665,13 +729,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         newInsights.push({
           type: "achievement",
           title: "Productive Day",
-          content: `You've completed ${completedToday} tasks today. You're crushing it!`,
+          content: `You've completed ${completedToday} tasks today!`,
           severity: "success",
           actionable: false,
         });
       }
 
-      // Warning: High spending
       const weekSpent = transactions
         .filter((t) => {
           const tDate = new Date(t.date);
@@ -685,13 +748,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         newInsights.push({
           type: "warning",
           title: "Spending Alert",
-          content: `You've spent $${weekSpent.toFixed(2)} this week. Consider reviewing your budget.`,
+          content: `You've spent $${weekSpent.toFixed(2)} this week.`,
           severity: "warning",
           actionable: true,
         });
       }
 
-      // Pattern: Overdue tasks
       const overdueTasks = tasks.filter(
         (t) =>
           t.status !== "completed" &&
@@ -708,36 +770,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
-      // Add local insights
       newInsights.forEach((insight) => addInsight(insight));
     } catch (err) {
       setError("Failed to generate insights");
-      console.error("[v0] Error generating insights:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Settings operations
+  // ═══════════════════════════════════════════════════════════
+  // SETTINGS
+  // ═══════════════════════════════════════════════════════════
+
   const updateSettings = (updates: Partial<UserSettings>) => {
-    setSettings((prev) => ({ ...prev, ...updates }));
+    setSettings((prev) => {
+      const updated = { ...prev, ...updates };
+      if (userId) syncSettings(updated as Record<string, any>, userId);
+      return updated;
+    });
   };
 
-  // Finance utility functions
+  // ═══════════════════════════════════════════════════════════
+  // UTILITY FUNCTIONS
+  // ═══════════════════════════════════════════════════════════
+
   const getFinanceStats = () => {
     const income = transactions
       .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
-
     const expenses = transactions
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
-
-    return {
-      income,
-      expenses,
-      balance: income - expenses,
-    };
+    return { income, expenses, balance: income - expenses };
   };
 
   const getExpensesByCategory = () => {
@@ -750,24 +814,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return byCategory;
   };
 
-  // Time utility functions
   const getWeeklyStats = () => {
     const byCategory: Record<string, number> = {};
     let total = 0;
-
     timeEntries.forEach((entry) => {
       byCategory[entry.category] =
         (byCategory[entry.category] || 0) + entry.duration;
       total += entry.duration;
     });
-
     return { byCategory, total };
   };
 
   const getTodayStats = () => {
     const today = new Date().toISOString().split("T")[0];
     const todayEntries = timeEntries.filter((e) => e.date === today);
-
     const totalMinutes = todayEntries.reduce((sum, e) => sum + e.duration, 0);
     const deepFocus = todayEntries
       .filter((e) => e.focusQuality === "deep")
@@ -776,7 +836,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       (sum, e) => sum + e.interruptions,
       0,
     );
-
     return {
       totalMinutes,
       deepFocus,
@@ -791,32 +850,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       moderate: { hours: 0, percentage: 0 },
       shallow: { hours: 0, percentage: 0 },
     };
-
     let total = 0;
     timeEntries.forEach((entry) => {
-      // Normalize quality to one of the valid keys, default to "moderate"
       const rawQuality = entry.focusQuality || "moderate";
       const quality = breakdown[rawQuality] ? rawQuality : "moderate";
       breakdown[quality].hours += entry.duration / 60;
       total += entry.duration / 60;
     });
-
     Object.keys(breakdown).forEach((key) => {
       breakdown[key].percentage =
         total > 0 ? (breakdown[key].hours / total) * 100 : 0;
     });
-
     return breakdown;
   };
 
-  // Goals utility functions
   const getGoalStats = () => {
     const total = goals.length;
     const completed = goals.filter((g) => g.status === "completed").length;
     const inProgress = goals.filter((g) => g.status === "active").length;
     const avgProgress =
       total > 0 ? goals.reduce((sum, g) => sum + g.progress, 0) / total : 0;
-
     return {
       total,
       completed,
@@ -824,6 +877,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       avgProgress: Math.round(avgProgress),
     };
   };
+
+  // ═══════════════════════════════════════════════════════════
+  // VALUE
+  // ═══════════════════════════════════════════════════════════
 
   const value: AppContextType = {
     tasks,
@@ -876,6 +933,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     getFocusQualityBreakdown,
     getGoalStats,
     isLoading,
+    dataReady,
     error,
   };
 

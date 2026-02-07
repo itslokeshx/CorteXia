@@ -1,38 +1,18 @@
-import Groq from "groq-sdk";
+import { groqClient } from "./groq-client";
 
-let groq: Groq | null = null;
-let initialized = false;
-
-// Lazily initialize Groq when first needed
-function getGroq(): Groq | null {
-  if (!initialized) {
-    initialized = true;
-    if (process.env.GROQ_API_KEY) {
-      groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-      console.log("✅ Groq AI initialized");
-    } else {
-      console.log("⚠️ GROQ_API_KEY not set. AI features disabled.");
-    }
-  }
-  return groq;
-}
-
-// Helper to call Groq API
+// Helper to call Groq API using the 6-key rotation client
 async function callGroq(
   prompt: string,
   maxTokens: number = 500,
 ): Promise<string | null> {
-  const client = getGroq();
-  if (!client) return null;
+  if (!groqClient.isConfigured()) return null;
 
   try {
-    const completion = await client.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "llama-3.3-70b-versatile",
+    const result = await groqClient.chat([{ role: "user", content: prompt }], {
+      maxTokens,
       temperature: 0.7,
-      max_tokens: maxTokens,
     });
-    return completion.choices[0]?.message?.content || null;
+    return result.content || null;
   } catch (error) {
     console.error("Groq API error:", error);
     return null;

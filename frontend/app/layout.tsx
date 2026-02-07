@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { AppProvider } from "@/lib/context/app-context";
+import { AuthProvider } from "@/lib/context/auth-context";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConversationalAI } from "@/components/ai/conversational-ai";
 import { CelebrationProvider } from "@/components/celebration/celebration-provider";
@@ -32,12 +33,14 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <AppProvider>
-            <CelebrationProvider>
-              {children}
-              <ConversationalAI />
-            </CelebrationProvider>
-          </AppProvider>
+          <AuthProvider>
+            <AppProvider>
+              <CelebrationProvider>
+                {children}
+                <ConversationalAI />
+              </CelebrationProvider>
+            </AppProvider>
+          </AuthProvider>
         </ThemeProvider>
         <Analytics />
       </body>

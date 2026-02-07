@@ -399,8 +399,43 @@ export function ConversationalAI() {
     setIsLoading(true);
 
     try {
-      const context = buildContext();
-      const response = await conversationalAI.chat(text, context);
+      // Try the backend /api/ai/chat route (Groq with deep context)
+      let response: ConversationResponse;
+      try {
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const apiRes = await fetch(`${apiUrl}/api/ai/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text,
+            conversationHistory: messages.slice(-10).map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            userData: {
+              tasks,
+              habits,
+              transactions,
+              timeEntries,
+              goals,
+              studySessions,
+              journalEntries,
+              lifeState: null,
+              settings: {},
+            },
+          }),
+        });
+        if (apiRes.ok) {
+          response = await apiRes.json();
+        } else {
+          throw new Error("API route failed");
+        }
+      } catch {
+        // Fallback to original conversational AI
+        const context = buildContext();
+        response = await conversationalAI.chat(text, context);
+      }
 
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),

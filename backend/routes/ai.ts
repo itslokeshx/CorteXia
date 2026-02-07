@@ -1,7 +1,187 @@
 import { Hono } from "hono";
 import { parseQuickAddInput, askAI } from "../services/ai-service";
+import { groqClient } from "../services/groq-client";
+import {
+  buildUserContext,
+  buildAISystemPrompt,
+} from "../services/deep-context";
 
 const aiRouter = new Hono();
+
+// ═══════════════════════════════════════════════════════════════
+// POST /api/ai/chat — Deep context AI chat (main endpoint)
+// ═══════════════════════════════════════════════════════════════
+aiRouter.post("/chat", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { message, conversationHistory = [], userData } = body;
+
+    if (!message) {
+      return c.json({ error: "Message is required" }, 400);
+    }
+
+    // Check if Groq is configured
+    if (!groqClient.isConfigured()) {
+      return c.json({
+        message: generateLocalResponse(message),
+        actions: [],
+        suggestions: [],
+        source: "local-fallback",
+      });
+    }
+
+    // Build deep context from user data
+    let systemPrompt: string;
+    if (userData) {
+      const userContext = buildUserContext(userData);
+      systemPrompt = buildAISystemPrompt(userContext);
+    } else {
+      systemPrompt = getMinimalSystemPrompt();
+    }
+
+    // Build message array for Groq
+    const messages = [
+      { role: "system" as const, content: systemPrompt },
+      ...conversationHistory.slice(-10).map((msg: any) => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.content,
+      })),
+      { role: "user" as const, content: message },
+    ];
+
+    // Call Groq with automatic key rotation
+    const result = await groqClient.chat(messages, {
+      temperature: 0.7,
+      maxTokens: 4096,
+    });
+
+    // Parse the AI response
+    const parsed = parseAIResponse(result.content);
+
+    return c.json({
+      ...parsed,
+      usage: result.usage,
+      keyUsed: result.keyUsed,
+    });
+  } catch (error: any) {
+    console.error("AI Chat API Error:", error);
+
+    if (error.message?.includes("rate-limited")) {
+      return c.json({
+        message:
+          "I'm experiencing high demand right now. Let me give you a quick response while my full capabilities recover.",
+        actions: [],
+        suggestions: [],
+        source: "rate-limited-fallback",
+        error: "rate_limited",
+      });
+    }
+
+    return c.json(
+      {
+        message:
+          "I had trouble processing that. Could you try again in a moment?",
+        actions: [],
+        suggestions: [],
+        source: "error-fallback",
+        error: error.message,
+      },
+      500,
+    );
+  }
+});
+
+// GET /api/ai/chat/status — Key status (debug/admin)
+aiRouter.get("/chat/status", async (c) => {
+  return c.json({
+    status: groqClient.getStatus(),
+    model: "llama-3.3-70b-versatile",
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+function parseAIResponse(content: string): {
+  message: string;
+  actions: any[];
+  suggestions: any[];
+} {
+  try {
+    let cleaned = content.trim();
+    if (cleaned.startsWith("```json")) {
+      cleaned = cleaned.slice(7);
+    }
+    if (cleaned.startsWith("```")) {
+      cleaned = cleaned.slice(3);
+    }
+    if (cleaned.endsWith("```")) {
+      cleaned = cleaned.slice(0, -3);
+    }
+    cleaned = cleaned.trim();
+
+    const parsed = JSON.parse(cleaned);
+    return {
+      message: parsed.message || content,
+      actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+      suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+    };
+  } catch {
+    return {
+      message: content,
+      actions: [],
+      suggestions: [],
+    };
+  }
+}
+
+function getMinimalSystemPrompt(): string {
+  return `You are Cortexia, a highly intelligent AI life assistant. You can answer ANY question the user asks — science, history, coding, advice, trivia, etc.
+
+You also help manage the user's life through the CorteXia app (tasks, habits, goals, journal, finance).
+
+Be warm, concise, and helpful. Answer directly without being preachy.
+
+RESPONSE FORMAT (always return valid JSON):
+{
+  "message": "Your complete natural language response",
+  "actions": [],
+  "suggestions": [{ "text": "suggestion", "action": "action_type", "reason": "why" }]
+}
+
+Available actions: create_task, create_habit, create_goal, add_expense, add_income, log_time, log_study, create_journal, complete_task, complete_habit, navigate`;
+}
+
+function generateLocalResponse(message: string): string {
+  const lower = message.toLowerCase();
+
+  if (
+    lower.includes("hello") ||
+    lower.includes("hi") ||
+    lower.includes("hey")
+  ) {
+    return "Hey! 👋 I'm Cortexia, your AI life assistant. I can help you manage tasks, habits, goals, and more — or just chat about anything. What's on your mind?";
+  }
+
+  if (lower.includes("how are you")) {
+    return "I'm running great! Ready to help you with whatever you need — whether it's organizing your day, tracking a habit, or just having a conversation. What would you like to do?";
+  }
+
+  if (lower.includes("task") || lower.includes("todo")) {
+    return "I can help with tasks! Try saying something like 'Add a task to review the project by Friday' and I'll create it for you.";
+  }
+
+  if (lower.includes("habit")) {
+    return "I can help track habits! Try 'Create a habit for daily meditation' or ask me about your current streaks.";
+  }
+
+  return "I'd love to help with that! However, my AI capabilities need API keys to be configured. Once set up, I can answer any question and help manage your entire life through CorteXia. For now, you can still use all the app features manually!";
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXISTING ROUTES
+// ═══════════════════════════════════════════════════════════════
 
 // POST /api/ai/parse - Parse natural language input
 aiRouter.post("/parse", async (c) => {

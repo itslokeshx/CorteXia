@@ -1,8 +1,19 @@
 import { config } from "dotenv";
-import { resolve } from "path";
+import { existsSync } from "fs";
+import { join } from "path";
 
-// Load environment variables from .env file
-config({ path: resolve(import.meta.dirname, ".env") });
+// Load .env — check both cwd/.env and cwd/backend/.env (for workspace root)
+const cwd = process.cwd();
+const localEnv = join(cwd, ".env");
+const backendEnv = join(cwd, "backend", ".env");
+
+if (existsSync(localEnv)) {
+  config({ path: localEnv });
+} else if (existsSync(backendEnv)) {
+  config({ path: backendEnv });
+} else {
+  config(); // default dotenv behavior
+}
 
 import { Hono } from "hono";
 import { cors } from "hono/cors";

@@ -2,19 +2,33 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
-const connectionString = process.env.DATABASE_URL;
+type DB = ReturnType<typeof drizzle<typeof schema>>;
 
-// Create postgres client - use mock if no connection string
-let db: ReturnType<typeof drizzle<typeof schema>>;
+let _db: DB | null = null;
+let _initialized = false;
 
-if (connectionString) {
-  const client = postgres(connectionString);
-  db = drizzle(client, { schema });
-} else {
-  // Create a mock database for development without PostgreSQL
-  console.warn("⚠️ DATABASE_URL not set. Running in mock mode.");
-  // @ts-expect-error - Mock DB for development
-  db = null;
+function getDb(): DB | null {
+  if (_initialized) return _db;
+  _initialized = true;
+
+  const connectionString = process.env.DATABASE_URL;
+  if (connectionString) {
+    const client = postgres(connectionString);
+    _db = drizzle(client, { schema });
+  } else {
+    console.warn("⚠️ DATABASE_URL not set. Running in mock mode.");
+    _db = null;
+  }
+  return _db;
 }
+
+// Proxy that lazily initializes the DB on first access
+const db = new Proxy({} as DB, {
+  get(_target, prop) {
+    const instance = getDb();
+    if (!instance) return undefined;
+    return (instance as any)[prop];
+  },
+});
 
 export { db, schema };
