@@ -7,28 +7,38 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isToday, differenceInDays } from "date-fns";
 import {
   CheckCircle2,
-  ArrowRight,
+  Clock,
   Flame,
   Target,
   Calendar,
-  Brain,
   Sparkles,
-  Wallet,
-  ChevronRight,
   Plus,
   Timer,
   Play,
-  PenLine,
   DollarSign,
   StickyNote,
+  Zap,
+  Award,
+  ChevronRight,
+  Brain,
+  BookOpen,
+  ArrowUpRight,
+  Sun,
+  Moon,
+  CloudSun,
+  Sunset,
+  CircleDot,
+  BarChart3,
+  Pen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -44,78 +54,134 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// ═══ ANIMATION VARIANTS ═══
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.05,
+    },
+  },
+} as const;
+
+const item = {
+  hidden: { opacity: 0, y: 12 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 400,
+      damping: 30,
+    },
+  },
+} as const;
+
+// ═══ MOTIVATIONAL LINES ═══
+const MOTTOS = [
+  "Small steps compound into extraordinary results.",
+  "Focus on progress, not perfection.",
+  "The best time to start is now.",
+  "Discipline is choosing what you want most over what you want now.",
+  "Your future self will thank you.",
+  "Consistency beats intensity.",
+  "One task at a time. One day at a time.",
+  "Build the life you don't need a vacation from.",
+  "Energy flows where attention goes.",
+  "You're closer than you think.",
+];
+
 export default function DashboardPage() {
   const router = useRouter();
   const {
     tasks,
     habits,
+    goals,
+    journalEntries,
     addTask,
-    addTransaction,
     addJournalEntry,
     updateJournalEntry,
-    journalEntries,
     completeTask,
     uncompleteTask,
     completeHabit,
     getHabitStreak,
     getFinanceStats,
     getTodayStats,
+    getGoalStats,
   } = useApp();
 
   const [mounted, setMounted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const today = format(new Date(), "yyyy-MM-dd");
-  const now = new Date();
 
-  // Quick add modals
+  // Quick add
   const [showQuickTask, setShowQuickTask] = useState(false);
-  const [showQuickExpense, setShowQuickExpense] = useState(false);
   const [showQuickNote, setShowQuickNote] = useState(false);
   const [quickTaskTitle, setQuickTaskTitle] = useState("");
   const [quickTaskPriority, setQuickTaskPriority] = useState<
     "medium" | "high" | "critical"
   >("high");
-  const [quickExpenseDesc, setQuickExpenseDesc] = useState("");
-  const [quickExpenseAmount, setQuickExpenseAmount] = useState("");
-  const [quickExpenseCat, setQuickExpenseCat] = useState("food");
   const [quickNote, setQuickNote] = useState("");
+
+  // Daily motto — stable per day
+  const dailyMotto = useMemo(() => {
+    const dayOfYear = Math.floor(
+      (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) /
+        86400000,
+    );
+    return MOTTOS[dayOfYear % MOTTOS.length];
+  }, []);
 
   useEffect(() => {
     setMounted(true);
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
   }, []);
 
-  // ═══ TODAY'S TASKS - PRIORITY FILTERED ═══
-  const todayTasks = useMemo(() => {
-    const pending = tasks.filter((t) => {
-      if (t.status === "completed") return false;
-      // Today's tasks, overdue tasks, or high priority
-      return (
-        t.dueDate === today ||
-        (t.dueDate && t.dueDate < today) ||
-        t.priority === "high" ||
-        t.priority === "critical"
-      );
-    });
+  // ═══ GREETING ═══
+  const greeting = useMemo(() => {
+    const h = currentTime.getHours();
+    if (h < 5) return { text: "Still up?", Icon: Moon };
+    if (h < 12) return { text: "Good morning", Icon: Sun };
+    if (h < 17) return { text: "Good afternoon", Icon: CloudSun };
+    if (h < 21) return { text: "Good evening", Icon: Sunset };
+    return { text: "Good night", Icon: Moon };
+  }, [currentTime]);
 
-    return pending
+  // ═══ TODAY'S TASKS ═══
+  const todayTasks = useMemo(() => {
+    return tasks
+      .filter((t) => {
+        if (t.status === "completed") return false;
+        return (
+          t.dueDate === today ||
+          (t.dueDate && t.dueDate < today) ||
+          t.priority === "high" ||
+          t.priority === "critical"
+        );
+      })
       .sort((a, b) => {
-        const priorityOrder: Record<string, number> = {
+        const order: Record<string, number> = {
           critical: 0,
           high: 1,
           medium: 2,
           low: 3,
         };
-        // First by priority
-        const pDiff =
-          (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);
-        if (pDiff !== 0) return pDiff;
-        // Then by due date
-        if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
-        if (a.dueDate) return -1;
-        if (b.dueDate) return 1;
-        return 0;
+        return (order[a.priority] ?? 2) - (order[b.priority] ?? 2);
       })
-      .slice(0, 8);
+      .slice(0, 6);
   }, [tasks, today]);
+
+  // ═══ COMPLETED TODAY ═══
+  const completedToday = useMemo(
+    () =>
+      tasks.filter(
+        (t) => t.status === "completed" && t.completedAt?.startsWith(today),
+      ),
+    [tasks, today],
+  );
 
   // ═══ TODAY'S HABITS ═══
   const todayHabits = useMemo(() => {
@@ -137,133 +203,46 @@ export default function DashboardPage() {
       .slice(0, 6);
   }, [habits, today, getHabitStreak]);
 
+  // ═══ ACTIVE GOALS ═══
+  const activeGoals = useMemo(() => {
+    return goals
+      .filter((g) => g.status === "active")
+      .sort((a, b) => b.progress - a.progress)
+      .slice(0, 3);
+  }, [goals]);
+
+  // ═══ RECENT JOURNAL ═══
+  const recentJournal = useMemo(() => {
+    return journalEntries
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 1)[0];
+  }, [journalEntries]);
+
   // ═══ STATS ═══
   const stats = useMemo(() => {
-    const completedToday = tasks.filter(
-      (t) => t.status === "completed" && t.completedAt?.startsWith(today),
-    ).length;
-    const totalToday = todayTasks.length + completedToday;
-    const habitsCompleted = todayHabits.filter((h) => h.completed).length;
-    const habitsTotal = todayHabits.length;
-    const overdue = tasks.filter(
-      (t) => t.status !== "completed" && t.dueDate && t.dueDate < today,
-    ).length;
+    const totalPending = todayTasks.length;
+    const done = completedToday.length;
+    const total = totalPending + done;
+    const habitsCount = todayHabits.length;
+    const habitsDone = todayHabits.filter((h) => h.completed).length;
     const timeStats = getTodayStats();
-    const financeStats = getFinanceStats();
-
-    const taskProgress =
-      totalToday > 0 ? (completedToday / totalToday) * 100 : 0;
-    const habitProgress =
-      habitsTotal > 0 ? (habitsCompleted / habitsTotal) * 100 : 0;
+    const goalStats = getGoalStats();
 
     return {
-      completedToday,
-      totalToday,
-      taskProgress,
-      habitsCompleted,
-      habitsTotal,
-      habitProgress,
-      overdue,
-      focusMinutes: timeStats.totalMinutes,
-      balance: financeStats.balance,
+      done,
+      total,
+      taskPct: total > 0 ? Math.round((done / total) * 100) : 0,
+      habitsDone,
+      habitsCount,
+      habitPct:
+        habitsCount > 0 ? Math.round((habitsDone / habitsCount) * 100) : 0,
+      focusMins: timeStats.totalMinutes,
+      goalsDone: goalStats.completed,
+      goalsTotal: goalStats.total,
     };
-  }, [tasks, todayTasks, todayHabits, today, getTodayStats, getFinanceStats]);
+  }, [todayTasks, completedToday, todayHabits, getTodayStats, getGoalStats]);
 
-  // ═══ AI INSIGHTS ═══
-  const aiInsights = useMemo(() => {
-    const insights: Array<{
-      type: "success" | "warning" | "info" | "tip";
-      title: string;
-      description: string;
-      action?: { label: string; href: string };
-    }> = [];
-
-    // Morning motivation
-    const hour = now.getHours();
-    if (hour >= 5 && hour < 9 && stats.completedToday === 0) {
-      insights.push({
-        type: "tip",
-        title: "Start with momentum",
-        description:
-          "Complete your first task within the next hour to set a productive tone for the day.",
-        action: { label: "View tasks", href: "/tasks" },
-      });
-    }
-
-    // Overdue alert
-    if (stats.overdue > 0) {
-      insights.push({
-        type: "warning",
-        title: `${stats.overdue} task${stats.overdue > 1 ? "s" : ""} overdue`,
-        description:
-          "These tasks are past their due date. Consider rescheduling or completing them first.",
-        action: { label: "Review tasks", href: "/tasks" },
-      });
-    }
-
-    // Habit celebration
-    if (stats.habitsCompleted === stats.habitsTotal && stats.habitsTotal > 0) {
-      insights.push({
-        type: "success",
-        title: "Perfect habit day! 🔥",
-        description:
-          "All habits completed. You're building incredible consistency.",
-      });
-    } else if (
-      stats.habitsCompleted > 0 &&
-      stats.habitsCompleted < stats.habitsTotal
-    ) {
-      const remaining = stats.habitsTotal - stats.habitsCompleted;
-      insights.push({
-        type: "info",
-        title: `${remaining} habit${remaining > 1 ? "s" : ""} remaining`,
-        description:
-          "You're making progress! Complete the rest to maintain your streak.",
-        action: { label: "View habits", href: "/habits" },
-      });
-    }
-
-    // Task completion
-    if (stats.taskProgress >= 100 && stats.totalToday > 0) {
-      insights.push({
-        type: "success",
-        title: "All tasks completed! 🎉",
-        description:
-          "You've cleared your priority list. Time to relax or tackle bonus work.",
-      });
-    } else if (stats.taskProgress >= 70) {
-      insights.push({
-        type: "info",
-        title: "You're crushing it!",
-        description: `${Math.round(stats.taskProgress)}% of tasks done. Keep the momentum going.`,
-      });
-    }
-
-    // Focus time
-    if (hour >= 9 && hour < 17 && stats.focusMinutes < 30) {
-      insights.push({
-        type: "tip",
-        title: "Time for deep work",
-        description:
-          "You haven't logged much focus time today. Consider a 25-minute Pomodoro session.",
-        action: { label: "Start timer", href: "/time-tracker" },
-      });
-    }
-
-    // Evening reflection
-    if (hour >= 18 && stats.completedToday > 0) {
-      insights.push({
-        type: "info",
-        title: "Journal your day",
-        description: "Reflect on today's wins and learnings before bed.",
-        action: { label: "Write entry", href: "/journal" },
-      });
-    }
-
-    return insights.slice(0, 3);
-  }, [stats, now, today]);
-
-  // Quick add handlers
+  // ═══ HANDLERS ═══
   const handleQuickTask = () => {
     if (!quickTaskTitle.trim()) return;
     addTask({
@@ -278,35 +257,16 @@ export default function DashboardPage() {
     setShowQuickTask(false);
   };
 
-  const handleQuickExpense = () => {
-    const amount = parseFloat(quickExpenseAmount);
-    if (!quickExpenseDesc.trim() || isNaN(amount) || amount <= 0) return;
-    addTransaction({
-      description: quickExpenseDesc.trim(),
-      amount: -Math.abs(amount),
-      category: quickExpenseCat as any,
-      type: "expense",
-      date: today,
-    });
-    setQuickExpenseDesc("");
-    setQuickExpenseAmount("");
-    setShowQuickExpense(false);
-  };
-
   const handleQuickNote = () => {
     if (!quickNote.trim()) return;
-    // Find today's journal entry or create one
     const todayEntry = journalEntries.find((j) => j.date === today);
+    const timestamp = format(new Date(), "h:mm a");
     if (todayEntry) {
-      // Append note to existing entry
-      const separator = todayEntry.content ? "\n\n" : "";
-      const timestamp = format(new Date(), "h:mm a");
+      const sep = todayEntry.content ? "\n\n" : "";
       updateJournalEntry(todayEntry.id, {
-        content: `${todayEntry.content}${separator}📝 [${timestamp}] ${quickNote.trim()}`,
+        content: `${todayEntry.content}${sep}📝 [${timestamp}] ${quickNote.trim()}`,
       });
     } else {
-      // Create new journal entry for today
-      const timestamp = format(new Date(), "h:mm a");
       addJournalEntry({
         date: today,
         title: format(new Date(), "EEEE, MMMM d"),
@@ -321,610 +281,690 @@ export default function DashboardPage() {
     setShowQuickNote(false);
   };
 
-  const toggleTask = (taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId);
-    if (!task) return;
-    if (task.status === "completed") {
-      uncompleteTask(taskId);
-    } else {
-      completeTask(taskId);
-    }
+  const toggleTask = (id: string) => {
+    const t = tasks.find((x) => x.id === id);
+    if (!t) return;
+    t.status === "completed" ? uncompleteTask(id) : completeTask(id);
   };
 
+  // ═══ LOADING ═══
   if (!mounted) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <motion.div>
-            <Brain className="w-10 h-10 text-gray-400" />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <Brain className="w-6 h-6 text-[var(--color-text-tertiary)]" />
           </motion.div>
         </div>
       </AppLayout>
     );
   }
 
+  const GIcon = greeting.Icon;
+  const priorityDot: Record<string, string> = {
+    critical: "bg-red-500",
+    high: "bg-orange-500",
+    medium: "bg-yellow-500",
+    low: "bg-[var(--color-text-tertiary)]",
+  };
+
   return (
     <AppLayout>
-      <div className="space-y-6 pb-16 max-w-5xl mx-auto">
-        {/* ═══ HEADER ═══ */}
-        <motion.div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
-              {now.getHours() < 12
-                ? "Good morning"
-                : now.getHours() < 18
-                  ? "Good afternoon"
-                  : "Good evening"}
-            </h1>
-            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-              {format(now, "EEEE, MMMM d, yyyy")}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => setShowQuickTask(true)}
-              size="sm"
-              className="gap-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
-            >
-              <Plus className="w-4 h-4" />
-              Quick Add
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* ═══ PROGRESS OVERVIEW ═══ */}
-        <motion.div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-xs text-[var(--color-text-tertiary)]">
-                Tasks
-              </span>
+      <motion.div
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="space-y-8 pb-24 max-w-5xl mx-auto px-3 sm:px-6"
+      >
+        {/* ──────────────────────────────────────────────────────────────
+            GREETING
+        ────────────────────────────────────────────────────────────── */}
+        <motion.section variants={item} className="pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5 mb-1">
+                <GIcon className="w-5 h-5 text-[var(--color-text-tertiary)]" />
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--color-text-primary)]">
+                  {greeting.text}
+                </h1>
+              </div>
+              <p className="text-sm text-[var(--color-text-tertiary)]">
+                {format(currentTime, "EEEE, MMMM d")} ·{" "}
+                {format(currentTime, "h:mm a")}
+              </p>
             </div>
-            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
-              {stats.completedToday}/{stats.totalToday}
-            </p>
-            <Progress value={stats.taskProgress} className="h-1 mt-2" />
-          </div>
 
-          <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <Flame className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-xs text-[var(--color-text-tertiary)]">
-                Habits
-              </span>
+            {/* Quick add buttons */}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => setShowQuickTask(true)}
+                className="gap-1.5 h-9 px-3.5 rounded-lg"
+              >
+                <Plus className="w-3.5 h-3.5" /> Task
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowQuickNote(true)}
+                className="gap-1.5 h-9 px-3.5 rounded-lg"
+              >
+                <Pen className="w-3.5 h-3.5" /> Note
+              </Button>
             </div>
-            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
-              {stats.habitsCompleted}/{stats.habitsTotal}
-            </p>
-            <Progress value={stats.habitProgress} className="h-1 mt-2" />
           </div>
 
-          <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <Timer className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-xs text-[var(--color-text-tertiary)]">
-                Focus Time
-              </span>
-            </div>
-            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
-              {stats.focusMinutes}m
-            </p>
-            <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-              {stats.focusMinutes >= 120 ? "Excellent!" : "Keep going"}
-            </p>
-          </div>
+          {/* Motto */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-3 text-[13px] italic text-[var(--color-text-tertiary)] leading-relaxed"
+          >
+            "{dailyMotto}"
+          </motion.p>
+        </motion.section>
 
-          <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <Wallet className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-xs text-[var(--color-text-tertiary)]">
-                Balance
-              </span>
-            </div>
-            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
-              ${Math.abs(stats.balance).toFixed(0)}
-            </p>
-            <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-              {stats.balance >= 0 ? "Positive" : "Negative"}
-            </p>
+        {/* ──────────────────────────────────────────────────────────────
+            DAILY OVERVIEW — compact stat row
+        ────────────────────────────────────────────────────────────── */}
+        <motion.section variants={item}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              {
+                label: "Tasks",
+                value: `${stats.done}/${stats.total}`,
+                sub: `${stats.taskPct}% done`,
+                accent: "text-blue-600 dark:text-blue-400",
+                bg: "bg-blue-50 dark:bg-blue-950/30",
+                icon: CheckCircle2,
+              },
+              {
+                label: "Habits",
+                value: `${stats.habitsDone}/${stats.habitsCount}`,
+                sub: `${stats.habitPct}% done`,
+                accent: "text-emerald-600 dark:text-emerald-400",
+                bg: "bg-emerald-50 dark:bg-emerald-950/30",
+                icon: Flame,
+              },
+              {
+                label: "Focus",
+                value: `${stats.focusMins}m`,
+                sub:
+                  stats.focusMins >= 120
+                    ? "Excellent"
+                    : stats.focusMins >= 60
+                      ? "Good"
+                      : "Get started",
+                accent: "text-purple-600 dark:text-purple-400",
+                bg: "bg-purple-50 dark:bg-purple-950/30",
+                icon: Timer,
+              },
+              {
+                label: "Goals",
+                value: `${stats.goalsDone}/${stats.goalsTotal}`,
+                sub:
+                  stats.goalsTotal > 0
+                    ? `${Math.round((stats.goalsDone / stats.goalsTotal) * 100)}%`
+                    : "None set",
+                accent: "text-amber-600 dark:text-amber-400",
+                bg: "bg-amber-50 dark:bg-amber-950/30",
+                icon: Target,
+              },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div
+                    className={cn(
+                      "w-7 h-7 rounded-lg flex items-center justify-center",
+                      s.bg,
+                    )}
+                  >
+                    <s.icon className={cn("w-3.5 h-3.5", s.accent)} />
+                  </div>
+                  <span className="text-xs font-medium text-[var(--color-text-secondary)]">
+                    {s.label}
+                  </span>
+                </div>
+                <p className="text-xl font-semibold text-[var(--color-text-primary)] tracking-tight">
+                  {s.value}
+                </p>
+                <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">
+                  {s.sub}
+                </p>
+              </div>
+            ))}
           </div>
-        </motion.div>
+        </motion.section>
 
-        {/* ═══ TODAY'S PRIORITIES - TASKS ═══ */}
-        <motion.div className="space-y-3">
+        {/* ──────────────────────────────────────────────────────────────
+            TODAY'S TASKS
+        ────────────────────────────────────────────────────────────── */}
+        <motion.section variants={item} className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                Today's Priorities
-              </h2>
-              <Badge variant="secondary" className="text-xs">
-                {todayTasks.length}
-              </Badge>
-            </div>
+            <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
+              Priorities
+            </h2>
             <Link
               href="/tasks"
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-1"
+              className="text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] flex items-center gap-0.5 transition-colors"
             >
-              View all <ChevronRight className="w-4 h-4" />
+              All tasks <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
 
-          <div className="space-y-2">
-            {todayTasks.length > 0 ? (
-              todayTasks.map((task, i) => {
-                const isOverdue = task.dueDate && task.dueDate < today;
-                const isDone = task.status === "completed";
-                const priorityConfig = {
-                  critical: {
-                    color:
-                      "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
-                    label: "Critical",
-                  },
-                  high: {
-                    color:
-                      "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300",
-                    label: "High",
-                  },
-                  medium: {
-                    color:
-                      "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300",
-                    label: "Med",
-                  },
-                  low: {
-                    color:
-                      "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300",
-                    label: "Low",
-                  },
-                }[task.priority] || {
-                  color:
-                    "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300",
-                  label: "Med",
-                };
-
+          {todayTasks.length > 0 ? (
+            <div className="space-y-1">
+              {todayTasks.map((task, i) => {
+                const overdue = task.dueDate ? task.dueDate < today : false;
                 return (
                   <motion.div
                     key={task.id}
-                    layout
-                    className="group flex items-center gap-3 p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-gray-300 dark:hover:border-gray-600 transition-all"
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="group flex items-center gap-3 py-2.5 px-3 -mx-3 rounded-lg hover:bg-[var(--color-bg-secondary)] transition-colors"
                   >
                     {/* Checkbox */}
                     <button
                       onClick={() => toggleTask(task.id)}
-                      className={cn(
-                        "w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all",
-                        isDone
-                          ? "bg-green-500 border-green-500"
-                          : "border-gray-300 dark:border-gray-600 hover:border-gray-500",
-                      )}
+                      className="w-[18px] h-[18px] rounded-full border-[1.5px] border-[var(--color-border)] hover:border-[var(--color-text-secondary)] flex items-center justify-center flex-shrink-0 transition-colors"
                     >
-                      {isDone && (
-                        <CheckCircle2 className="w-3 h-3 text-white" />
+                      {task.status === "completed" && (
+                        <CheckCircle2 className="w-[18px] h-[18px] text-[var(--color-success)]" />
                       )}
                     </button>
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={cn(
-                          "text-sm font-medium break-words",
-                          isDone
-                            ? "text-gray-400 line-through"
-                            : "text-[var(--color-text-primary)]",
-                        )}
-                      >
-                        {task.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge
-                          className={cn(
-                            "text-[10px] h-5",
-                            priorityConfig.color,
-                          )}
-                        >
-                          {priorityConfig.label}
-                        </Badge>
-                        {task.dueDate && (
-                          <span
-                            className={cn(
-                              "text-xs",
-                              isOverdue
-                                ? "text-red-500 font-medium"
-                                : "text-[var(--color-text-tertiary)]",
-                            )}
-                          >
-                            {isOverdue
-                              ? "Overdue"
-                              : task.dueDate === today
-                                ? "Today"
-                                : format(parseISO(task.dueDate), "MMM d")}
-                          </span>
-                        )}
-                        {task.timeEstimate && (
-                          <span className="text-xs text-[var(--color-text-tertiary)]">
-                            • {task.timeEstimate}m
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Quick actions */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {!isDone && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          onClick={() =>
-                            router.push(`/time-tracker?taskId=${task.id}`)
-                          }
-                        >
-                          <Play className="w-3.5 h-3.5" />
-                        </Button>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })
-            ) : (
-              <div className="text-center py-12 rounded-xl bg-[var(--color-bg-secondary)] border border-dashed border-[var(--color-border)]">
-                <CheckCircle2 className="w-12 h-12 mx-auto text-green-500 mb-3" />
-                <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                  All clear! 🎉
-                </p>
-                <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                  No priority tasks for today
-                </p>
-                <Button
-                  onClick={() => setShowQuickTask(true)}
-                  size="sm"
-                  variant="outline"
-                  className="mt-4 gap-2"
-                >
-                  <Plus className="w-3 h-3" />
-                  Add Task
-                </Button>
-              </div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* ═══ TODAY'S HABITS ═══ */}
-        {todayHabits.length > 0 && (
-          <motion.div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                  Today's Habits
-                </h2>
-              </div>
-              <Link
-                href="/habits"
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-1"
-              >
-                View all <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-              {todayHabits.map((habit, i) => (
-                <motion.button
-                  key={habit.id}
-                  onClick={() => completeHabit(habit.id, today)}
-                  disabled={habit.completed}
-                  className={cn(
-                    "p-4 rounded-xl border text-left transition-all",
-                    habit.completed
-                      ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                      : "bg-[var(--color-bg-secondary)] border-[var(--color-border)] hover:border-gray-300 dark:hover:border-gray-600",
-                  )}
-                >
-                  <div className="flex items-center justify-between mb-2">
+                    {/* Priority dot */}
                     <span
                       className={cn(
-                        "text-xs font-medium px-2 py-0.5 rounded-full",
-                        habit.completed
-                          ? "bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300"
-                          : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
+                        "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                        priorityDot[task.priority] ?? "bg-gray-400",
                       )}
-                    >
-                      {habit.completed ? "Done" : "Pending"}
+                    />
+
+                    {/* Title */}
+                    <span className="flex-1 text-sm text-[var(--color-text-primary)] truncate">
+                      {task.title}
                     </span>
-                    {habit.streak > 0 && (
-                      <div className="flex items-center gap-1">
-                        <Flame className="w-3 h-3 text-orange-500" />
-                        <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
-                          {habit.streak}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <p
-                    className={cn(
-                      "text-sm font-medium break-words",
-                      habit.completed
-                        ? "text-gray-600 dark:text-gray-400"
-                        : "text-[var(--color-text-primary)]",
-                    )}
-                  >
-                    {habit.name}
-                  </p>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
 
-        {/* ═══ QUICK ACTIONS ═══ */}
-        <motion.div className="space-y-3">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              {
-                icon: Plus,
-                label: "Add Task",
-                onClick: () => setShowQuickTask(true),
-              },
-              {
-                icon: DollarSign,
-                label: "Log Expense",
-                onClick: () => setShowQuickExpense(true),
-              },
-              {
-                icon: Play,
-                label: "Start Focus",
-                onClick: () => router.push("/time-tracker"),
-              },
-              {
-                icon: PenLine,
-                label: "Journal",
-                onClick: () => router.push("/journal"),
-              },
-              {
-                icon: Calendar,
-                label: "Plan Day",
-                onClick: () => router.push("/day-planner"),
-              },
-              {
-                icon: Brain,
-                label: "AI Coach",
-                onClick: () => router.push("/ai-coach"),
-              },
-              {
-                icon: Target,
-                label: "Goals",
-                onClick: () => router.push("/goals"),
-              },
-              {
-                icon: StickyNote,
-                label: "Quick Note",
-                onClick: () => setShowQuickNote(true),
-              },
-            ].map((action, i) => (
-              <motion.button
-                key={action.label}
-                onClick={action.onClick}
-                className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all text-center group"
-              >
-                <action.icon className="w-5 h-5 mx-auto mb-2 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors" />
-                <p className="text-xs font-medium text-[var(--color-text-primary)]">
-                  {action.label}
-                </p>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* ═══ AI INSIGHTS ═══ */}
-        {aiInsights.length > 0 && (
-          <motion.div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                AI Insights
-              </h2>
-            </div>
-            <div className="grid gap-3">
-              {aiInsights.map((insight, i) => {
-                const config = {
-                  success: {
-                    bg: "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20",
-                    border: "border-green-200 dark:border-green-800",
-                    icon: "🎉",
-                  },
-                  warning: {
-                    bg: "bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20",
-                    border: "border-amber-200 dark:border-amber-800",
-                    icon: "⚠️",
-                  },
-                  info: {
-                    bg: "bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20",
-                    border: "border-blue-200 dark:border-blue-800",
-                    icon: "💡",
-                  },
-                  tip: {
-                    bg: "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20",
-                    border: "border-purple-200 dark:border-purple-800",
-                    icon: "✨",
-                  },
-                }[insight.type];
-
-                return (
-                  <motion.div
-                    key={i}
-                    className={cn(
-                      "p-4 rounded-xl border flex items-start justify-between gap-4",
-                      config.bg,
-                      config.border,
+                    {/* Meta */}
+                    {overdue && (
+                      <span className="text-[10px] font-medium text-red-500 flex-shrink-0">
+                        Overdue
+                      </span>
                     )}
-                  >
-                    <div className="flex items-start gap-3 flex-1">
-                      <span className="text-2xl">{config.icon}</span>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">
-                          {insight.title}
-                        </h3>
-                        <p className="text-sm text-[var(--color-text-secondary)] break-words">
-                          {insight.description}
-                        </p>
-                      </div>
-                    </div>
-                    {insight.action && (
-                      <Link href={insight.action.href}>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-2 flex-shrink-0"
-                        >
-                          {insight.action.label}
-                          <ArrowRight className="w-3 h-3" />
-                        </Button>
-                      </Link>
+                    {task.dueDate === today && !overdue && (
+                      <span className="text-[10px] text-[var(--color-text-tertiary)] flex-shrink-0">
+                        Today
+                      </span>
                     )}
+
+                    {/* Quick timer */}
+                    <button
+                      onClick={() =>
+                        router.push(`/time-tracker?taskId=${task.id}`)
+                      }
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-[var(--color-bg-tertiary)] transition-all flex-shrink-0"
+                    >
+                      <Play className="w-3 h-3 text-[var(--color-text-tertiary)]" />
+                    </button>
                   </motion.div>
                 );
               })}
             </div>
-          </motion.div>
+          ) : (
+            <div className="py-10 text-center rounded-xl border border-dashed border-[var(--color-border)]">
+              <CheckCircle2 className="w-8 h-8 mx-auto text-[var(--color-success)] mb-2" />
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                All clear
+              </p>
+              <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">
+                No priority tasks for today
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowQuickTask(true)}
+                className="mt-3 h-8 gap-1.5 text-xs"
+              >
+                <Plus className="w-3 h-3" /> Add task
+              </Button>
+            </div>
+          )}
+
+          {/* Completed today */}
+          {completedToday.length > 0 && (
+            <div className="pt-1">
+              <p className="text-[11px] font-medium text-[var(--color-text-tertiary)] mb-1.5">
+                Completed today · {completedToday.length}
+              </p>
+              <div className="space-y-0.5">
+                {completedToday.slice(0, 3).map((t) => (
+                  <div
+                    key={t.id}
+                    className="flex items-center gap-3 py-1.5 px-3 -mx-3"
+                  >
+                    <CheckCircle2 className="w-[18px] h-[18px] text-[var(--color-success)] flex-shrink-0" />
+                    <span className="text-sm text-[var(--color-text-tertiary)] line-through truncate">
+                      {t.title}
+                    </span>
+                  </div>
+                ))}
+                {completedToday.length > 3 && (
+                  <p className="text-[11px] text-[var(--color-text-tertiary)] pl-8">
+                    +{completedToday.length - 3} more
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </motion.section>
+
+        {/* ──────────────────────────────────────────────────────────────
+            HABITS
+        ────────────────────────────────────────────────────────────── */}
+        {todayHabits.length > 0 && (
+          <motion.section variants={item} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
+                Habits
+              </h2>
+              <Link
+                href="/habits"
+                className="text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] flex items-center gap-0.5 transition-colors"
+              >
+                All habits <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {todayHabits.map((habit, i) => (
+                <motion.button
+                  key={habit.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() =>
+                    !habit.completed && completeHabit(habit.id, today)
+                  }
+                  disabled={habit.completed}
+                  className={cn(
+                    "relative p-3.5 rounded-xl border text-left transition-all",
+                    habit.completed
+                      ? "border-[var(--color-success)]/20 bg-[var(--color-success)]/5"
+                      : "border-[var(--color-border)] bg-[var(--color-bg-primary)] hover:border-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-secondary)]",
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p
+                      className={cn(
+                        "text-[13px] font-medium leading-snug",
+                        habit.completed
+                          ? "text-[var(--color-text-tertiary)]"
+                          : "text-[var(--color-text-primary)]",
+                      )}
+                    >
+                      {habit.name}
+                    </p>
+                    {habit.completed && (
+                      <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] flex-shrink-0 mt-0.5" />
+                    )}
+                  </div>
+
+                  {habit.streak > 0 && (
+                    <div className="flex items-center gap-1 mt-2">
+                      <Flame className="w-3 h-3 text-orange-500" />
+                      <span className="text-[11px] font-medium text-[var(--color-text-tertiary)]">
+                        {habit.streak}d
+                      </span>
+                    </div>
+                  )}
+                </motion.button>
+              ))}
+            </div>
+          </motion.section>
         )}
 
-        {/* Quick Add Task Modal */}
-        <Dialog open={showQuickTask} onOpenChange={setShowQuickTask}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Quick Add Task</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <Input
-                placeholder="What needs to be done?"
-                value={quickTaskTitle}
-                onChange={(e) => setQuickTaskTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleQuickTask()}
-                autoFocus
-                className="text-sm"
-              />
-              <Select
-                value={quickTaskPriority}
-                onValueChange={(v: any) => setQuickTaskPriority(v)}
-              >
-                <SelectTrigger className="text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="critical">🔴 Critical</SelectItem>
-                  <SelectItem value="high">🟠 High</SelectItem>
-                  <SelectItem value="medium">🟡 Medium</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowQuickTask(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleQuickTask}
-                disabled={!quickTaskTitle.trim()}
-              >
-                Add Task
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* ──────────────────────────────────────────────────────────────
+            GOALS & JOURNAL — two-col
+        ────────────────────────────────────────────────────────────── */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* GOALS */}
+          {activeGoals.length > 0 && (
+            <motion.section variants={item} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
+                  Goals
+                </h2>
+                <Link
+                  href="/goals"
+                  className="text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] flex items-center gap-0.5 transition-colors"
+                >
+                  All goals <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
 
-        {/* Quick Add Expense Modal */}
-        <Dialog open={showQuickExpense} onOpenChange={setShowQuickExpense}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Quick Log Expense</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <Input
-                placeholder="What did you buy?"
-                value={quickExpenseDesc}
-                onChange={(e) => setQuickExpenseDesc(e.target.value)}
-                className="text-sm"
-              />
-              <Input
-                type="number"
-                placeholder="Amount"
-                value={quickExpenseAmount}
-                onChange={(e) => setQuickExpenseAmount(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleQuickExpense()}
-                className="text-sm"
-              />
-              <Select
-                value={quickExpenseCat}
-                onValueChange={setQuickExpenseCat}
-              >
-                <SelectTrigger className="text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="food">🍔 Food</SelectItem>
-                  <SelectItem value="transport">🚗 Transport</SelectItem>
-                  <SelectItem value="entertainment">
-                    🎬 Entertainment
-                  </SelectItem>
-                  <SelectItem value="health">❤️ Health</SelectItem>
-                  <SelectItem value="shopping">🛍️ Shopping</SelectItem>
-                  <SelectItem value="utilities">⚡ Utilities</SelectItem>
-                  <SelectItem value="other">📦 Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowQuickExpense(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleQuickExpense}
-                disabled={!quickExpenseDesc.trim() || !quickExpenseAmount}
-              >
-                Log Expense
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <div className="space-y-2">
+                {activeGoals.map((goal, i) => (
+                  <motion.div
+                    key={goal.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-3 mb-2.5">
+                      <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                        {goal.title}
+                      </p>
+                      <span className="text-xs font-semibold tabular-nums text-[var(--color-text-secondary)] flex-shrink-0">
+                        {goal.progress}%
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[var(--color-bg-tertiary)] rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${goal.progress}%` }}
+                        transition={{
+                          duration: 0.8,
+                          delay: i * 0.1,
+                          ease: "easeOut",
+                        }}
+                        className="h-full bg-[var(--color-text-primary)] rounded-full"
+                      />
+                    </div>
+                    {goal.targetDate && (
+                      <p className="text-[11px] text-[var(--color-text-tertiary)] mt-2">
+                        {differenceInDays(
+                          parseISO(goal.targetDate),
+                          new Date(),
+                        )}{" "}
+                        days remaining
+                      </p>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.section>
+          )}
 
-        {/* Quick Note Modal */}
-        <Dialog open={showQuickNote} onOpenChange={setShowQuickNote}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Quick Note</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-2 py-4">
-              <p className="text-xs text-[var(--color-text-tertiary)]">
-                This note will be saved to today's journal entry.
-              </p>
-              <textarea
-                placeholder="What's on your mind?"
-                value={quickNote}
-                onChange={(e) => setQuickNote(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && e.metaKey) handleQuickNote();
+          {/* JOURNAL SNAPSHOT */}
+          <motion.section variants={item} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
+                Journal
+              </h2>
+              <Link
+                href="/journal"
+                className="text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] flex items-center gap-0.5 transition-colors"
+              >
+                Open <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {recentJournal ? (
+              <Link
+                href="/journal"
+                className="block p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-[var(--color-text-tertiary)]">
+                    {recentJournal.date === today
+                      ? "Today"
+                      : format(parseISO(recentJournal.date), "MMM d")}
+                  </span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-[var(--color-text-tertiary)] group-hover:text-[var(--color-text-primary)] transition-colors" />
+                </div>
+                <p className="text-sm text-[var(--color-text-secondary)] line-clamp-3 leading-relaxed">
+                  {recentJournal.content
+                    ? recentJournal.content.slice(0, 180) +
+                      (recentJournal.content.length > 180 ? "…" : "")
+                    : "No entry yet."}
+                </p>
+                {recentJournal.mood && (
+                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[var(--color-border)]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-[var(--color-text-tertiary)]">
+                        Mood
+                      </span>
+                      <span className="text-xs font-medium text-[var(--color-text-primary)]">
+                        {recentJournal.mood}/10
+                      </span>
+                    </div>
+                    {recentJournal.energy && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-[var(--color-text-tertiary)]">
+                          Energy
+                        </span>
+                        <span className="text-xs font-medium text-[var(--color-text-primary)]">
+                          {recentJournal.energy}/10
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Link>
+            ) : (
+              <button
+                onClick={() => setShowQuickNote(true)}
+                className="w-full p-6 rounded-xl border border-dashed border-[var(--color-border)] hover:border-[var(--color-text-tertiary)] bg-[var(--color-bg-primary)] text-center transition-colors"
+              >
+                <BookOpen className="w-6 h-6 mx-auto text-[var(--color-text-tertiary)] mb-2" />
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  Start today's entry
+                </p>
+              </button>
+            )}
+          </motion.section>
+        </div>
+
+        {/* ──────────────────────────────────────────────────────────────
+            NAVIGATE — minimal link grid
+        ────────────────────────────────────────────────────────────── */}
+        <motion.section variants={item} className="space-y-3">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
+            Navigate
+          </h2>
+          <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+            {[
+              {
+                icon: Calendar,
+                label: "Planner",
+                href: "/day-planner",
+                accent: "text-blue-600 dark:text-blue-400",
+                bg: "bg-blue-50 dark:bg-blue-950/30",
+              },
+              {
+                icon: Timer,
+                label: "Timer",
+                href: "/time-tracker",
+                accent: "text-purple-600 dark:text-purple-400",
+                bg: "bg-purple-50 dark:bg-purple-950/30",
+              },
+              {
+                icon: Brain,
+                label: "AI Coach",
+                href: "/ai-coach",
+                accent: "text-orange-600 dark:text-orange-400",
+                bg: "bg-orange-50 dark:bg-orange-950/30",
+              },
+              {
+                icon: DollarSign,
+                label: "Finance",
+                href: "/finance",
+                accent: "text-emerald-600 dark:text-emerald-400",
+                bg: "bg-emerald-50 dark:bg-emerald-950/30",
+              },
+              {
+                icon: Target,
+                label: "Goals",
+                href: "/goals",
+                accent: "text-amber-600 dark:text-amber-400",
+                bg: "bg-amber-50 dark:bg-amber-950/30",
+              },
+              {
+                icon: Clock,
+                label: "Timeline",
+                href: "/timeline",
+                accent: "text-pink-600 dark:text-pink-400",
+                bg: "bg-pink-50 dark:bg-pink-950/30",
+              },
+              {
+                icon: BarChart3,
+                label: "Insights",
+                href: "/insights",
+                accent: "text-indigo-600 dark:text-indigo-400",
+                bg: "bg-indigo-50 dark:bg-indigo-950/30",
+              },
+              {
+                icon: Sparkles,
+                label: "Journal",
+                href: "/journal",
+                accent: "text-teal-600 dark:text-teal-400",
+                bg: "bg-teal-50 dark:bg-teal-950/30",
+              },
+            ].map((a, i) => (
+              <motion.button
+                key={a.label}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 + i * 0.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push(a.href)}
+                className="flex flex-col items-center gap-1.5 py-3.5 px-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] hover:border-[var(--color-text-tertiary)] transition-all"
+              >
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                    a.bg,
+                  )}
+                >
+                  <a.icon className={cn("w-4 h-4", a.accent)} />
+                </div>
+                <span className="text-[10px] sm:text-xs font-medium text-[var(--color-text-secondary)]">
+                  {a.label}
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* ──────────────────────────────────────────────────────────────
+            DAY PROGRESS BAR — bottom subtle indicator
+        ────────────────────────────────────────────────────────────── */}
+        <motion.section variants={item}>
+          <div className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)]">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-xs font-medium text-[var(--color-text-secondary)]">
+                Day progress
+              </span>
+              <span className="text-xs tabular-nums text-[var(--color-text-tertiary)]">
+                {format(currentTime, "h:mm a")}
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-[var(--color-bg-tertiary)] rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{
+                  width: `${Math.round(((currentTime.getHours() * 60 + currentTime.getMinutes()) / 1440) * 100)}%`,
                 }}
-                className="flex w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-sm placeholder:text-[var(--color-text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500/40 focus-visible:ring-offset-0 min-h-[120px] resize-none"
-                autoFocus
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="h-full bg-[var(--color-text-primary)] rounded-full opacity-40"
               />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowQuickNote(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleQuickNote} disabled={!quickNote.trim()}>
-                Save Note
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[10px] text-[var(--color-text-tertiary)]">
+                12 AM
+              </span>
+              <span className="text-[10px] text-[var(--color-text-tertiary)]">
+                {Math.round(
+                  ((currentTime.getHours() * 60 + currentTime.getMinutes()) /
+                    1440) *
+                    100,
+                )}
+                % of day elapsed
+              </span>
+              <span className="text-[10px] text-[var(--color-text-tertiary)]">
+                11:59 PM
+              </span>
+            </div>
+          </div>
+        </motion.section>
+      </motion.div>
+
+      {/* ──────────────────────────────────────────────────────────────
+          MODALS
+      ────────────────────────────────────────────────────────────── */}
+      <Dialog open={showQuickTask} onOpenChange={setShowQuickTask}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">Add Task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-3">
+            <Input
+              placeholder="What needs to be done?"
+              value={quickTaskTitle}
+              onChange={(e) => setQuickTaskTitle(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleQuickTask()}
+              autoFocus
+            />
+            <Select
+              value={quickTaskPriority}
+              onValueChange={(v: any) => setQuickTaskPriority(v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowQuickTask(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleQuickTask} disabled={!quickTaskTitle.trim()}>
+              Add
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showQuickNote} onOpenChange={setShowQuickNote}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">Quick Note</DialogTitle>
+          </DialogHeader>
+          <div className="py-3">
+            <Textarea
+              placeholder="What's on your mind?"
+              value={quickNote}
+              onChange={(e) => setQuickNote(e.target.value)}
+              autoFocus
+              className="min-h-[100px] resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowQuickNote(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleQuickNote} disabled={!quickNote.trim()}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
