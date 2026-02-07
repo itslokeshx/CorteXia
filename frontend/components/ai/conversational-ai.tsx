@@ -806,15 +806,6 @@ export function ConversationalAI() {
         exit={{ scale: 0 }}
       >
         <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
-        {messages.length > 0 && (
-          <motion.div
-            className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-red-500 text-white text-[10px] sm:text-xs flex items-center justify-center"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-          >
-            {messages.length}
-          </motion.div>
-        )}
       </motion.button>
     );
   }
