@@ -73,7 +73,7 @@ export function CollapsibleSidebar() {
       <Link
         href={item.href}
         className={cn(
-          "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-normal transition-all duration-150",
+          "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-normal transition-colors duration-150",
           collapsed ? "justify-center" : "",
           isActive
             ? "bg-[#ececf1] dark:bg-[#2a2b32] text-gray-900 dark:text-white"
@@ -163,11 +163,11 @@ export function CollapsibleSidebar() {
       </AnimatePresence>
 
       {/* Desktop sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{ width: isCollapsed ? 68 : 260 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-[#f9fafb] dark:bg-[#171717] border-r border-[var(--color-border)] overflow-hidden group"
+      <aside
+        className={cn(
+          "hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-[#f9fafb] dark:bg-[#171717] border-r border-[var(--color-border)] overflow-hidden group transition-[width] duration-200 ease-out",
+          isCollapsed ? "w-[68px]" : "w-[260px]",
+        )}
       >
         {/* Logo and Toggle */}
         <div
@@ -208,19 +208,14 @@ export function CollapsibleSidebar() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col min-w-0 overflow-hidden whitespace-nowrap"
-              >
+              <div className="flex flex-col min-w-0 overflow-hidden whitespace-nowrap">
                 <span className="font-semibold text-sm tracking-tight text-[var(--color-text-primary)]">
                   CorteXia
                 </span>
                 <span className="text-[9px] text-[var(--color-text-tertiary)] uppercase tracking-wider">
                   Life OS
                 </span>
-              </motion.div>
+              </div>
               <button
                 onClick={toggleCollapse}
                 className="p-2 ml-auto rounded-lg text-gray-600 dark:text-gray-400 hover:bg-[#ececf1] dark:hover:bg-[#2a2b32] transition-all opacity-0 group-hover:opacity-100"
@@ -245,7 +240,7 @@ export function CollapsibleSidebar() {
             <NavLink key={item.href} item={item} collapsed={isCollapsed} />
           ))}
         </div>
-      </motion.aside>
+      </aside>
     </>
   );
 }
