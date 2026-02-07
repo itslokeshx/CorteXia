@@ -21,6 +21,7 @@ interface AppContextType {
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   completeTask: (id: string) => void;
+  uncompleteTask: (id: string) => void;
 
   // Habits
   habits: Habit[];
@@ -255,6 +256,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         t.id === id
           ? { ...t, status: "completed", completedAt: new Date().toISOString() }
           : t,
+      ),
+    );
+  };
+
+  const uncompleteTask = (id: string) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, status: "todo", completedAt: undefined } : t,
       ),
     );
   };
@@ -822,6 +831,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateTask,
     deleteTask,
     completeTask,
+    uncompleteTask,
     habits,
     addHabit,
     updateHabit,

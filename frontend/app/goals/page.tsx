@@ -467,7 +467,9 @@ export default function GoalsPage() {
                     key={i}
                     className={cn(
                       "w-2.5 h-2.5 rounded-full",
-                      filled ? "bg-purple-500" : "bg-gray-200 dark:bg-gray-700",
+                      filled
+                        ? "bg-gray-900 dark:bg-gray-100"
+                        : "bg-gray-200 dark:bg-gray-700",
                     )}
                   />
                 ))}
@@ -531,7 +533,7 @@ export default function GoalsPage() {
               <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
                 Progression
               </h2>
-              <span className="text-xs font-semibold text-purple-600">
+              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                 {health.progress}%
               </span>
             </div>
@@ -539,7 +541,7 @@ export default function GoalsPage() {
             {/* Overall bar */}
             <div className="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-6">
               <motion.div
-                className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
+                className="h-full bg-gray-900 dark:bg-gray-100 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${health.progress}%` }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
@@ -733,7 +735,7 @@ export default function GoalsPage() {
                                               onClick={() =>
                                                 setAddingSubGoal(month.month)
                                               }
-                                              className="flex items-center gap-2 text-xs text-[var(--color-text-tertiary)] hover:text-purple-500 transition-colors py-1"
+                                              className="flex items-center gap-2 text-xs text-[var(--color-text-tertiary)] hover:text-gray-700 dark:hover:text-gray-300 transition-colors py-1"
                                             >
                                               <Plus className="w-3.5 h-3.5" />
                                               Add sub-goal
@@ -897,7 +899,7 @@ export default function GoalsPage() {
               <Button
                 onClick={handleCreateGoal}
                 disabled={!goalName.trim()}
-                className="ml-auto h-9 px-4 text-xs rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-sm"
+                className="ml-auto h-9 px-4 text-xs rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm"
               >
                 <Plus className="w-3.5 h-3.5 mr-1.5" />
                 Create Goal

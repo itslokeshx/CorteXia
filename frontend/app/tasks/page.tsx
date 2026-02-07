@@ -87,8 +87,15 @@ type SortBy = "priority" | "dueDate" | "title" | "created";
 
 export default function TasksPage() {
   const router = useRouter();
-  const { tasks, addTask, completeTask, updateTask, deleteTask, goals } =
-    useApp();
+  const {
+    tasks,
+    addTask,
+    completeTask,
+    uncompleteTask,
+    updateTask,
+    deleteTask,
+    goals,
+  } = useApp();
 
   const [view, setView] = useState<TabView>("today");
   const [sortBy, setSortBy] = useState<SortBy>("priority");
@@ -320,6 +327,16 @@ export default function TasksPage() {
     );
   };
 
+  const toggleTaskComplete = (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    if (task.status === "completed") {
+      uncompleteTask(taskId);
+    } else {
+      completeTask(taskId);
+    }
+  };
+
   const toggleSection = (key: string) =>
     setExpandedSections((p) => ({ ...p, [key]: !p[key] }));
 
@@ -366,7 +383,7 @@ export default function TasksPage() {
                   className={cn(
                     "px-2.5 py-1 text-[12px] font-medium rounded-md transition-all duration-150 whitespace-nowrap",
                     view === val
-                      ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
+                      ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
                       : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50",
                   )}
                 >
@@ -383,7 +400,7 @@ export default function TasksPage() {
                 setEditingTaskId(null);
                 setShowModal(true);
               }}
-              className="h-8 px-3 text-[13px] font-medium rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-sm transition-all flex-shrink-0"
+              className="h-8 px-3 text-[13px] font-medium rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm transition-all flex-shrink-0"
             >
               <Plus className="w-3.5 h-3.5 mr-1.5" />
               <span className="hidden sm:inline">New</span>
@@ -446,7 +463,7 @@ export default function TasksPage() {
                           tomorrow={tomorrow}
                           goals={goals}
                           fmtDue={fmtDue}
-                          onComplete={completeTask}
+                          onToggleComplete={toggleTaskComplete}
                           onDelete={deleteTask}
                           onEdit={() => openEdit(task)}
                           onStartTimer={() => handleStartTimer(task)}
@@ -464,7 +481,7 @@ export default function TasksPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           onClick={() => toggleSection(view)}
-                          className="w-full py-2 text-[12px] text-purple-600 dark:text-purple-400 hover:text-purple-700 font-medium"
+                          className="w-full py-2 text-[12px] text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 font-medium"
                         >
                           +{hiddenN} more
                         </motion.button>
@@ -474,7 +491,7 @@ export default function TasksPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           onClick={() => toggleSection(view)}
-                          className="w-full py-2 text-[12px] text-purple-600 dark:text-purple-400 hover:text-purple-700 font-medium"
+                          className="w-full py-2 text-[12px] text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 font-medium"
                         >
                           Show less
                         </motion.button>
@@ -489,8 +506,8 @@ export default function TasksPage() {
                 animate={{ opacity: 1 }}
                 className="text-center py-12"
               >
-                <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-3">
-                  <Check className="w-6 h-6 text-purple-500" />
+                <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3">
+                  <Check className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </div>
                 <p className="text-[14px] font-medium text-[var(--color-text-primary)]">
                   All clear
@@ -527,7 +544,7 @@ export default function TasksPage() {
                     tomorrow={tomorrow}
                     goals={goals}
                     fmtDue={fmtDue}
-                    onComplete={completeTask}
+                    onToggleComplete={toggleTaskComplete}
                     onDelete={deleteTask}
                     onEdit={() => openEdit(task)}
                     onStartTimer={() => handleStartTimer(task)}
@@ -544,7 +561,7 @@ export default function TasksPage() {
                 {completed.length > 3 && (
                   <button
                     onClick={() => toggleSection("done")}
-                    className="w-full py-1.5 text-[11px] text-gray-500 hover:text-purple-600 transition-colors"
+                    className="w-full py-1.5 text-[11px] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                   >
                     {expandedSections["done"]
                       ? "Show less"
@@ -626,7 +643,7 @@ export default function TasksPage() {
                     className={cn(
                       "px-3 py-1.5 text-[12px] font-medium rounded-lg border transition-all",
                       formSchedule === val
-                        ? "border-purple-600 dark:border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                        ? "border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
                         : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800",
                     )}
                   >
@@ -695,7 +712,7 @@ export default function TasksPage() {
                   type="checkbox"
                   checked={formTimeBlock}
                   onChange={(e) => setFormTimeBlock(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
                 />
                 <span className="text-[13px] font-medium text-gray-700 dark:text-gray-300">
                   Block time
@@ -774,7 +791,7 @@ export default function TasksPage() {
             <Button
               onClick={editingTaskId ? handleSaveEdit : handleCreate}
               disabled={!formTitle.trim()}
-              className="h-9 px-5 text-[13px] rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-sm disabled:opacity-50 flex-1 sm:flex-initial"
+              className="h-9 px-5 text-[13px] rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm disabled:opacity-50 flex-1 sm:flex-initial"
             >
               {editingTaskId ? "Save" : "Create"}
             </Button>
@@ -795,7 +812,7 @@ interface TaskCardProps {
   fmtDue: (
     t: Task,
   ) => { label: string; isOverdue: boolean; isToday: boolean } | null;
-  onComplete: (id: string) => void;
+  onToggleComplete: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: () => void;
   onStartTimer: () => void;
@@ -816,7 +833,7 @@ function TaskCard({
   tomorrow,
   goals,
   fmtDue,
-  onComplete,
+  onToggleComplete,
   onDelete,
   onEdit,
   onStartTimer,
@@ -849,7 +866,7 @@ function TaskCard({
         className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 opacity-60"
       >
         <div
-          onClick={() => onComplete(task.id)}
+          onClick={() => onToggleComplete(task.id)}
           className="w-4 h-4 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center flex-shrink-0 cursor-pointer"
         >
           <Check className="w-2.5 h-2.5 text-white" />
@@ -878,17 +895,17 @@ function TaskCard({
         "group p-2.5 sm:p-3 rounded-lg border transition-all duration-150",
         isDone
           ? "border-green-200 dark:border-green-800/50 bg-green-50/50 dark:bg-green-900/10 opacity-60"
-          : "border-gray-200 dark:border-gray-700 bg-[var(--color-bg-secondary)] hover:border-purple-200 dark:hover:border-purple-800 hover:shadow-sm hover:-translate-y-[1px]",
+          : "border-gray-200 dark:border-gray-700 bg-[var(--color-bg-secondary)] hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm hover:-translate-y-[1px]",
       )}
     >
       <div className="flex items-start gap-2.5 mb-1.5">
         <div
-          onClick={() => onComplete(task.id)}
+          onClick={() => onToggleComplete(task.id)}
           className={cn(
             "w-4 h-4 mt-0.5 rounded border-2 flex items-center justify-center flex-shrink-0 cursor-pointer transition-all duration-150",
             isDone
               ? "border-green-500 bg-green-500"
-              : "border-gray-300 dark:border-gray-600 hover:border-purple-400",
+              : "border-gray-300 dark:border-gray-600 hover:border-gray-500",
           )}
         >
           {isDone && <Check className="w-2.5 h-2.5 text-white" />}
@@ -940,7 +957,7 @@ function TaskCard({
             <span className="text-gray-300 dark:text-gray-600 text-[11px]">
               ·
             </span>
-            <span className="text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 hover:underline cursor-pointer">
+            <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:underline cursor-pointer">
               {goal.title}
             </span>
           </>
@@ -1027,7 +1044,7 @@ function TaskCard({
       ) : (
         <button
           onClick={() => setAddingSubtask(task.id)}
-          className="ml-6.5 mb-1 flex items-center gap-1 text-[11px] text-gray-400 hover:text-purple-500 transition-colors"
+          className="ml-6.5 mb-1 flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           <Plus className="w-3 h-3" />
           Add sub-task
@@ -1037,7 +1054,7 @@ function TaskCard({
       <div className="flex flex-wrap items-center gap-1.5 ml-6.5 pt-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150">
         <button
           onClick={onEdit}
-          className="flex items-center gap-0.5 text-[11px] font-medium text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+          className="flex items-center gap-0.5 text-[11px] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
         >
           <Pencil className="w-3 h-3" />
           <span className="hidden xs:inline">Edit</span>
@@ -1052,7 +1069,7 @@ function TaskCard({
         {!isDone && (
           <button
             onClick={onStartTimer}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[11px] font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors ml-auto"
+            className="flex items-center gap-1 px-2 py-1 rounded bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-[11px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors ml-auto"
           >
             <Play className="w-3 h-3" />
             <span className="hidden xs:inline">Start</span>

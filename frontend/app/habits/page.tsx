@@ -46,21 +46,21 @@ import {
 
 // ─── Categories (only the 6 valid Habit type categories) ───
 const CATEGORIES = [
-  { value: "health", label: "Health", color: "#10B981" },
-  { value: "productivity", label: "Productivity", color: "#8B5CF6" },
-  { value: "learning", label: "Learning", color: "#3B82F6" },
-  { value: "fitness", label: "Fitness", color: "#F59E0B" },
-  { value: "mindfulness", label: "Mindfulness", color: "#06B6D4" },
-  { value: "social", label: "Social", color: "#F97316" },
+  { value: "health", label: "Health", color: "#71717a" },
+  { value: "productivity", label: "Productivity", color: "#71717a" },
+  { value: "learning", label: "Learning", color: "#71717a" },
+  { value: "fitness", label: "Fitness", color: "#71717a" },
+  { value: "mindfulness", label: "Mindfulness", color: "#71717a" },
+  { value: "social", label: "Social", color: "#71717a" },
 ] as const;
 
 const CATEGORY_COLOR_MAP: Record<string, string> = {
-  health: "#10B981",
-  productivity: "#8B5CF6",
-  learning: "#3B82F6",
-  fitness: "#F59E0B",
-  mindfulness: "#06B6D4",
-  social: "#F97316",
+  health: "#71717a",
+  productivity: "#71717a",
+  learning: "#71717a",
+  fitness: "#71717a",
+  mindfulness: "#71717a",
+  social: "#71717a",
 };
 
 // ─── GitHub-exact heatmap colors ───
@@ -97,7 +97,7 @@ export default function HabitsPage() {
     description: "",
     frequency: "daily",
     category: "health",
-    color: "#10B981",
+    color: "#71717a",
   });
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -240,7 +240,7 @@ export default function HabitsPage() {
       description: "",
       frequency: "daily",
       category: "health",
-      color: "#10B981",
+      color: "#71717a",
     });
     setCreateOpen(false);
   };
@@ -324,7 +324,7 @@ export default function HabitsPage() {
           </div>
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-sm">
+              <Button className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
                 <Plus className="w-4 h-4" /> New Habit
               </Button>
             </DialogTrigger>
@@ -380,7 +380,7 @@ export default function HabitsPage() {
                         setNewHabit({
                           ...newHabit,
                           category: v,
-                          color: cat?.color || "#8B5CF6",
+                          color: cat?.color || "#71717a",
                         });
                       }}
                     >
@@ -411,7 +411,7 @@ export default function HabitsPage() {
                 <Button
                   onClick={handleCreateHabit}
                   disabled={!newHabit.name.trim()}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                  className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
                 >
                   Create Habit
                 </Button>
@@ -441,9 +441,9 @@ export default function HabitsPage() {
 
           {/* Completion Rate */}
           <div className="relative p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r from-green-500 to-emerald-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gray-300 dark:bg-gray-700" />
             <div className="flex items-center gap-2 mb-1 mt-1">
-              <TrendingUp className="w-4 h-4 text-green-500" />
+              <TrendingUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               <span className="text-xs text-[var(--color-text-tertiary)]">
                 Completion Rate
               </span>
@@ -458,9 +458,9 @@ export default function HabitsPage() {
 
           {/* Best Streak */}
           <div className="relative p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r from-yellow-500 to-amber-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gray-300 dark:bg-gray-700" />
             <div className="flex items-center gap-2 mb-1 mt-1">
-              <Trophy className="w-4 h-4 text-yellow-500" />
+              <Trophy className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               <span className="text-xs text-[var(--color-text-tertiary)]">
                 Best Streak
               </span>
@@ -475,9 +475,9 @@ export default function HabitsPage() {
 
           {/* At Risk */}
           <div className="relative p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r from-red-500 to-orange-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gray-300 dark:bg-gray-700" />
             <div className="flex items-center gap-2 mb-1 mt-1">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
+              <AlertTriangle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               <span className="text-xs text-[var(--color-text-tertiary)]">
                 At Risk
               </span>
@@ -514,7 +514,7 @@ export default function HabitsPage() {
             <AnimatePresence>
               {habitData.map((habit, i) => {
                 const catColor =
-                  CATEGORY_COLOR_MAP[habit.category] || "#8B5CF6";
+                  CATEGORY_COLOR_MAP[habit.category] || "#71717a";
                 const weeks = getWeeks(getHeatmapData(habit));
                 const monthLabels = getMonthLabels(weeks);
 
@@ -603,16 +603,16 @@ export default function HabitsPage() {
                           className={cn(
                             "w-4 h-4",
                             habit.streak > 0
-                              ? "text-orange-500"
-                              : "text-gray-400",
+                              ? "text-gray-600 dark:text-gray-400"
+                              : "text-gray-400 dark:text-gray-600",
                           )}
                         />
                         <span
                           className={cn(
                             "text-xs font-semibold",
                             habit.streak > 0
-                              ? "text-orange-500"
-                              : "text-gray-400",
+                              ? "text-gray-900 dark:text-gray-100"
+                              : "text-gray-400 dark:text-gray-600",
                           )}
                         >
                           {habit.streak}
@@ -653,7 +653,7 @@ export default function HabitsPage() {
                             {/* ─── Mini Stats Grid ─── */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                               <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[var(--color-bg-tertiary)]">
-                                <Flame className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
+                                <Flame className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400 flex-shrink-0" />
                                 <div>
                                   <p className="text-xs font-semibold text-[var(--color-text-primary)]">
                                     {habit.streak}
@@ -664,7 +664,7 @@ export default function HabitsPage() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[var(--color-bg-tertiary)]">
-                                <Trophy className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" />
+                                <Trophy className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400 flex-shrink-0" />
                                 <div>
                                   <p className="text-xs font-semibold text-[var(--color-text-primary)]">
                                     {habit.longestStreak}
@@ -675,7 +675,7 @@ export default function HabitsPage() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[var(--color-bg-tertiary)]">
-                                <BarChart3 className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                                <BarChart3 className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400 flex-shrink-0" />
                                 <div>
                                   <p className="text-xs font-semibold text-[var(--color-text-primary)]">
                                     {habit.completionRate}%
@@ -686,7 +686,7 @@ export default function HabitsPage() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[var(--color-bg-tertiary)]">
-                                <Zap className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
+                                <Zap className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400 flex-shrink-0" />
                                 <div>
                                   <p className="text-xs font-semibold text-[var(--color-text-primary)]">
                                     {habit.totalCompletions}

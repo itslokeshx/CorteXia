@@ -51,52 +51,52 @@ const CATEGORIES: Record<
   food: {
     label: "Food",
     icon: Utensils,
-    color: "text-orange-500 bg-orange-50 dark:bg-orange-900/20",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
   transport: {
     label: "Transport",
     icon: CreditCard,
-    color: "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
   entertainment: {
     label: "Entertainment",
     icon: Tv,
-    color: "text-purple-500 bg-purple-50 dark:bg-purple-900/20",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
   health: {
     label: "Health",
     icon: Heart,
-    color: "text-red-500 bg-red-50 dark:bg-red-900/20",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
   learning: {
     label: "Learning",
     icon: BookOpen,
-    color: "text-cyan-500 bg-cyan-50 dark:bg-cyan-900/20",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
   utilities: {
     label: "Utilities",
     icon: Zap,
-    color: "text-amber-500 bg-amber-50 dark:bg-amber-900/20",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
   salary: {
     label: "Salary",
     icon: TrendingUp,
-    color: "text-green-500 bg-green-50 dark:bg-green-900/20",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
   shopping: {
     label: "Shopping",
     icon: ShoppingCart,
-    color: "text-pink-500 bg-pink-50 dark:bg-pink-900/20",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
   subscription: {
     label: "Subscription",
     icon: CreditCard,
-    color: "text-violet-500 bg-violet-50 dark:bg-violet-900/20",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
   other: {
     label: "Other",
     icon: DollarSign,
-    color: "text-gray-500 bg-gray-50 dark:bg-gray-800",
+    color: "text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300",
   },
 };
 
@@ -200,7 +200,7 @@ export default function FinancePage() {
           </div>
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm">
+              <Button className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
                 <Plus className="w-4 h-4" /> Add Transaction
               </Button>
             </DialogTrigger>
@@ -274,7 +274,7 @@ export default function FinancePage() {
                 <Button
                   onClick={handleCreate}
                   disabled={!newTx.description.trim() || !newTx.amount}
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
                 >
                   Add
                 </Button>
@@ -297,34 +297,34 @@ export default function FinancePage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-5">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
-                <ArrowUpRight className="w-4 h-4 text-green-500" />
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <ArrowUpRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               </div>
               <span className="text-xs uppercase tracking-wider text-[var(--color-text-tertiary)] font-medium">
                 Income
               </span>
             </div>
-            <p className="text-2xl font-bold text-green-500">
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               ${stats.income.toFixed(2)}
             </p>
           </div>
           <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-5">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
-                <ArrowDownRight className="w-4 h-4 text-red-500" />
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <ArrowDownRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               </div>
               <span className="text-xs uppercase tracking-wider text-[var(--color-text-tertiary)] font-medium">
                 Expenses
               </span>
             </div>
-            <p className="text-2xl font-bold text-red-500">
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               ${stats.expenses.toFixed(2)}
             </p>
           </div>
           <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-5">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
-                <PiggyBank className="w-4 h-4 text-purple-500" />
+              <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <PiggyBank className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               </div>
               <span className="text-xs uppercase tracking-wider text-[var(--color-text-tertiary)] font-medium">
                 Net
@@ -332,8 +332,7 @@ export default function FinancePage() {
             </div>
             <p
               className={cn(
-                "text-2xl font-bold",
-                stats.net >= 0 ? "text-green-500" : "text-red-500",
+                "text-2xl font-bold text-gray-900 dark:text-gray-100",
               )}
             >
               ${stats.net.toFixed(2)}
@@ -378,7 +377,7 @@ export default function FinancePage() {
                             initial={{ width: 0 }}
                             animate={{ width: `${pct}%` }}
                             transition={{ duration: 0.6, ease: "easeOut" }}
-                            className="h-full rounded-full bg-purple-500"
+                            className="h-full rounded-full bg-gray-900 dark:bg-gray-100"
                           />
                         </div>
                       </div>
@@ -398,8 +397,8 @@ export default function FinancePage() {
             <div className="space-y-3">
               {financialGoals.map((goal) => (
                 <div key={goal.id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-amber-500" />
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
@@ -456,8 +455,7 @@ export default function FinancePage() {
                     </div>
                     <span
                       className={cn(
-                        "text-sm font-semibold tabular-nums",
-                        isIncome ? "text-green-500" : "text-red-500",
+                        "text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100",
                       )}
                     >
                       {isIncome ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}

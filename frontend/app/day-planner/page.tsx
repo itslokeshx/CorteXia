@@ -320,7 +320,7 @@ export default function DayPlannerPage() {
             {/* Add Block */}
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-sm">
+                <Button className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
                   <Plus className="w-4 h-4" /> Add Block
                 </Button>
               </DialogTrigger>
@@ -411,7 +411,7 @@ export default function DayPlannerPage() {
                       Notes
                     </label>
                     <textarea
-                      className="flex w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-sm placeholder:text-[var(--color-text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/40 focus-visible:ring-offset-0 min-h-[80px] resize-none"
+                      className="flex w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-sm placeholder:text-[var(--color-text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500/40 focus-visible:ring-offset-0 min-h-[80px] resize-none"
                       placeholder="Optional notes..."
                       value={newBlock.notes}
                       onChange={(e) =>
@@ -431,7 +431,7 @@ export default function DayPlannerPage() {
                   <Button
                     onClick={handleCreateBlock}
                     disabled={!newBlock.title.trim()}
-                    className="rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                    className="rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
                   >
                     Create
                   </Button>

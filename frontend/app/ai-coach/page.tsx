@@ -453,7 +453,7 @@ export default function AICoachPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Brain className="h-6 w-6 text-purple-500" />
+              <Brain className="h-6 w-6 text-gray-600 dark:text-gray-400" />
               AI Coach
             </h1>
             <p className="text-sm text-[var(--color-text-tertiary)] mt-1">
@@ -467,7 +467,7 @@ export default function AICoachPage() {
             </Button>
             <Button
               onClick={() => startNewSession("general")}
-              className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+              className="gap-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
             >
               <Plus className="h-4 w-4" />
               New Session
@@ -552,7 +552,7 @@ export default function AICoachPage() {
             {/* Quick Stats Row */}
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
               <div className="flex items-center gap-2">
-                <CheckSquare className="h-4 w-4 text-blue-500" />
+                <CheckSquare className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 <span
                   className={userState.tasks.overdue > 0 ? "text-red-600" : ""}
                 >
@@ -577,7 +577,7 @@ export default function AICoachPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-purple-500" />
+                <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 <span>
                   {userState.goals.struggling > 0
                     ? `${userState.goals.struggling} goals struggling`
@@ -597,7 +597,7 @@ export default function AICoachPage() {
             </div>
 
             {/* AI Assessment Banner */}
-            <div className="mt-4 p-4 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+            <div className="mt-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
               <p className="text-sm">
                 <span className="font-bold">AI Assessment:</span> {aiAssessment}
               </p>
@@ -613,7 +613,7 @@ export default function AICoachPage() {
               {!currentSession ? (
                 /* Empty state */
                 <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                  <Brain className="w-16 h-16 text-purple-500 mb-4" />
+                  <Brain className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
                   <h3 className="text-xl font-semibold mb-2">Ready to chat?</h3>
                   <p className="text-sm text-neutral-500 mb-6 max-w-md">
                     I&apos;m here to listen, support, and help you navigate
@@ -642,8 +642,8 @@ export default function AICoachPage() {
                         className={cn(
                           "max-w-[80%] p-4 rounded-2xl",
                           message.role === "user"
-                            ? "rounded-br-sm bg-gradient-to-br from-purple-600 to-purple-700 text-white"
-                            : "rounded-bl-sm bg-gradient-to-br from-gray-100 to-gray-50 dark:from-neutral-800 dark:to-neutral-800/80",
+                            ? "rounded-br-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
+                            : "rounded-bl-sm bg-gray-100 dark:bg-neutral-800",
                         )}
                       >
                         <p className="text-sm whitespace-pre-wrap">
@@ -653,7 +653,7 @@ export default function AICoachPage() {
                           className={cn(
                             "text-xs mt-1",
                             message.role === "user"
-                              ? "text-purple-200"
+                              ? "text-gray-300 dark:text-gray-700"
                               : "text-neutral-400",
                           )}
                         >
@@ -670,7 +670,7 @@ export default function AICoachPage() {
                         {[0, 1, 2].map((i) => (
                           <motion.div
                             key={i}
-                            className="w-2 h-2 bg-purple-500 rounded-full"
+                            className="w-2 h-2 bg-gray-500 rounded-full"
                             animate={{ y: [0, -8, 0] }}
                             transition={{
                               repeat: Infinity,
@@ -763,9 +763,9 @@ export default function AICoachPage() {
                     insight.type === "suggestion" &&
                       "border-l-green-500 bg-green-50 dark:bg-green-900/20",
                     insight.type === "pattern" &&
-                      "border-l-blue-500 bg-blue-50 dark:bg-blue-900/20",
+                      "border-l-gray-500 bg-gray-100 dark:bg-gray-800",
                     insight.type === "insight" &&
-                      "border-l-purple-500 bg-purple-50 dark:bg-purple-900/20",
+                      "border-l-gray-500 bg-gray-100 dark:bg-gray-800",
                   )}
                 >
                   <span className="text-lg">{insight.icon}</span>

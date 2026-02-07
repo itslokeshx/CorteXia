@@ -165,39 +165,69 @@ export function CollapsibleSidebar() {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-[#f9fafb] dark:bg-[#171717] transition-all duration-300 ease-out",
+          "hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-[#f9fafb] dark:bg-[#171717] transition-all duration-300 ease-out group",
           isCollapsed ? "w-[68px]" : "w-[260px]",
         )}
       >
-        {/* Logo */}
+        {/* Logo and Toggle */}
         <div
           className={cn(
-            "flex items-center h-14 px-3",
+            "flex items-center h-14 px-3 border-b border-gray-200 dark:border-gray-700 relative",
             isCollapsed ? "justify-center" : "gap-2.5",
           )}
         >
-          <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
-            <Image
-              src="/Cortexia-icon.jpeg"
-              alt="CorteXia"
-              width={32}
-              height={32}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          {!isCollapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col min-w-0"
-            >
-              <span className="font-semibold text-sm tracking-tight">
-                CorteXia
-              </span>
-              <span className="text-[9px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Life OS
-              </span>
-            </motion.div>
+          {isCollapsed ? (
+            /* Centered icon with overlay expand button */
+            <div className="relative w-8 h-8">
+              <div className="w-8 h-8 rounded-lg overflow-hidden">
+                <Image
+                  src="/Cortexia-icon.jpeg"
+                  alt="CorteXia"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <button
+                onClick={toggleCollapse}
+                className="absolute inset-0 flex items-center justify-center rounded-lg text-white bg-gray-900/80 dark:bg-gray-100/80 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-900/90 dark:hover:bg-gray-100/90"
+                title="Expand sidebar"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            /* Expanded view */
+            <>
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+                <Image
+                  src="/Cortexia-icon.jpeg"
+                  alt="CorteXia"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col min-w-0"
+              >
+                <span className="font-semibold text-sm tracking-tight">
+                  CorteXia
+                </span>
+                <span className="text-[9px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Life OS
+                </span>
+              </motion.div>
+              <button
+                onClick={toggleCollapse}
+                className="p-2 ml-auto rounded-lg text-gray-600 dark:text-gray-400 hover:bg-[#ececf1] dark:hover:bg-[#2a2b32] transition-all opacity-0 group-hover:opacity-100"
+                title="Collapse sidebar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </>
           )}
         </div>
 
@@ -213,19 +243,6 @@ export function CollapsibleSidebar() {
           {bottomItems.map((item) => (
             <NavLink key={item.href} item={item} collapsed={isCollapsed} />
           ))}
-          <button
-            onClick={toggleCollapse}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-[#ececf1] dark:hover:bg-[#2a2b32] transition-all text-xs"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <>
-                <ChevronLeft className="w-4 h-4" />
-                <span>Collapse</span>
-              </>
-            )}
-          </button>
         </div>
       </aside>
     </>
