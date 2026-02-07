@@ -20,11 +20,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-white dark:bg-[#0A0B0D]">
       <CollapsibleSidebar />
       <motion.main
-        style={{
+        initial={false}
+        animate={{
           marginLeft: mounted ? (isCollapsed ? 68 : 260) : 260,
         }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={cn(
-          "min-h-screen transition-[margin-left] duration-300 ease-out",
+          "min-h-screen",
           "max-lg:!ml-0",
           "px-6 sm:px-8 lg:px-12 py-8 pt-16 lg:pt-8",
         )}

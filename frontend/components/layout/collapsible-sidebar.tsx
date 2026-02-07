@@ -163,22 +163,22 @@ export function CollapsibleSidebar() {
       </AnimatePresence>
 
       {/* Desktop sidebar */}
-      <aside
-        className={cn(
-          "hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-[#f9fafb] dark:bg-[#171717] transition-all duration-300 ease-out group",
-          isCollapsed ? "w-[68px]" : "w-[260px]",
-        )}
+      <motion.aside
+        initial={false}
+        animate={{ width: isCollapsed ? 68 : 260 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-[#f9fafb] dark:bg-[#171717] border-r border-[var(--color-border)] overflow-hidden group"
       >
         {/* Logo and Toggle */}
         <div
           className={cn(
-            "flex items-center h-14 px-3 border-b border-gray-200 dark:border-gray-700 relative",
+            "flex items-center h-14 px-3 border-b border-[var(--color-border)] relative flex-shrink-0",
             isCollapsed ? "justify-center" : "gap-2.5",
           )}
         >
           {isCollapsed ? (
             /* Centered icon with overlay expand button */
-            <div className="relative w-8 h-8">
+            <div className="relative w-8 h-8 flex-shrink-0">
               <div className="w-8 h-8 rounded-lg overflow-hidden">
                 <Image
                   src="/Cortexia-icon.jpeg"
@@ -211,12 +211,13 @@ export function CollapsibleSidebar() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-col min-w-0"
+                transition={{ duration: 0.2 }}
+                className="flex flex-col min-w-0 overflow-hidden whitespace-nowrap"
               >
-                <span className="font-semibold text-sm tracking-tight">
+                <span className="font-semibold text-sm tracking-tight text-[var(--color-text-primary)]">
                   CorteXia
                 </span>
-                <span className="text-[9px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <span className="text-[9px] text-[var(--color-text-tertiary)] uppercase tracking-wider">
                   Life OS
                 </span>
               </motion.div>
@@ -232,19 +233,19 @@ export function CollapsibleSidebar() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5 scrollbar-thin">
+        <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5 scrollbar-thin overflow-x-hidden">
           {navItems.map((item) => (
             <NavLink key={item.href} item={item} collapsed={isCollapsed} />
           ))}
         </nav>
 
         {/* Bottom */}
-        <div className="px-2 py-2 border-t border-gray-200 dark:border-gray-700 space-y-0.5">
+        <div className="px-2 py-2 border-t border-[var(--color-border)] space-y-0.5 flex-shrink-0">
           {bottomItems.map((item) => (
             <NavLink key={item.href} item={item} collapsed={isCollapsed} />
           ))}
         </div>
-      </aside>
+      </motion.aside>
     </>
   );
 }
