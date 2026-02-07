@@ -574,7 +574,7 @@ export default function DayPlannerPage() {
                       <div className="min-w-0 flex-1">
                         <p
                           className={cn(
-                            "text-xs font-medium text-[var(--color-text-primary)] truncate",
+                            "text-xs font-medium text-[var(--color-text-primary)] break-words line-clamp-2",
                             block.completed && "line-through opacity-70",
                           )}
                         >
@@ -589,7 +589,7 @@ export default function DayPlannerPage() {
                           {formatTime12(block.endHour, block.endMinute || 0)}
                         </p>
                         {block.notes && height >= 56 && (
-                          <p className="text-[10px] text-[var(--color-text-tertiary)] mt-1 truncate">
+                          <p className="text-[10px] text-[var(--color-text-tertiary)] mt-1 break-words line-clamp-1">
                             {block.notes}
                           </p>
                         )}

@@ -446,7 +446,7 @@ export default function FinancePage() {
                       <catInfo.icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                      <p className="text-sm font-medium text-[var(--color-text-primary)] break-words line-clamp-1">
                         {tx.description}
                       </p>
                       <p className="text-xs text-[var(--color-text-tertiary)]">

@@ -442,7 +442,7 @@ export default function GoalsPage() {
 
           {/* ── Goal Identity ──────────────────────────────────────────── */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)] break-words">
               {selectedGoal.title}
             </h1>
             <p className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -941,7 +941,7 @@ export default function GoalsPage() {
                         <div className="flex items-center gap-2">
                           <h3
                             className={cn(
-                              "text-sm font-medium truncate",
+                              "text-sm font-medium break-words line-clamp-1",
                               isDone
                                 ? "text-[var(--color-text-tertiary)] line-through"
                                 : "text-[var(--color-text-primary)]",

@@ -912,7 +912,7 @@ function TaskCard({
         </div>
         <p
           className={cn(
-            "flex-1 text-[14px] font-medium leading-[1.4]",
+            "flex-1 text-[14px] font-medium leading-[1.4] break-words",
             isDone
               ? "text-gray-400 line-through"
               : "text-gray-900 dark:text-gray-100",

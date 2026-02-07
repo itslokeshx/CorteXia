@@ -567,7 +567,7 @@ export default function HabitsPage() {
                       <div className="flex-1 min-w-0">
                         <p
                           className={cn(
-                            "text-sm font-medium text-[var(--color-text-primary)]",
+                            "text-sm font-medium text-[var(--color-text-primary)] break-words",
                             habit.isCompleted &&
                               "line-through text-[var(--color-text-tertiary)]",
                           )}

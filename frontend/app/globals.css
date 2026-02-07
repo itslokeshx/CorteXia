@@ -4,6 +4,38 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════
+   GLOBAL TEXT WRAPPING & OVERFLOW UTILITIES
+   ═══════════════════════════════════════════════════════════════════════ */
+@layer utilities {
+  /* Ensure all text fields wrap properly */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea,
+  .input-field {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Utility class for safe text wrapping */
+  .text-wrap-safe {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  /* Prevent text overflow in containers */
+  .prevent-overflow {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    CORTEXIA DESIGN SYSTEM — "Intelligent Minimalism"
    Fusion: Claude.ai warmth × Linear precision × Apple premium × Stripe clarity
    ═══════════════════════════════════════════════════════════════════════ */

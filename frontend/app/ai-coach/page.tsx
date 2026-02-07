@@ -646,7 +646,7 @@ export default function AICoachPage() {
                             : "rounded-bl-sm bg-gray-100 dark:bg-neutral-800",
                         )}
                       >
-                        <p className="text-sm whitespace-pre-wrap">
+                        <p className="text-sm whitespace-pre-wrap break-words">
                           {message.content}
                         </p>
                         <p

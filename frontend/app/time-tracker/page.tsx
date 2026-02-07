@@ -410,7 +410,7 @@ export default function TimeTrackerPage() {
                     <Clock className="w-4 h-4 text-purple-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                    <p className="text-sm font-medium text-[var(--color-text-primary)] break-words line-clamp-1">
                       {entry.task}
                     </p>
                     <p className="text-xs text-[var(--color-text-tertiary)]">

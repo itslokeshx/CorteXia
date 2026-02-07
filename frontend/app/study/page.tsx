@@ -268,7 +268,7 @@ export default function StudyPage() {
                     className="flex items-center justify-between p-2.5 md:p-3 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm md:text-base truncate">
+                      <p className="font-medium text-sm md:text-base break-words line-clamp-1">
                         {session.subject}
                       </p>
                       <div className="flex gap-1.5 md:gap-2 mt-1">
