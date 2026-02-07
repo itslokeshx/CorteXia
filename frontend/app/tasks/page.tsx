@@ -342,15 +342,15 @@ export default function TasksPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        className="pb-8 max-w-4xl mx-auto"
+        className="pb-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto"
       >
         {/* Header + Tabs */}
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <h1 className="text-[20px] font-semibold tracking-tight text-[var(--color-text-primary)]">
               Tasks
             </h1>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1">
               {(
                 [
                   ["today", "Today"],
@@ -364,7 +364,7 @@ export default function TasksPage() {
                   key={val}
                   onClick={() => setView(val)}
                   className={cn(
-                    "px-2.5 py-1 text-[12px] font-medium rounded-md transition-all duration-150",
+                    "px-2.5 py-1 text-[12px] font-medium rounded-md transition-all duration-150 whitespace-nowrap",
                     view === val
                       ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
                       : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50",
@@ -376,21 +376,22 @@ export default function TasksPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <Button
               onClick={() => {
                 resetForm();
                 setEditingTaskId(null);
                 setShowModal(true);
               }}
-              className="h-8 px-3 text-[13px] font-medium rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-sm transition-all"
+              className="h-8 px-3 text-[13px] font-medium rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-sm transition-all flex-shrink-0"
             >
               <Plus className="w-3.5 h-3.5 mr-1.5" />
-              New
+              <span className="hidden sm:inline">New</span>
+              <span className="sm:hidden">Add</span>
             </Button>
 
             <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger className="h-8 w-[100px] text-[12px] rounded-lg border-gray-300 dark:border-gray-600">
+              <SelectTrigger className="h-8 w-[90px] sm:w-[100px] text-[12px] rounded-lg border-gray-300 dark:border-gray-600">
                 <Filter className="w-3 h-3 mr-1 text-gray-500" />
                 <SelectValue placeholder="Filter" />
               </SelectTrigger>
@@ -407,7 +408,7 @@ export default function TasksPage() {
               value={sortBy}
               onValueChange={(v) => setSortBy(v as SortBy)}
             >
-              <SelectTrigger className="h-8 w-[100px] text-[12px] rounded-lg border-gray-300 dark:border-gray-600">
+              <SelectTrigger className="h-8 w-[90px] sm:w-[100px] text-[12px] rounded-lg border-gray-300 dark:border-gray-600">
                 <ArrowUpDown className="w-3 h-3 mr-1 text-gray-500" />
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
@@ -567,14 +568,14 @@ export default function TasksPage() {
           }
         }}
       >
-        <DialogContent className="max-w-2xl rounded-2xl border-[var(--color-border)] p-0 gap-0 overflow-hidden">
-          <DialogHeader className="h-14 px-5 flex flex-row items-center border-b border-gray-200 dark:border-gray-700">
-            <DialogTitle className="text-[18px] font-semibold text-[var(--color-text-primary)]">
+        <DialogContent className="max-w-full sm:max-w-2xl mx-4 rounded-2xl border-[var(--color-border)] p-0 gap-0 overflow-hidden max-h-[90vh]">
+          <DialogHeader className="h-14 px-4 sm:px-5 flex flex-row items-center border-b border-gray-200 dark:border-gray-700">
+            <DialogTitle className="text-[16px] sm:text-[18px] font-semibold text-[var(--color-text-primary)]">
               {editingTaskId ? "Edit Task" : "Create Task"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="px-5 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
+          <div className="px-4 sm:px-5 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
             <div>
               <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1 block">
                 Task Name <span className="text-red-500">*</span>
@@ -709,19 +710,21 @@ export default function TasksPage() {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="flex items-center gap-3 mt-2 ml-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-2 ml-6">
                       <Input
                         type="time"
                         value={formStartTime}
                         onChange={(e) => setFormStartTime(e.target.value)}
-                        className="w-28 h-9 text-center text-[12px]"
+                        className="w-full sm:w-28 h-9 text-center text-[12px]"
                       />
-                      <span className="text-gray-400">to</span>
+                      <span className="text-gray-400 text-center sm:text-left">
+                        to
+                      </span>
                       <Input
                         type="time"
                         value={formEndTime}
                         onChange={(e) => setFormEndTime(e.target.value)}
-                        className="w-28 h-9 text-center text-[12px]"
+                        className="w-full sm:w-28 h-9 text-center text-[12px]"
                       />
                     </div>
                   </motion.div>
@@ -756,7 +759,7 @@ export default function TasksPage() {
             </div>
           </div>
 
-          <DialogFooter className="h-16 px-5 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
+          <DialogFooter className="h-14 sm:h-16 px-4 sm:px-5 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
             <Button
               variant="outline"
               onClick={() => {
@@ -764,14 +767,14 @@ export default function TasksPage() {
                 setEditingTaskId(null);
                 resetForm();
               }}
-              className="h-9 px-4 text-[13px] rounded-lg"
+              className="h-9 px-4 text-[13px] rounded-lg flex-1 sm:flex-initial"
             >
               Cancel
             </Button>
             <Button
               onClick={editingTaskId ? handleSaveEdit : handleCreate}
               disabled={!formTitle.trim()}
-              className="h-9 px-5 text-[13px] rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-sm disabled:opacity-50"
+              className="h-9 px-5 text-[13px] rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-sm disabled:opacity-50 flex-1 sm:flex-initial"
             >
               {editingTaskId ? "Save" : "Create"}
             </Button>
@@ -872,7 +875,7 @@ function TaskCard({
       exit={{ opacity: 0, x: -12, height: 0 }}
       transition={{ delay: i * 0.02, duration: 0.15 }}
       className={cn(
-        "group p-3 rounded-lg border transition-all duration-150",
+        "group p-2.5 sm:p-3 rounded-lg border transition-all duration-150",
         isDone
           ? "border-green-200 dark:border-green-800/50 bg-green-50/50 dark:bg-green-900/10 opacity-60"
           : "border-gray-200 dark:border-gray-700 bg-[var(--color-bg-secondary)] hover:border-purple-200 dark:hover:border-purple-800 hover:shadow-sm hover:-translate-y-[1px]",
@@ -1031,20 +1034,20 @@ function TaskCard({
         </button>
       )}
 
-      <div className="flex items-center gap-1.5 ml-6.5 pt-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+      <div className="flex flex-wrap items-center gap-1.5 ml-6.5 pt-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150">
         <button
           onClick={onEdit}
           className="flex items-center gap-0.5 text-[11px] font-medium text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
         >
           <Pencil className="w-3 h-3" />
-          Edit
+          <span className="hidden xs:inline">Edit</span>
         </button>
         <button
           onClick={() => onDelete(task.id)}
           className="flex items-center gap-0.5 text-[11px] font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
         >
           <Trash2 className="w-3 h-3" />
-          Delete
+          <span className="hidden xs:inline">Delete</span>
         </button>
         {!isDone && (
           <button
@@ -1052,7 +1055,7 @@ function TaskCard({
             className="flex items-center gap-1 px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[11px] font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors ml-auto"
           >
             <Play className="w-3 h-3" />
-            Start
+            <span className="hidden xs:inline">Start</span>
           </button>
         )}
       </div>
