@@ -1,11 +1,11 @@
 "use client";
 
-import { Header } from "./header";
 import { CollapsibleSidebar } from "./collapsible-sidebar";
 import { OmnipotentChatbot } from "@/components/ai/omnipotent-chatbot";
 import { ReactNode, useState, useEffect } from "react";
 import { useApp } from "@/lib/context/app-context";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useApp();
@@ -17,25 +17,23 @@ export function AppLayout({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950">
-      <Header />
+    <div className="min-h-screen bg-white dark:bg-[#0A0B0D]">
       <CollapsibleSidebar />
-      <main
+      <motion.main
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         style={{
-          marginLeft: mounted ? (isCollapsed ? 56 : 240) : 240,
+          marginLeft: mounted ? (isCollapsed ? 68 : 260) : 260,
         }}
         className={cn(
-          "min-h-screen transition-[margin-left] duration-200 ease-out",
-          // Mobile: no margin (sidebar overlays)
+          "min-h-screen transition-[margin-left] duration-300 ease-out",
           "max-lg:!ml-0",
-          // Padding
-          "px-4 sm:px-6 lg:px-8 py-6 pt-16 lg:pt-6",
+          "px-6 sm:px-8 lg:px-12 py-8 pt-16 lg:pt-8",
         )}
       >
-        <div className="max-w-5xl mx-auto">{children}</div>
-      </main>
-
-      {/* Omnipotent AI Chatbot - Available on all pages */}
+        <div className="max-w-[1200px] mx-auto">{children}</div>
+      </motion.main>
       <OmnipotentChatbot />
     </div>
   );

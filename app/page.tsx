@@ -6,7 +6,7 @@ import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, differenceInDays, isToday } from "date-fns";
 import {
   CheckCircle2,
   Circle,
@@ -32,41 +32,26 @@ import {
   Heart,
   Play,
   Plus,
+  Flag,
+  Repeat,
+  Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
+    y: 0,
+    transition: { duration: 0.4, ease: "easeOut" as const },
   },
 };
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-
-// Motivational quotes
-const QUOTES = [
-  {
-    text: "The secret of getting ahead is getting started.",
-    author: "Mark Twain",
-  },
-  { text: "Small steps lead to big changes.", author: "Unknown" },
-  { text: "Your only limit is your mind.", author: "Unknown" },
-  { text: "Progress, not perfection.", author: "Unknown" },
-  { text: "Today's effort, tomorrow's success.", author: "Unknown" },
-  { text: "Consistency beats intensity.", author: "Unknown" },
-  { text: "You're doing better than you think.", author: "Unknown" },
-  { text: "Every day is a fresh start.", author: "Unknown" },
-];
 
 export default function DashboardPage() {
   const {
@@ -85,51 +70,23 @@ export default function DashboardPage() {
   } = useApp();
 
   const [mounted, setMounted] = useState(false);
-  const [dailyQuote] = useState(
-    () => QUOTES[Math.floor(Math.random() * QUOTES.length)],
-  );
-
   const today = format(new Date(), "yyyy-MM-dd");
   const now = new Date();
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Get greeting based on time
   const getGreeting = () => {
     const hour = now.getHours();
-    if (hour < 5)
-      return {
-        text: "Good night",
-        icon: Moon,
-        subtext: "Burning the midnight oil?",
-      };
-    if (hour < 12)
-      return {
-        text: "Good morning",
-        icon: Sunrise,
-        subtext: "Let's make today count",
-      };
-    if (hour < 17)
-      return {
-        text: "Good afternoon",
-        icon: Sun,
-        subtext: "Keep the momentum going",
-      };
-    if (hour < 21)
-      return {
-        text: "Good evening",
-        icon: Sun,
-        subtext: "Winding down the day",
-      };
-    return { text: "Good night", icon: Moon, subtext: "Rest well, champion" };
+    if (hour < 5) return { text: "Good night", icon: Moon, emoji: "🌙" };
+    if (hour < 12) return { text: "Good morning", icon: Sunrise, emoji: "🌅" };
+    if (hour < 18) return { text: "Good afternoon", icon: Sun, emoji: "☀️" };
+    if (hour < 21) return { text: "Good evening", icon: Sun, emoji: "🌇" };
+    return { text: "Good night", icon: Moon, emoji: "🌙" };
   };
-
   const greeting = getGreeting();
-  const GreetingIcon = greeting.icon;
 
-  // Calculate comprehensive stats
+  // ─── Stats ───
   const stats = useMemo(() => {
     const pendingTasks = tasks.filter((t) => t.status !== "completed");
     const completedToday = tasks.filter(
@@ -139,36 +96,18 @@ export default function DashboardPage() {
       (t) => t.dueDate && t.dueDate < today,
     ).length;
     const todayTasks = pendingTasks.filter((t) => t.dueDate === today);
-
     const activeHabits = habits.filter((h) => h.active !== false);
     const habitsCompletedToday = activeHabits.filter((h) =>
       h.completions?.some((c) => c.date === today && c.completed),
     ).length;
-
-    // Calculate total streak days
     const totalStreakDays = activeHabits.reduce(
       (sum, h) => sum + getHabitStreak(h.id),
       0,
     );
-
-    // Finance stats
     const financeStats = getFinanceStats();
-
-    // Goal stats
     const goalStats = getGoalStats();
-
-    // Time tracking stats
     const todayTimeStats = getTodayStats();
 
-    // Recent journal mood
-    const recentJournals = journalEntries.slice(0, 7);
-    const avgMood =
-      recentJournals.length > 0
-        ? recentJournals.reduce((sum, j) => sum + (j.mood || 3), 0) /
-          recentJournals.length
-        : 3;
-
-    // Calculate productivity score (0-100)
     const taskScore =
       todayTasks.length > 0
         ? (completedToday / (completedToday + todayTasks.length)) * 100
@@ -181,8 +120,33 @@ export default function DashboardPage() {
         : 50;
     const goalScore = goalStats.total > 0 ? goalStats.avgProgress : 50;
     const productivityScore = Math.round(
-      taskScore * 0.4 + habitScore * 0.4 + goalScore * 0.2,
+      taskScore * 0.35 + habitScore * 0.35 + goalScore * 0.3,
     );
+
+    const lifeState =
+      productivityScore >= 85
+        ? {
+            label: "High Momentum",
+            emoji: "🚀",
+            color: "text-green-600 dark:text-green-400",
+          }
+        : productivityScore >= 70
+          ? {
+              label: "On Track",
+              emoji: "✨",
+              color: "text-blue-600 dark:text-blue-400",
+            }
+          : productivityScore >= 50
+            ? {
+                label: "Drifting",
+                emoji: "⚠️",
+                color: "text-amber-600 dark:text-amber-400",
+              }
+            : {
+                label: "Needs Attention",
+                emoji: "🚨",
+                color: "text-red-600 dark:text-red-400",
+              };
 
     return {
       pendingTasks: pendingTasks.length,
@@ -196,9 +160,8 @@ export default function DashboardPage() {
       monthlyExpenses: financeStats.expenses,
       goalStats,
       todayMinutes: todayTimeStats.totalMinutes,
-      deepFocusMinutes: todayTimeStats.deepFocus,
-      avgMood,
       productivityScore,
+      lifeState,
     };
   }, [
     tasks,
@@ -214,142 +177,153 @@ export default function DashboardPage() {
     getTodayStats,
   ]);
 
-  // Get top priority tasks for today
-  const priorityTasks = useMemo(() => {
-    return tasks
-      .filter((t) => t.status !== "completed")
+  // ─── Priority Items ───
+  const priorities = useMemo(() => {
+    const items: Array<{
+      id: string;
+      title: string;
+      type: "task" | "habit" | "goal";
+      priority?: string;
+      dueDate?: string;
+      streak?: number;
+      completed: boolean;
+    }> = [];
+
+    // High-priority tasks due today or overdue
+    tasks
+      .filter(
+        (t) =>
+          t.status !== "completed" &&
+          (t.dueDate === today ||
+            (t.dueDate && t.dueDate < today) ||
+            t.priority === "high" ||
+            t.priority === "critical"),
+      )
       .sort((a, b) => {
-        const aOverdue = a.dueDate && a.dueDate < today ? -3 : 0;
-        const bOverdue = b.dueDate && b.dueDate < today ? -3 : 0;
-        const aDueToday = a.dueDate === today ? -2 : 0;
-        const bDueToday = b.dueDate === today ? -2 : 0;
-        const priorityOrder: Record<string, number> = {
+        const po: Record<string, number> = {
           critical: 0,
           high: 1,
           medium: 2,
           low: 3,
         };
-        return (
-          aOverdue - bOverdue ||
-          aDueToday - bDueToday ||
-          (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2)
-        );
+        return (po[a.priority] ?? 2) - (po[b.priority] ?? 2);
       })
-      .slice(0, 5);
-  }, [tasks, today]);
+      .slice(0, 3)
+      .forEach((t) =>
+        items.push({
+          id: t.id,
+          title: t.title,
+          type: "task",
+          priority: t.priority,
+          dueDate: t.dueDate,
+          completed: false,
+        }),
+      );
 
-  // Get today's habits with streaks
-  const todaysHabits = useMemo(() => {
-    return habits
-      .filter((h) => h.active !== false)
-      .map((h) => ({
-        ...h,
-        streak: getHabitStreak(h.id),
-        isCompleted:
-          h.completions?.some((c) => c.date === today && c.completed) ?? false,
-      }))
-      .sort((a, b) =>
-        a.isCompleted === b.isCompleted
-          ? b.streak - a.streak
-          : a.isCompleted
-            ? 1
-            : -1,
+    // Uncompleted habits with streaks
+    habits
+      .filter(
+        (h) =>
+          h.active !== false &&
+          !h.completions?.some((c) => c.date === today && c.completed),
       )
-      .slice(0, 5);
-  }, [habits, today, getHabitStreak]);
+      .sort((a, b) => getHabitStreak(b.id) - getHabitStreak(a.id))
+      .slice(0, 2)
+      .forEach((h) =>
+        items.push({
+          id: h.id,
+          title: h.name,
+          type: "habit",
+          streak: getHabitStreak(h.id),
+          completed: false,
+        }),
+      );
 
-  // Get active goals
+    return items.slice(0, 5);
+  }, [tasks, habits, today, getHabitStreak]);
+
+  // ─── Active Goals ───
   const activeGoals = useMemo(() => {
     return goals
       .filter((g) => g.status !== "completed" && g.status !== "abandoned")
       .sort((a, b) => b.progress - a.progress)
-      .slice(0, 4);
+      .slice(0, 3);
   }, [goals]);
 
-  // AI Insights based on current state
+  // ─── AI Insights ───
   const aiInsights = useMemo(() => {
-    const insights: {
-      type: "warning" | "success" | "info" | "tip";
-      message: string;
-      icon: typeof AlertTriangle;
-    }[] = [];
-
-    if (stats.overdueTasks > 0) {
-      insights.push({
-        type: "warning",
-        message: `You have ${stats.overdueTasks} overdue task${stats.overdueTasks > 1 ? "s" : ""}. Consider rescheduling or prioritizing.`,
-        icon: AlertTriangle,
-      });
-    }
+    const insights: Array<{
+      type: "celebration" | "warning" | "suggestion" | "pattern";
+      title: string;
+      description: string;
+    }> = [];
 
     if (
       stats.habitsCompletedToday === stats.activeHabits &&
       stats.activeHabits > 0
     ) {
       insights.push({
-        type: "success",
-        message:
-          "Amazing! All habits completed for today. You're building great consistency! 🔥",
-        icon: Flame,
-      });
-    } else if (stats.habitsCompletedToday === 0 && stats.activeHabits > 0) {
-      insights.push({
-        type: "tip",
-        message: "Start with your easiest habit to build momentum today.",
-        icon: Zap,
+        type: "celebration",
+        title: "All habits completed! 🔥",
+        description:
+          "Perfect day for habits. You're building incredible consistency.",
       });
     }
-
-    if (stats.totalStreakDays > 20) {
+    if (stats.overdueTasks > 0) {
       insights.push({
-        type: "success",
-        message: `Impressive! ${stats.totalStreakDays} total streak days across your habits.`,
-        icon: Star,
+        type: "warning",
+        title: `${stats.overdueTasks} overdue task${stats.overdueTasks > 1 ? "s" : ""}`,
+        description:
+          "Consider rescheduling or prioritizing to clear your backlog.",
       });
     }
-
+    if (stats.totalStreakDays > 15) {
+      insights.push({
+        type: "celebration",
+        title: `${stats.totalStreakDays} total streak days!`,
+        description:
+          "Your consistency is building powerful habits. Keep it up!",
+      });
+    }
+    if (stats.productivityScore < 40) {
+      insights.push({
+        type: "suggestion",
+        title: "Start with one small win",
+        description:
+          "Focus on completing just one important task to build momentum.",
+      });
+    }
     if (stats.productivityScore >= 80) {
       insights.push({
-        type: "success",
-        message: "You're in the productivity zone! Keep this momentum going.",
-        icon: TrendingUp,
-      });
-    } else if (stats.productivityScore < 40) {
-      insights.push({
-        type: "tip",
-        message:
-          "Focus on completing just one important task to gain momentum.",
-        icon: Target,
+        type: "pattern",
+        title: "You're in the zone!",
+        description:
+          "High productivity detected. Consider scheduling your most challenging work now.",
       });
     }
-
-    if (stats.avgMood < 2.5 && journalEntries.length > 0) {
-      insights.push({
-        type: "info",
-        message:
-          "Your recent mood has been low. Consider taking a break or talking to someone.",
-        icon: Heart,
-      });
-    }
-
     return insights.slice(0, 3);
-  }, [stats, journalEntries.length]);
+  }, [stats]);
 
-  // Handle task completion
-  const handleCompleteTask = (taskId: string) => {
-    completeTask(taskId);
-  };
-
-  // Handle habit completion
-  const handleCompleteHabit = (habitId: string) => {
-    completeHabit(habitId, today);
+  const getGoalStatus = (goal: (typeof goals)[0]) => {
+    if (!goal.targetDate) return { label: "Active", color: "blue" };
+    const daysLeft = differenceInDays(parseISO(goal.targetDate), new Date());
+    if (goal.progress >= 100) return { label: "Completed", color: "green" };
+    if (daysLeft < 0) return { label: "Overdue", color: "red" };
+    if (daysLeft < 7 && goal.progress < 80)
+      return { label: "At Risk", color: "amber" };
+    return { label: "On Track", color: "green" };
   };
 
   if (!mounted) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="animate-pulse text-muted-foreground">Loading...</div>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          >
+            <Brain className="w-10 h-10 text-purple-500" />
+          </motion.div>
         </div>
       </AppLayout>
     );
@@ -361,450 +335,375 @@ export default function DashboardPage() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-8 pb-12"
+        className="space-y-8 pb-16"
       >
-        {/* Hero Section */}
-        <motion.div variants={itemVariants} className="relative">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center">
-                <GreetingIcon className="h-6 w-6 text-violet-500" />
-              </div>
+        {/* ═══ GREETING HERO ═══ */}
+        <motion.div variants={itemVariants}>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 p-8 text-white">
+            {/* Ambient circles */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
               <div>
-                <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">
-                  {greeting.text}
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                  {greeting.emoji} {greeting.text}!
                 </h1>
-                <p className="text-neutral-500 text-sm">
-                  {format(now, "EEEE, MMMM d")} • {greeting.subtext}
+                <p className="text-white/70 mt-2 text-lg">
+                  {format(now, "EEEE, MMMM d, yyyy")}
+                </p>
+                <p className="text-white/60 mt-1 text-sm">
+                  {stats.completedToday > 0 || stats.habitsCompletedToday > 0
+                    ? `Already completed ${stats.completedToday} task${stats.completedToday !== 1 ? "s" : ""} and ${stats.habitsCompletedToday} habit${stats.habitsCompletedToday !== 1 ? "s" : ""} today.`
+                    : `${stats.todayTasksCount + stats.pendingTasks} tasks and ${stats.activeHabits} habits waiting for you.`}
                 </p>
               </div>
+
+              {/* Life Score */}
+              <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/20">
+                <div className="relative w-16 h-16">
+                  <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.2)"
+                      strokeWidth="5"
+                    />
+                    <motion.circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 28}`}
+                      strokeDashoffset={`${2 * Math.PI * 28 * (1 - stats.productivityScore / 100)}`}
+                      initial={{ strokeDashoffset: `${2 * Math.PI * 28}` }}
+                      animate={{
+                        strokeDashoffset: `${2 * Math.PI * 28 * (1 - stats.productivityScore / 100)}`,
+                      }}
+                      transition={{ duration: 1.5, ease: "easeOut" }}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xl font-bold">
+                      {stats.productivityScore}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-white/90">
+                    Life Score
+                  </div>
+                  <div className="text-xs text-white/60">
+                    {stats.lifeState.emoji} {stats.lifeState.label}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Productivity Score */}
-            <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-purple-500/10 border border-violet-500/20">
-              <div className="relative h-10 w-10">
-                <svg className="h-10 w-10 -rotate-90" viewBox="0 0 36 36">
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="15.5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    className="text-neutral-200 dark:text-neutral-700"
-                  />
-                  <motion.circle
-                    cx="18"
-                    cy="18"
-                    r="15.5"
-                    fill="none"
-                    stroke="url(#scoreGradient)"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeDasharray={`${stats.productivityScore * 0.97} 100`}
-                    initial={{ strokeDasharray: "0 100" }}
-                    animate={{
-                      strokeDasharray: `${stats.productivityScore * 0.97} 100`,
-                    }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                  />
-                  <defs>
-                    <linearGradient
-                      id="scoreGradient"
-                      x1="0%"
-                      y1="0%"
-                      x2="100%"
-                      y2="0%"
-                    >
-                      <stop offset="0%" stopColor="#8b5cf6" />
-                      <stop offset="100%" stopColor="#a855f7" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold">
-                  {stats.productivityScore}
-                </span>
-              </div>
-              <div>
-                <div className="text-xs font-medium text-violet-600 dark:text-violet-400">
-                  Productivity
+            {/* Quick Stats Row */}
+            <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+              {[
+                {
+                  label: "Tasks Done",
+                  value: `${stats.completedToday}/${stats.completedToday + stats.todayTasksCount}`,
+                  icon: CheckCircle2,
+                },
+                {
+                  label: "Habits",
+                  value: `${stats.habitsCompletedToday}/${stats.activeHabits}`,
+                  icon: Flame,
+                },
+                {
+                  label: "Streak Days",
+                  value: stats.totalStreakDays.toString(),
+                  icon: Zap,
+                },
+                {
+                  label: "Focus Time",
+                  value: `${stats.todayMinutes}m`,
+                  icon: Timer,
+                },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <stat.icon className="w-3.5 h-3.5 text-white/60" />
+                    <span className="text-xs text-white/60">{stat.label}</span>
+                  </div>
+                  <span className="text-lg font-semibold">{stat.value}</span>
                 </div>
-                <div className="text-[10px] text-muted-foreground">
-                  Score Today
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-
-          {/* Motivational Quote */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 border border-amber-500/20"
-          >
-            <p className="text-sm italic text-amber-700 dark:text-amber-400">
-              "{dailyQuote.text}"
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              — {dailyQuote.author}
-            </p>
-          </motion.div>
         </motion.div>
 
-        {/* Quick Stats Grid */}
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-3"
-        >
-          <Link href="/tasks" className="group">
-            <div className="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-violet-500/50 transition-colors">
-              <div className="flex items-center justify-between mb-2">
-                <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <CheckCircle2 className="h-4 w-4 text-blue-500" />
-                </div>
-                <ChevronRight className="h-4 w-4 text-neutral-400 group-hover:text-violet-500 transition-colors" />
-              </div>
-              <div className="text-2xl font-semibold text-neutral-900 dark:text-white">
-                {stats.completedToday}
-                <span className="text-sm text-muted-foreground font-normal">
-                  /{stats.todayTasksCount + stats.completedToday}
-                </span>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Tasks done today
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/habits" className="group">
-            <div className="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-violet-500/50 transition-colors">
-              <div className="flex items-center justify-between mb-2">
-                <div className="h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                  <Flame className="h-4 w-4 text-orange-500" />
-                </div>
-                <ChevronRight className="h-4 w-4 text-neutral-400 group-hover:text-violet-500 transition-colors" />
-              </div>
-              <div className="text-2xl font-semibold text-neutral-900 dark:text-white">
-                {stats.habitsCompletedToday}
-                <span className="text-sm text-muted-foreground font-normal">
-                  /{stats.activeHabits}
-                </span>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Habits completed
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/goals" className="group">
-            <div className="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-violet-500/50 transition-colors">
-              <div className="flex items-center justify-between mb-2">
-                <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                  <Target className="h-4 w-4 text-green-500" />
-                </div>
-                <ChevronRight className="h-4 w-4 text-neutral-400 group-hover:text-violet-500 transition-colors" />
-              </div>
-              <div className="text-2xl font-semibold text-neutral-900 dark:text-white">
-                {stats.goalStats.avgProgress}%
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Avg. goal progress
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/finance" className="group">
-            <div className="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-violet-500/50 transition-colors">
-              <div className="flex items-center justify-between mb-2">
-                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <Wallet className="h-4 w-4 text-emerald-500" />
-                </div>
-                <ChevronRight className="h-4 w-4 text-neutral-400 group-hover:text-violet-500 transition-colors" />
-              </div>
-              <div className="text-2xl font-semibold text-neutral-900 dark:text-white">
-                ${stats.financeBalance.toFixed(0)}
-              </div>
-              <div className="text-xs text-muted-foreground">Balance</div>
-            </div>
-          </Link>
-        </motion.div>
-
-        {/* AI Insights Strip */}
+        {/* ═══ AI INSIGHTS ═══ */}
         {aiInsights.length > 0 && (
-          <motion.div variants={itemVariants}>
-            <div className="flex items-center gap-2 mb-3">
-              <Brain className="h-4 w-4 text-violet-500" />
-              <h2 className="text-sm font-medium text-neutral-900 dark:text-white">
+          <motion.div variants={itemVariants} className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
                 AI Insights
               </h2>
             </div>
-            <div className="space-y-2">
-              {aiInsights.map((insight, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * i }}
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border",
-                    insight.type === "warning" &&
-                      "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800",
-                    insight.type === "success" &&
-                      "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800",
-                    insight.type === "info" &&
-                      "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800",
-                    insight.type === "tip" &&
-                      "bg-violet-50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-800",
-                  )}
-                >
-                  <insight.icon
+            <div className="grid gap-2">
+              {aiInsights.map((insight, i) => {
+                const config = {
+                  celebration: {
+                    bg: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800",
+                    icon: "🎉",
+                  },
+                  warning: {
+                    bg: "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800",
+                    icon: "⚠️",
+                  },
+                  suggestion: {
+                    bg: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800",
+                    icon: "💡",
+                  },
+                  pattern: {
+                    bg: "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800",
+                    icon: "📊",
+                  },
+                }[insight.type];
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 * i }}
                     className={cn(
-                      "h-4 w-4 flex-shrink-0",
-                      insight.type === "warning" && "text-amber-500",
-                      insight.type === "success" && "text-green-500",
-                      insight.type === "info" && "text-blue-500",
-                      insight.type === "tip" && "text-violet-500",
+                      "flex items-start gap-3 p-4 rounded-xl border",
+                      config.bg,
                     )}
-                  />
-                  <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                    {insight.message}
-                  </p>
-                </motion.div>
-              ))}
+                  >
+                    <span className="text-lg flex-shrink-0">{config.icon}</span>
+                    <div>
+                      <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                        {insight.title}
+                      </p>
+                      <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+                        {insight.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         )}
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Today's Tasks */}
-          <motion.div variants={itemVariants} className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-blue-500" />
-                <h2 className="text-sm font-medium text-neutral-900 dark:text-white">
-                  Focus Today
-                </h2>
+        {/* ═══ TODAY'S PRIORITIES ═══ */}
+        <motion.div variants={itemVariants} className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Target className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               </div>
-              <Link
-                href="/tasks"
-                className="text-xs text-violet-500 hover:text-violet-600 flex items-center gap-1"
-              >
-                View all <ArrowRight className="w-3 h-3" />
-              </Link>
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                Today&apos;s Priorities
+              </h2>
+              <span className="text-xs text-[var(--color-text-tertiary)]">
+                {priorities.length} items
+              </span>
             </div>
+            <Link
+              href="/tasks"
+              className="text-xs text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1"
+            >
+              View all <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
 
-            <div className="space-y-2">
-              {priorityTasks.length > 0 ? (
-                priorityTasks.map((task, index) => {
-                  const isOverdue = task.dueDate && task.dueDate < today;
-                  const isDueToday = task.dueDate === today;
-                  return (
-                    <motion.div
-                      key={task.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-violet-500/50 transition-all group"
-                    >
-                      <button
-                        onClick={() => handleCompleteTask(task.id)}
-                        className="flex-shrink-0 h-5 w-5 rounded-full border-2 border-neutral-300 dark:border-neutral-600 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-950/50 transition-colors flex items-center justify-center group/btn"
-                      >
-                        <CheckCircle2 className="h-3 w-3 text-transparent group-hover/btn:text-green-500" />
-                      </button>
-                      <span className="flex-1 text-sm text-neutral-700 dark:text-neutral-300 truncate">
-                        {task.title}
+          <div className="space-y-2">
+            {priorities.length > 0 ? (
+              priorities.map((item, i) => {
+                const TypeIcon =
+                  item.type === "task"
+                    ? CheckCircle2
+                    : item.type === "habit"
+                      ? Repeat
+                      : Flag;
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="group flex items-center gap-3 p-3.5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-purple-300 dark:hover:border-purple-700 transition-all"
+                  >
+                    {/* Number */}
+                    <div className="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-xs font-semibold text-purple-600 dark:text-purple-400 flex-shrink-0">
+                      {i + 1}
+                    </div>
+                    {/* Icon */}
+                    <TypeIcon className="w-4 h-4 text-[var(--color-text-tertiary)] flex-shrink-0" />
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-[var(--color-text-primary)] truncate block">
+                        {item.title}
                       </span>
-                      <div className="flex items-center gap-2">
-                        {task.priority === "high" ||
-                        task.priority === "critical" ? (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
-                          >
-                            {task.priority === "critical" ? "Critical" : "High"}
-                          </Badge>
-                        ) : null}
-                        {isOverdue && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
-                          >
-                            Overdue
-                          </Badge>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-[var(--color-text-tertiary)] capitalize">
+                          {item.type}
+                        </span>
+                        {item.dueDate && (
+                          <span className="text-[10px] text-[var(--color-text-tertiary)]">
+                            • Due{" "}
+                            {item.dueDate === today
+                              ? "today"
+                              : format(parseISO(item.dueDate), "MMM d")}
+                          </span>
                         )}
-                        {isDueToday && !isOverdue && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800"
-                          >
-                            Today
-                          </Badge>
+                        {item.streak && item.streak > 0 && (
+                          <span className="text-[10px] text-orange-500">
+                            • 🔥 {item.streak} days
+                          </span>
                         )}
                       </div>
-                    </motion.div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-8 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-dashed border-neutral-200 dark:border-neutral-800">
-                  <CheckCircle2 className="h-8 w-8 mx-auto text-green-500 mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    All caught up! 🎉
-                  </p>
-                  <Link href="/tasks">
-                    <Button variant="link" size="sm" className="mt-2">
-                      <Plus className="h-3 w-3 mr-1" />
-                      Add new task
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Today's Habits */}
-          <motion.div variants={itemVariants} className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Flame className="h-4 w-4 text-orange-500" />
-                <h2 className="text-sm font-medium text-neutral-900 dark:text-white">
-                  Habits
-                </h2>
-                {stats.totalStreakDays > 0 && (
-                  <Badge variant="secondary" className="text-[10px]">
-                    🔥 {stats.totalStreakDays} streak days
-                  </Badge>
-                )}
-              </div>
-              <Link
-                href="/habits"
-                className="text-xs text-violet-500 hover:text-violet-600 flex items-center gap-1"
-              >
-                View all <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-
-            <div className="space-y-2">
-              {todaysHabits.length > 0 ? (
-                todaysHabits.map((habit, index) => (
-                  <motion.div
-                    key={habit.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl border transition-all",
-                      habit.isCompleted
-                        ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800"
-                        : "bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 hover:border-violet-500/50",
-                    )}
-                  >
+                    </div>
+                    {/* Priority badge */}
+                    {item.priority &&
+                      (item.priority === "high" ||
+                        item.priority === "critical") && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
+                        >
+                          {item.priority}
+                        </Badge>
+                      )}
+                    {/* Complete button */}
                     <button
-                      onClick={() => handleCompleteHabit(habit.id)}
-                      className={cn(
-                        "flex-shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors",
-                        habit.isCompleted
-                          ? "border-green-500 bg-green-500"
-                          : "border-neutral-300 dark:border-neutral-600 hover:border-green-500",
-                      )}
+                      onClick={() => {
+                        if (item.type === "task") completeTask(item.id);
+                        else if (item.type === "habit")
+                          completeHabit(item.id, today);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-full border-2 border-[var(--color-border)] hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/30 transition-all flex items-center justify-center"
                     >
-                      {habit.isCompleted && (
-                        <CheckCircle2 className="h-3 w-3 text-white" />
-                      )}
+                      <CheckCircle2 className="w-3 h-3 text-transparent hover:text-green-500" />
                     </button>
-                    <div
-                      className="h-2 w-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: habit.color || "#8b5cf6" }}
-                    />
-                    <span
-                      className={cn(
-                        "flex-1 text-sm truncate",
-                        habit.isCompleted
-                          ? "text-green-700 dark:text-green-400 line-through"
-                          : "text-neutral-700 dark:text-neutral-300",
-                      )}
-                    >
-                      {habit.name}
-                    </span>
-                    {habit.streak > 0 && (
-                      <span className="text-xs text-orange-500 flex items-center gap-0.5 font-medium">
-                        <Flame className="w-3 h-3" />
-                        {habit.streak}
-                      </span>
-                    )}
                   </motion.div>
-                ))
-              ) : (
-                <div className="text-center py-8 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-dashed border-neutral-200 dark:border-neutral-800">
-                  <Target className="h-8 w-8 mx-auto text-orange-500 mb-2" />
-                  <p className="text-sm text-muted-foreground">No habits yet</p>
-                  <Link href="/habits">
-                    <Button variant="link" size="sm" className="mt-2">
-                      <Plus className="h-3 w-3 mr-1" />
-                      Create habit
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-10 rounded-xl bg-[var(--color-bg-secondary)] border border-dashed border-[var(--color-border)]">
+                <CheckCircle2 className="w-8 h-8 mx-auto text-green-500 mb-2" />
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  All caught up! 🎉
+                </p>
+                <Link href="/tasks">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="mt-2 text-purple-600"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add task
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </motion.div>
 
-        {/* Goals Progress Section */}
+        {/* ═══ GOAL PROGRESS ═══ */}
         {activeGoals.length > 0 && (
           <motion.div variants={itemVariants} className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-green-500" />
-                <h2 className="text-sm font-medium text-neutral-900 dark:text-white">
+                <div className="w-6 h-6 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <Flag className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                </div>
+                <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
                   Goal Progress
                 </h2>
               </div>
               <Link
                 href="/goals"
-                className="text-xs text-violet-500 hover:text-violet-600 flex items-center gap-1"
+                className="text-xs text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1"
               >
                 View all <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {activeGoals.map((goal, index) => (
-                <motion.div
-                  key={goal.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-violet-500/50 transition-all"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium text-sm text-neutral-900 dark:text-white truncate pr-2">
-                      {goal.title}
-                    </h3>
-                    <span className="text-xs font-semibold text-violet-500">
-                      {goal.progress}%
-                    </span>
-                  </div>
-                  <Progress value={goal.progress} className="h-1.5 mb-2" />
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="capitalize">{goal.category}</span>
-                    {goal.deadline && (
-                      <span>
-                        Due {format(parseISO(goal.deadline), "MMM d")}
-                      </span>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {activeGoals.map((goal, i) => {
+                const status = getGoalStatus(goal);
+                return (
+                  <motion.div
+                    key={goal.id}
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.06 }}
+                    className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] card-hover"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-medium text-sm text-[var(--color-text-primary)] line-clamp-1 pr-2">
+                        {goal.title}
+                      </h3>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-[10px] flex-shrink-0",
+                          status.color === "green" &&
+                            "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800",
+                          status.color === "amber" &&
+                            "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800",
+                          status.color === "red" &&
+                            "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800",
+                          status.color === "blue" &&
+                            "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
+                        )}
+                      >
+                        {status.label}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-[var(--color-text-tertiary)] capitalize">
+                          {goal.category}
+                        </span>
+                        <span className="font-medium text-purple-600 dark:text-purple-400">
+                          {goal.progress}%
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-[var(--color-bg-tertiary)] rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{
+                            width: `${Math.min(goal.progress, 100)}%`,
+                          }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                        />
+                      </div>
+                      {goal.targetDate && (
+                        <p className="text-[10px] text-[var(--color-text-tertiary)]">
+                          Due {format(parseISO(goal.targetDate), "MMM d, yyyy")}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         )}
 
-        {/* Quick Actions */}
-        <motion.div variants={itemVariants}>
-          <h2 className="text-sm font-medium text-neutral-900 dark:text-white mb-3">
+        {/* ═══ QUICK ACTIONS ═══ */}
+        <motion.div variants={itemVariants} className="space-y-3">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
             Quick Actions
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -816,15 +715,15 @@ export default function DashboardPage() {
               { href: "/ai-coach", label: "AI Coach", icon: Brain },
               { href: "/goals", label: "Goals", icon: Target },
               { href: "/finance", label: "Log Expense", icon: Wallet },
-              { href: "/insights", label: "Insights", icon: Activity },
+              { href: "/habits", label: "Habits", icon: Flame },
             ].map((action) => (
               <Link key={action.href} href={action.href}>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 gap-2 hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:border-violet-500/50 hover:text-violet-600 dark:hover:text-violet-400"
+                  className="h-9 gap-2 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-300 dark:hover:border-purple-700 hover:text-purple-600 dark:hover:text-purple-400 transition-all"
                 >
-                  <action.icon className="h-3.5 w-3.5" />
+                  <action.icon className="w-3.5 h-3.5" />
                   {action.label}
                 </Button>
               </Link>
@@ -832,17 +731,17 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Footer */}
+        {/* ═══ FOOTER ═══ */}
         <motion.div
           variants={itemVariants}
-          className="pt-4 border-t border-neutral-200 dark:border-neutral-800"
+          className="pt-6 border-t border-[var(--color-border)]"
         >
-          <p className="text-xs text-center text-muted-foreground">
+          <p className="text-xs text-center text-[var(--color-text-tertiary)]">
             Press{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-[10px]">
+            <kbd className="px-1.5 py-0.5 rounded-md bg-[var(--color-bg-tertiary)] text-[10px] font-mono">
               ⌘K
             </kbd>{" "}
-            anytime to open AI assistant
+            to open AI assistant
           </p>
         </motion.div>
       </motion.div>

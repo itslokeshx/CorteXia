@@ -1,9 +1,32 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
 import { AppLayout } from "@/components/layout/app-layout";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  format,
+  addDays,
+  subDays,
+  startOfDay,
+  isToday as isTodayFn,
+  isSameDay,
+} from "date-fns";
+import {
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+  Clock,
+  CalendarDays,
+  Layers,
+  Coffee,
+  Timer,
+  BarChart3,
+  CheckCircle2,
+  Zap,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -11,9 +34,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,702 +44,702 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useApp } from "@/lib/context/app-context";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  Clock,
-  CheckCircle,
-  Play,
-  GripVertical,
-  Target,
-  CheckSquare,
-  Calendar as CalendarIcon,
-} from "lucide-react";
-import {
-  format,
-  addDays,
-  subDays,
-  startOfWeek,
-  addWeeks,
-  isToday,
-  isSameDay,
-  parseISO,
-} from "date-fns";
-import type { TimeBlock, Task } from "@/lib/types";
 
-// Generate hours array from 6am to 11pm
-const HOURS = Array.from({ length: 18 }, (_, i) => i + 6);
+// ─── Types ──────────────────────────────────────────────────────────────────
 
-// Time block type colors
-const TYPE_COLORS: Record<
+interface PlannerBlock {
+  id: string;
+  title: string;
+  date: string;
+  type: string;
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  notes?: string;
+  completed?: boolean;
+}
+
+// ─── Block Type Config ──────────────────────────────────────────────────────
+
+const BLOCK_TYPES: Record<
   string,
-  { bg: string; border: string; text: string }
+  { label: string; color: string; gradient: string; border: string }
 > = {
   task: {
-    bg: "bg-blue-100 dark:bg-blue-900/30",
+    label: "Task",
+    color: "#3B82F6",
+    gradient: "from-blue-500/15 to-blue-600/10",
     border: "border-blue-500",
-    text: "text-blue-700 dark:text-blue-300",
   },
   habit: {
-    bg: "bg-green-100 dark:bg-green-900/30",
+    label: "Habit",
+    color: "#10B981",
+    gradient: "from-green-500/15 to-green-600/10",
     border: "border-green-500",
-    text: "text-green-700 dark:text-green-300",
   },
   meeting: {
-    bg: "bg-purple-100 dark:bg-purple-900/30",
+    label: "Meeting",
+    color: "#8B5CF6",
+    gradient: "from-purple-500/15 to-purple-600/10",
     border: "border-purple-500",
-    text: "text-purple-700 dark:text-purple-300",
   },
   break: {
-    bg: "bg-gray-100 dark:bg-gray-800/50",
-    border: "border-gray-400",
-    text: "text-gray-600 dark:text-gray-400",
+    label: "Break",
+    color: "#F59E0B",
+    gradient: "from-amber-500/15 to-amber-600/10",
+    border: "border-amber-500",
   },
   deep_work: {
-    bg: "bg-indigo-100 dark:bg-indigo-900/30",
+    label: "Deep Work",
+    color: "#6366F1",
+    gradient: "from-indigo-500/15 to-indigo-600/10",
     border: "border-indigo-500",
-    text: "text-indigo-700 dark:text-indigo-300",
   },
   shallow_work: {
-    bg: "bg-amber-100 dark:bg-amber-900/30",
-    border: "border-amber-500",
-    text: "text-amber-700 dark:text-amber-300",
+    label: "Shallow Work",
+    color: "#06B6D4",
+    gradient: "from-cyan-500/15 to-cyan-600/10",
+    border: "border-cyan-500",
   },
   personal: {
-    bg: "bg-pink-100 dark:bg-pink-900/30",
+    label: "Personal",
+    color: "#EC4899",
+    gradient: "from-pink-500/15 to-pink-600/10",
     border: "border-pink-500",
-    text: "text-pink-700 dark:text-pink-300",
   },
 };
 
+// Hours range: 6 AM to 11 PM
+const HOURS = Array.from({ length: 18 }, (_, i) => i + 6);
+
+function formatHour12(hour: number): string {
+  if (hour === 0 || hour === 24) return "12 AM";
+  if (hour === 12) return "12 PM";
+  if (hour < 12) return `${hour} AM`;
+  return `${hour - 12} PM`;
+}
+
+function formatTime12(hour: number, minute: number): string {
+  const h = hour % 12 || 12;
+  const m = minute.toString().padStart(2, "0");
+  const ampm = hour < 12 ? "AM" : "PM";
+  return `${h}:${m} ${ampm}`;
+}
+
+// ─── Page Component ─────────────────────────────────────────────────────────
+
 export default function DayPlannerPage() {
-  const { tasks, habits, goals } = useApp();
+  const [timeBlocks, setTimeBlocks] = useState<PlannerBlock[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("day");
-  const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
-  const [isCreateBlockOpen, setIsCreateBlockOpen] = useState(false);
-  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
-  const [newBlockForm, setNewBlockForm] = useState({
+  const [createOpen, setCreateOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [newBlock, setNewBlock] = useState({
     title: "",
-    type: "deep_work" as TimeBlock["type"],
+    type: "task",
     startTime: "09:00",
     endTime: "10:00",
-    linkedTaskId: "",
-    linkedGoalId: "",
     notes: "",
   });
 
-  // Format today's date for comparison
-  const todayStr = useMemo(
-    () => format(selectedDate, "yyyy-MM-dd"),
-    [selectedDate],
-  );
+  const dateStr = format(selectedDate, "yyyy-MM-dd");
+  const isToday = isTodayFn(selectedDate);
 
-  // Filter time blocks for selected date
-  const todayBlocks = useMemo(() => {
-    return timeBlocks
-      .filter((block) => block.date === todayStr)
-      .sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [timeBlocks, todayStr]);
+  // ─── Persistence ────────────────────────────────────────────────────────
 
-  // Get unscheduled tasks (tasks without time blocks for today)
-  const unscheduledTasks = useMemo(() => {
-    const blockedTaskIds = todayBlocks
-      .filter((b) => b.linkedTaskId)
-      .map((b) => b.linkedTaskId);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("cortexia-planner-blocks");
+      if (saved) setTimeBlocks(JSON.parse(saved));
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
-    return tasks
-      .filter(
-        (task) =>
-          task.status !== "completed" && !blockedTaskIds.includes(task.id),
-      )
-      .slice(0, 10);
-  }, [tasks, todayBlocks]);
+  useEffect(() => {
+    localStorage.setItem("cortexia-planner-blocks", JSON.stringify(timeBlocks));
+  }, [timeBlocks]);
 
-  // Calculate daily summary stats
-  const dailySummary = useMemo(() => {
-    const planned = todayBlocks.reduce((sum, b) => sum + b.duration, 0);
-    const completed = todayBlocks
-      .filter((b) => b.status === "completed")
-      .reduce((sum, b) => sum + b.duration, 0);
-    const deepWork = todayBlocks
-      .filter((b) => b.type === "deep_work" || b.type === "task")
-      .reduce((sum, b) => sum + b.duration, 0);
-    const breaks = todayBlocks
-      .filter((b) => b.type === "break")
-      .reduce((sum, b) => sum + b.duration, 0);
+  // ─── Clock Tick ─────────────────────────────────────────────────────────
 
-    return {
-      planned: Math.round((planned / 60) * 10) / 10,
-      completed: Math.round((completed / 60) * 10) / 10,
-      deepWork: Math.round((deepWork / 60) * 10) / 10,
-      breaks: Math.round((breaks / 60) * 10) / 10,
-      tasksScheduled: todayBlocks.filter((b) => b.linkedTaskId).length,
-      tasksCompleted: todayBlocks.filter(
-        (b) => b.linkedTaskId && b.status === "completed",
-      ).length,
-    };
-  }, [todayBlocks]);
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-  // Handle creating a new time block
+  // ─── Scroll to current time on mount ────────────────────────────────────
+
+  useEffect(() => {
+    if (isToday && gridRef.current) {
+      const now = new Date();
+      const minutes = now.getHours() * 60 + now.getMinutes();
+      const offset = ((minutes - 360) / 60) * 64;
+      gridRef.current.scrollTo({
+        top: Math.max(offset - 200, 0),
+        behavior: "smooth",
+      });
+    }
+  }, [isToday]);
+
+  // ─── Filtered blocks ───────────────────────────────────────────────────
+
+  const dayBlocks = useMemo(() => {
+    return timeBlocks.filter((b) => b.date === dateStr);
+  }, [timeBlocks, dateStr]);
+
+  // ─── Summary stats ─────────────────────────────────────────────────────
+
+  const summaryStats = useMemo(() => {
+    let totalMinutes = 0;
+    const typeCounts: Record<string, { count: number; minutes: number }> = {};
+
+    dayBlocks.forEach((b) => {
+      const dur =
+        b.endHour * 60 +
+        (b.endMinute || 0) -
+        (b.startHour * 60 + (b.startMinute || 0));
+      totalMinutes += Math.max(dur, 0);
+      if (!typeCounts[b.type]) typeCounts[b.type] = { count: 0, minutes: 0 };
+      typeCounts[b.type].count += 1;
+      typeCounts[b.type].minutes += Math.max(dur, 0);
+    });
+
+    const totalHours = totalMinutes / 60;
+    const freeHours = 18 - totalHours; // 18 available hours (6AM-midnight)
+    const completedBlocks = dayBlocks.filter((b) => b.completed).length;
+
+    return { totalHours, freeHours, totalMinutes, typeCounts, completedBlocks };
+  }, [dayBlocks]);
+
+  // ─── CRUD ───────────────────────────────────────────────────────────────
+
+  const addTimeBlock = useCallback((block: Omit<PlannerBlock, "id">) => {
+    setTimeBlocks((prev) => [
+      ...prev,
+      {
+        ...block,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      },
+    ]);
+  }, []);
+
+  const deleteTimeBlock = useCallback((id: string) => {
+    setTimeBlocks((prev) => prev.filter((b) => b.id !== id));
+  }, []);
+
+  const toggleBlockComplete = useCallback((id: string) => {
+    setTimeBlocks((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, completed: !b.completed } : b)),
+    );
+  }, []);
+
+  // ─── Create handler ─────────────────────────────────────────────────────
+
   const handleCreateBlock = () => {
-    if (!newBlockForm.title.trim()) return;
-
-    const startParts = newBlockForm.startTime.split(":");
-    const endParts = newBlockForm.endTime.split(":");
-    const startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
-    const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
-    const duration = endMinutes - startMinutes;
-
-    const newBlock: TimeBlock = {
-      id: `tb-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      date: todayStr,
-      startTime: newBlockForm.startTime,
-      endTime: newBlockForm.endTime,
-      duration,
-      title: newBlockForm.title,
-      type: newBlockForm.type,
-      status: "planned",
-      linkedTaskId: newBlockForm.linkedTaskId || undefined,
-      linkedGoalId: newBlockForm.linkedGoalId || undefined,
-      notes: newBlockForm.notes || undefined,
-      createdAt: new Date().toISOString(),
-    };
-
-    setTimeBlocks((prev) => [...prev, newBlock]);
-    setIsCreateBlockOpen(false);
-    setNewBlockForm({
+    if (!newBlock.title.trim()) return;
+    const [sh, sm] = newBlock.startTime.split(":").map(Number);
+    const [eh, em] = newBlock.endTime.split(":").map(Number);
+    addTimeBlock({
+      title: newBlock.title,
+      date: dateStr,
+      type: newBlock.type,
+      startHour: sh,
+      startMinute: sm,
+      endHour: eh,
+      endMinute: em,
+      notes: newBlock.notes || undefined,
+    });
+    setNewBlock({
       title: "",
-      type: "deep_work",
+      type: "task",
       startTime: "09:00",
       endTime: "10:00",
-      linkedTaskId: "",
-      linkedGoalId: "",
       notes: "",
     });
+    setCreateOpen(false);
   };
 
-  // Handle drag and drop for tasks
-  const handleDropTask = (hour: number) => {
-    if (!draggedTask) return;
+  // ─── Current time position ──────────────────────────────────────────────
 
-    const duration = draggedTask.timeEstimate || 60;
-    const startHour = hour.toString().padStart(2, "0");
-    const endHour = Math.min(hour + Math.ceil(duration / 60), 23);
-
-    const newBlock: TimeBlock = {
-      id: `tb-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      date: todayStr,
-      startTime: `${startHour}:00`,
-      endTime: `${endHour.toString().padStart(2, "0")}:00`,
-      duration,
-      title: draggedTask.title,
-      type: "task",
-      status: "planned",
-      linkedTaskId: draggedTask.id,
-      linkedGoalId: draggedTask.linkedGoalId,
-      createdAt: new Date().toISOString(),
-    };
-
-    setTimeBlocks((prev) => [...prev, newBlock]);
-    setDraggedTask(null);
-  };
-
-  // Toggle block status
-  const toggleBlockStatus = (blockId: string) => {
-    setTimeBlocks((prev) =>
-      prev.map((block) => {
-        if (block.id === blockId) {
-          const newStatus =
-            block.status === "completed" ? "planned" : "completed";
-          return { ...block, status: newStatus };
-        }
-        return block;
-      }),
-    );
-  };
-
-  // Delete block
-  const deleteBlock = (blockId: string) => {
-    setTimeBlocks((prev) => prev.filter((b) => b.id !== blockId));
-  };
-
-  // Navigate dates
-  const goToPreviousDay = () => setSelectedDate(subDays(selectedDate, 1));
-  const goToNextDay = () => setSelectedDate(addDays(selectedDate, 1));
-  const goToToday = () => setSelectedDate(new Date());
-
-  // Get blocks for a specific hour
-  const getBlocksForHour = (hour: number) => {
-    return todayBlocks.filter((block) => {
-      const blockHour = parseInt(block.startTime.split(":")[0]);
-      return blockHour === hour;
-    });
-  };
+  const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const currentTimeTop = ((currentMinutes - 360) / 60) * 64;
 
   return (
     <AppLayout>
-      <div className="space-y-6 pb-24">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="space-y-4 pb-12"
+      >
+        {/* ──────────────────── Header ──────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
               Day Planner
             </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-              {format(selectedDate, "EEEE, MMMM d, yyyy")}
-            </p>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* View Mode Tabs */}
-            <div className="inline-flex rounded-lg bg-neutral-100 dark:bg-neutral-800 p-1">
-              {(["day", "week", "month"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-md text-sm font-medium capitalize transition-colors",
-                    viewMode === mode
-                      ? "bg-white dark:bg-neutral-700 shadow-sm"
-                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900",
-                  )}
-                >
-                  {mode}
-                </button>
-              ))}
+          <div className="flex items-center gap-3">
+            {/* Date Navigation */}
+            <div className="flex items-center gap-1 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-lg hover:bg-[var(--color-bg-tertiary)]"
+                onClick={() => setSelectedDate(subDays(selectedDate, 1))}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm font-medium text-[var(--color-text-primary)] px-2 min-w-[160px] text-center select-none">
+                {format(selectedDate, "EEEE, MMMM d")}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-lg hover:bg-[var(--color-bg-tertiary)]"
+                onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
 
-            {/* Date Navigation */}
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={goToPreviousDay}
-                className="h-8 w-8"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
+            {/* Today button */}
+            {!isToday && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={goToToday}
-                className={cn(
-                  "h-8",
-                  isToday(selectedDate) &&
-                    "bg-purple-100 dark:bg-purple-900/30 border-purple-300",
-                )}
+                className="h-8 rounded-lg text-xs font-medium px-3"
+                onClick={() => setSelectedDate(new Date())}
               >
                 Today
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={goToNextDay}
-                className="h-8 w-8"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+            )}
 
-            <Button variant="outline" onClick={() => {}} className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              AI Plan
-            </Button>
+            {/* Add Block */}
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-sm">
+                  <Plus className="w-4 h-4" /> Add Block
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create Time Block</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  {/* Title */}
+                  <div>
+                    <label className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5 block">
+                      Title
+                    </label>
+                    <Input
+                      placeholder="What are you working on?"
+                      value={newBlock.title}
+                      onChange={(e) =>
+                        setNewBlock({ ...newBlock, title: e.target.value })
+                      }
+                      autoFocus
+                    />
+                  </div>
 
-            <Button
-              onClick={() => setIsCreateBlockOpen(true)}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Block Time
-            </Button>
+                  {/* Type */}
+                  <div>
+                    <label className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5 block">
+                      Type
+                    </label>
+                    <Select
+                      value={newBlock.type}
+                      onValueChange={(v) =>
+                        setNewBlock({ ...newBlock, type: v })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(BLOCK_TYPES).map(([key, val]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-2.5 h-2.5 rounded-full"
+                                style={{ backgroundColor: val.color }}
+                              />
+                              {val.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Time Inputs */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5 block">
+                        Start Time
+                      </label>
+                      <Input
+                        type="time"
+                        value={newBlock.startTime}
+                        onChange={(e) =>
+                          setNewBlock({
+                            ...newBlock,
+                            startTime: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5 block">
+                        End Time
+                      </label>
+                      <Input
+                        type="time"
+                        value={newBlock.endTime}
+                        onChange={(e) =>
+                          setNewBlock({ ...newBlock, endTime: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <label className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5 block">
+                      Notes
+                    </label>
+                    <textarea
+                      className="flex w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-sm placeholder:text-[var(--color-text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/40 focus-visible:ring-offset-0 min-h-[80px] resize-none"
+                      placeholder="Optional notes..."
+                      value={newBlock.notes}
+                      onChange={(e) =>
+                        setNewBlock({ ...newBlock, notes: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCreateOpen(false)}
+                    className="rounded-lg"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreateBlock}
+                    disabled={!newBlock.title.trim()}
+                    className="rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                  >
+                    Create
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Calendar View */}
-          <div className="lg:col-span-3">
-            <Card className="overflow-hidden">
-              <div className="max-h-[600px] overflow-y-auto">
-                {HOURS.map((hour) => {
-                  const blocksInHour = getBlocksForHour(hour);
-                  const isCurrentHour =
-                    isToday(selectedDate) && new Date().getHours() === hour;
+        {/* ──────────────────── Daily Summary Bar ──────────────────── */}
+        <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] mb-4">
+          <div className="flex items-center gap-6 flex-wrap">
+            {/* Scheduled Hours */}
+            <div className="flex items-center gap-2">
+              <Clock className="w-3.5 h-3.5 text-purple-500" />
+              <span className="text-xs text-[var(--color-text-secondary)]">
+                <span className="font-semibold text-[var(--color-text-primary)]">
+                  {summaryStats.totalHours.toFixed(1)}h
+                </span>{" "}
+                scheduled
+              </span>
+            </div>
 
+            {/* Free Hours */}
+            <div className="flex items-center gap-2">
+              <Coffee className="w-3.5 h-3.5 text-green-500" />
+              <span className="text-xs text-[var(--color-text-secondary)]">
+                <span className="font-semibold text-[var(--color-text-primary)]">
+                  {Math.max(summaryStats.freeHours, 0).toFixed(1)}h
+                </span>{" "}
+                free
+              </span>
+            </div>
+
+            {/* Block Count */}
+            <div className="flex items-center gap-2">
+              <Layers className="w-3.5 h-3.5 text-blue-500" />
+              <span className="text-xs text-[var(--color-text-secondary)]">
+                <span className="font-semibold text-[var(--color-text-primary)]">
+                  {dayBlocks.length}
+                </span>{" "}
+                blocks
+              </span>
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-4 bg-[var(--color-border)]" />
+
+            {/* Block type breakdown */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {Object.entries(summaryStats.typeCounts).map(([type, data]) => {
+                const bt = BLOCK_TYPES[type] || BLOCK_TYPES.task;
+                return (
+                  <div key={type} className="flex items-center gap-1.5">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: bt.color }}
+                    />
+                    <span className="text-xs text-[var(--color-text-tertiary)]">
+                      {bt.label}{" "}
+                      <span className="font-medium text-[var(--color-text-secondary)]">
+                        ×{data.count}
+                      </span>
+                    </span>
+                  </div>
+                );
+              })}
+              {dayBlocks.length === 0 && (
+                <span className="text-xs text-[var(--color-text-tertiary)]">
+                  No blocks yet
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ──────────────────── Time Grid Calendar ──────────────────── */}
+        <div
+          ref={gridRef}
+          className="relative bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl overflow-y-auto overflow-x-hidden"
+          style={{ maxHeight: "calc(100vh - 360px)" }}
+        >
+          <div className="flex">
+            {/* ── Time Label Column ── */}
+            <div className="w-20 flex-shrink-0 border-r border-[var(--color-border)]">
+              {HOURS.map((hour) => (
+                <div key={hour} className="h-16 relative">
+                  <span className="absolute top-0 right-3 -translate-y-1/2 text-xs font-mono text-[var(--color-text-tertiary)] select-none">
+                    {formatHour12(hour)}
+                  </span>
+                </div>
+              ))}
+              {/* Extra spacing at bottom */}
+              <div className="h-4" />
+            </div>
+
+            {/* ── Grid Area ── */}
+            <div className="flex-1 relative">
+              {/* Hour & half-hour lines */}
+              {HOURS.map((hour) => (
+                <div key={hour} className="h-16 relative">
+                  {/* Full hour line */}
+                  <div className="absolute top-0 left-0 right-0 border-t border-[var(--color-border-subtle)]" />
+                  {/* Half-hour dashed line */}
+                  <div className="absolute top-8 left-0 right-0 border-t border-dashed border-[var(--color-border-subtle)]/50" />
+                </div>
+              ))}
+
+              {/* ── Time Blocks ── */}
+              {dayBlocks.map((block) => {
+                const startMin =
+                  (block.startHour - 6) * 60 + (block.startMinute || 0);
+                const endMin =
+                  (block.endHour - 6) * 60 + (block.endMinute || 0);
+                const top = (startMin / 60) * 64;
+                const height = Math.max(((endMin - startMin) / 60) * 64, 32);
+                const type = BLOCK_TYPES[block.type] || BLOCK_TYPES.task;
+
+                return (
+                  <motion.div
+                    key={block.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className={cn(
+                      "absolute left-1 right-2 rounded-lg border-l-[3px] p-2 group cursor-pointer",
+                      "transition-all duration-150 hover:shadow-sm hover:brightness-105",
+                      `bg-gradient-to-r ${type.gradient}`,
+                      type.border,
+                      block.completed && "opacity-60",
+                    )}
+                    style={{
+                      top: `${top}px`,
+                      height: `${height}px`,
+                      minHeight: "32px",
+                    }}
+                    onClick={() => toggleBlockComplete(block.id)}
+                  >
+                    <div className="flex items-start justify-between h-full">
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={cn(
+                            "text-xs font-medium text-[var(--color-text-primary)] truncate",
+                            block.completed && "line-through opacity-70",
+                          )}
+                        >
+                          {block.title}
+                        </p>
+                        <p className="text-[10px] text-[var(--color-text-tertiary)] mt-0.5">
+                          {formatTime12(
+                            block.startHour,
+                            block.startMinute || 0,
+                          )}
+                          {" – "}
+                          {formatTime12(block.endHour, block.endMinute || 0)}
+                        </p>
+                        {block.notes && height >= 56 && (
+                          <p className="text-[10px] text-[var(--color-text-tertiary)] mt-1 truncate">
+                            {block.notes}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTimeBlock(block.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-white/50 dark:hover:bg-black/20 transition-all flex-shrink-0"
+                      >
+                        <Trash2 className="w-3 h-3 text-[var(--color-text-tertiary)]" />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {/* ── Current Time Indicator ── */}
+              {isToday && currentMinutes >= 360 && currentMinutes <= 1380 && (
+                <div
+                  className="absolute left-0 right-0 z-20 pointer-events-none"
+                  style={{ top: `${currentTimeTop}px` }}
+                >
+                  {/* Line */}
+                  <div className="absolute left-0 right-0 top-0 border-t-2 border-red-500" />
+                  {/* Pulsing dot + time label */}
+                  <div className="absolute -top-[5px] left-0 flex items-center gap-1.5">
+                    <motion.div
+                      className="w-[10px] h-[10px] rounded-full bg-red-500 -ml-[5px]"
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 2,
+                        ease: "easeInOut",
+                      }}
+                    />
+                    <span className="text-[10px] font-mono text-red-500 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded whitespace-nowrap">
+                      {format(currentTime, "h:mm a")}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ──────────────────── Daily Summary Footer ──────────────────── */}
+        <div className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] mt-4">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-purple-500" />
+            Day Summary
+          </h3>
+
+          {/* Stats Row */}
+          <div className="flex items-center gap-6 mb-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Timer className="w-3.5 h-3.5 text-blue-500" />
+              <div>
+                <p className="text-xs text-[var(--color-text-tertiary)]">
+                  Planned time
+                </p>
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  {summaryStats.totalHours.toFixed(1)}h
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+              <div>
+                <p className="text-xs text-[var(--color-text-tertiary)]">
+                  Completed
+                </p>
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  {summaryStats.completedBlocks}/{dayBlocks.length}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <div>
+                <p className="text-xs text-[var(--color-text-tertiary)]">
+                  Productivity
+                </p>
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  {dayBlocks.length > 0
+                    ? Math.round(
+                        (summaryStats.completedBlocks / dayBlocks.length) * 100,
+                      )
+                    : 0}
+                  %
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Category Breakdown Bars */}
+          {summaryStats.totalMinutes > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">
+                Time Distribution
+              </p>
+              {/* Stacked bar */}
+              <div className="h-3 rounded-full overflow-hidden flex bg-[var(--color-bg-tertiary)]">
+                {Object.entries(summaryStats.typeCounts).map(([type, data]) => {
+                  const bt = BLOCK_TYPES[type] || BLOCK_TYPES.task;
+                  const pct = (data.minutes / summaryStats.totalMinutes) * 100;
                   return (
                     <div
-                      key={hour}
-                      className={cn(
-                        "flex border-b border-neutral-100 dark:border-neutral-800 min-h-[60px] transition-colors",
-                        isCurrentHour &&
-                          "bg-purple-50/50 dark:bg-purple-900/10",
-                      )}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => handleDropTask(hour)}
-                    >
-                      {/* Time Label */}
-                      <div className="w-16 sm:w-20 p-2 text-xs sm:text-sm text-neutral-500 border-r border-neutral-100 dark:border-neutral-800 flex-shrink-0">
-                        <span className="font-medium">
-                          {hour.toString().padStart(2, "0")}:00
+                      key={type}
+                      className="h-full transition-all duration-300"
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: bt.color,
+                      }}
+                      title={`${bt.label}: ${(data.minutes / 60).toFixed(1)}h`}
+                    />
+                  );
+                })}
+              </div>
+              {/* Legend */}
+              <div className="flex items-center gap-4 flex-wrap mt-2">
+                {Object.entries(summaryStats.typeCounts).map(([type, data]) => {
+                  const bt = BLOCK_TYPES[type] || BLOCK_TYPES.task;
+                  return (
+                    <div key={type} className="flex items-center gap-1.5">
+                      <div
+                        className="w-2.5 h-2.5 rounded-sm"
+                        style={{ backgroundColor: bt.color }}
+                      />
+                      <span className="text-xs text-[var(--color-text-tertiary)]">
+                        {bt.label}{" "}
+                        <span className="font-medium text-[var(--color-text-secondary)]">
+                          {(data.minutes / 60).toFixed(1)}h
                         </span>
-                      </div>
-
-                      {/* Time Blocks */}
-                      <div className="flex-1 p-1 relative min-h-[60px]">
-                        {blocksInHour.length === 0 && (
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <span className="text-xs text-neutral-400">
-                              Drop task here
-                            </span>
-                          </div>
-                        )}
-
-                        {blocksInHour.map((block) => {
-                          const colors =
-                            TYPE_COLORS[block.type] || TYPE_COLORS.task;
-                          const heightPx = Math.max(
-                            (block.duration / 60) * 60,
-                            50,
-                          );
-
-                          return (
-                            <motion.div
-                              key={block.id}
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              className={cn(
-                                "rounded-lg p-2 sm:p-3 cursor-pointer border-l-4 transition-all hover:shadow-md",
-                                colors.bg,
-                                colors.border,
-                                block.status === "completed" && "opacity-60",
-                              )}
-                              style={{ minHeight: `${heightPx}px` }}
-                              onClick={() => toggleBlockStatus(block.id)}
-                            >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1 min-w-0">
-                                  <h4
-                                    className={cn(
-                                      "font-medium text-sm truncate",
-                                      colors.text,
-                                      block.status === "completed" &&
-                                        "line-through",
-                                    )}
-                                  >
-                                    {block.title}
-                                  </h4>
-                                  <div className="flex items-center gap-2 mt-1 text-xs text-neutral-500">
-                                    <span>
-                                      {block.startTime} - {block.endTime}
-                                    </span>
-                                    {block.linkedGoalId && (
-                                      <Badge
-                                        variant="outline"
-                                        className="text-xs py-0"
-                                      >
-                                        <Target className="h-3 w-3 mr-1" />
-                                        Goal
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                {block.status === "completed" ? (
-                                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                ) : (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      // Start timer for this block
-                                    }}
-                                    className="p-1 hover:bg-white/50 rounded transition-colors"
-                                  >
-                                    <Play className="h-3 w-3" />
-                                  </button>
-                                )}
-                              </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
+                      </span>
                     </div>
                   );
                 })}
               </div>
-            </Card>
-          </div>
+            </div>
+          )}
 
-          {/* Sidebar */}
-          <div className="space-y-4">
-            {/* Unscheduled Tasks */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <CheckSquare className="h-4 w-4" />
-                  Unscheduled Tasks
-                </CardTitle>
-                <p className="text-xs text-neutral-500">Drag to calendar</p>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {unscheduledTasks.length === 0 ? (
-                  <p className="text-xs text-neutral-500 text-center py-4">
-                    All tasks scheduled! 🎉
-                  </p>
-                ) : (
-                  unscheduledTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      draggable
-                      onDragStart={() => setDraggedTask(task)}
-                      onDragEnd={() => setDraggedTask(null)}
-                      className={cn(
-                        "p-2 sm:p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg cursor-grab active:cursor-grabbing hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors",
-                        "border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700",
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <GripVertical className="h-4 w-4 text-neutral-400 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {task.title}
-                          </p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            {task.timeEstimate && (
-                              <span className="text-xs text-neutral-500">
-                                {task.timeEstimate}min
-                              </span>
-                            )}
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-xs py-0",
-                                task.priority === "high" &&
-                                  "border-red-300 text-red-600",
-                                task.priority === "medium" &&
-                                  "border-amber-300 text-amber-600",
-                              )}
-                            >
-                              {task.priority}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Daily Summary */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4" />
-                  Today&apos;s Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                    <p className="text-lg font-bold text-purple-600">
-                      {dailySummary.planned}h
-                    </p>
-                    <p className="text-xs text-neutral-500">Planned</p>
-                  </div>
-                  <div className="text-center p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                    <p className="text-lg font-bold text-green-600">
-                      {dailySummary.completed}h
-                    </p>
-                    <p className="text-xs text-neutral-500">Completed</p>
-                  </div>
-                  <div className="text-center p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                    <p className="text-lg font-bold text-blue-600">
-                      {dailySummary.deepWork}h
-                    </p>
-                    <p className="text-xs text-neutral-500">Deep Work</p>
-                  </div>
-                  <div className="text-center p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                    <p className="text-lg font-bold text-neutral-600">
-                      {dailySummary.breaks}h
-                    </p>
-                    <p className="text-xs text-neutral-500">Breaks</p>
-                  </div>
-                </div>
-                <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-neutral-500">Tasks</span>
-                    <span className="font-medium">
-                      {dailySummary.tasksCompleted}/
-                      {dailySummary.tasksScheduled} done
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {dayBlocks.length === 0 && (
+            <p className="text-xs text-[var(--color-text-tertiary)] text-center py-2">
+              No blocks scheduled yet. Add a block to get started!
+            </p>
+          )}
         </div>
-      </div>
-
-      {/* Create Block Dialog */}
-      <Dialog open={isCreateBlockOpen} onOpenChange={setIsCreateBlockOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Block Time</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                value={newBlockForm.title}
-                onChange={(e) =>
-                  setNewBlockForm({ ...newBlockForm, title: e.target.value })
-                }
-                placeholder="e.g., Deep Work: ML Assignment"
-              />
-            </div>
-
-            <div>
-              <Label>Type</Label>
-              <Select
-                value={newBlockForm.type}
-                onValueChange={(v) =>
-                  setNewBlockForm({ ...newBlockForm, type: v as any })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="deep_work">🎯 Deep Work</SelectItem>
-                  <SelectItem value="shallow_work">📋 Shallow Work</SelectItem>
-                  <SelectItem value="task">✅ Task</SelectItem>
-                  <SelectItem value="meeting">👥 Meeting</SelectItem>
-                  <SelectItem value="habit">🔄 Habit</SelectItem>
-                  <SelectItem value="break">☕ Break</SelectItem>
-                  <SelectItem value="personal">💜 Personal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="startTime">Start Time</Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={newBlockForm.startTime}
-                  onChange={(e) =>
-                    setNewBlockForm({
-                      ...newBlockForm,
-                      startTime: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="endTime">End Time</Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={newBlockForm.endTime}
-                  onChange={(e) =>
-                    setNewBlockForm({
-                      ...newBlockForm,
-                      endTime: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label>Link to Task (optional)</Label>
-              <Select
-                value={newBlockForm.linkedTaskId || "none"}
-                onValueChange={(v) =>
-                  setNewBlockForm({
-                    ...newBlockForm,
-                    linkedTaskId: v === "none" ? "" : v,
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a task..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No task</SelectItem>
-                  {unscheduledTasks.map((task) => (
-                    <SelectItem key={task.id} value={task.id}>
-                      {task.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Link to Goal (optional)</Label>
-              <Select
-                value={newBlockForm.linkedGoalId || "none"}
-                onValueChange={(v) =>
-                  setNewBlockForm({
-                    ...newBlockForm,
-                    linkedGoalId: v === "none" ? "" : v,
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a goal..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No goal</SelectItem>
-                  {goals
-                    .filter((g) => g.status === "active")
-                    .map((goal) => (
-                      <SelectItem key={goal.id} value={goal.id}>
-                        {goal.title}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="notes">Notes (optional)</Label>
-              <Textarea
-                id="notes"
-                value={newBlockForm.notes}
-                onChange={(e) =>
-                  setNewBlockForm({ ...newBlockForm, notes: e.target.value })
-                }
-                placeholder="Any additional notes..."
-                rows={2}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateBlockOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateBlock}
-              disabled={!newBlockForm.title.trim()}
-            >
-              Create Block
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </motion.div>
     </AppLayout>
   );
 }

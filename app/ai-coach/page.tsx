@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -19,70 +17,38 @@ import { useApp } from "@/lib/context/app-context";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Send,
   Brain,
   Heart,
+  Send,
+  Plus,
   Sparkles,
+  AlertTriangle,
   TrendingUp,
   TrendingDown,
   Minus,
-  Target,
   CheckSquare,
   Flame,
+  Target,
   DollarSign,
-  Clock,
   Moon,
-  Plus,
-  History,
-  MessageCircle,
   Wind,
-  Smile,
-  Frown,
-  Meh,
-  PartyPopper,
-  AlertCircle,
-  Calendar,
-  X,
+  History,
+  ArrowRight,
 } from "lucide-react";
-import { format, isToday, subDays, differenceInDays } from "date-fns";
+import { format, subDays, parseISO, differenceInDays, isToday } from "date-fns";
 import type { UserState, CoachSession, CoachMessage } from "@/lib/types";
 
-// Quick action buttons
+// ── Quick action buttons ──────────────────────────────────────────────
 const QUICK_ACTIONS = [
-  {
-    emoji: "😤",
-    label: "I'm stressed",
-    type: "stress" as const,
-    icon: AlertCircle,
-  },
-  { emoji: "😔", label: "Feeling down", type: "venting" as const, icon: Frown },
-  {
-    emoji: "🎉",
-    label: "Celebrate a win",
-    type: "celebration" as const,
-    icon: PartyPopper,
-  },
-  {
-    emoji: "💭",
-    label: "Need to vent",
-    type: "venting" as const,
-    icon: MessageCircle,
-  },
-  {
-    emoji: "🧘",
-    label: "Breathing exercise",
-    type: "exercise" as const,
-    icon: Wind,
-  },
-  {
-    emoji: "📋",
-    label: "Plan my day",
-    type: "planning" as const,
-    icon: Calendar,
-  },
+  { emoji: "😤", label: "I'm stressed", type: "stress" as const },
+  { emoji: "😔", label: "Feeling down", type: "venting" as const },
+  { emoji: "🎉", label: "Celebrate a win", type: "celebration" as const },
+  { emoji: "💭", label: "Need to vent", type: "venting" as const },
+  { emoji: "🧘", label: "Breathing exercise", type: "exercise" as const },
+  { emoji: "📋", label: "Plan my day", type: "planning" as const },
 ];
 
-// Get mood emoji based on value
+// ── Helper: mood emoji ────────────────────────────────────────────────
 const getMoodEmoji = (value: number) => {
   if (value >= 8) return "😄";
   if (value >= 6) return "😊";
@@ -91,7 +57,7 @@ const getMoodEmoji = (value: number) => {
   return "😢";
 };
 
-// Get trend icon
+// ── Helper: trend icon ────────────────────────────────────────────────
 const getTrendIcon = (trend: "up" | "down" | "stable") => {
   switch (trend) {
     case "up":
@@ -103,6 +69,9 @@ const getTrendIcon = (trend: "up" | "down" | "stable") => {
   }
 };
 
+// ═══════════════════════════════════════════════════════════════════════
+// Page component
+// ═══════════════════════════════════════════════════════════════════════
 export default function AICoachPage() {
   const { tasks, habits, goals, journalEntries, transactions, timeEntries } =
     useApp();
@@ -122,13 +91,13 @@ export default function AICoachPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentSession?.messages]);
 
-  // Calculate comprehensive user state
+  // ── Calculate comprehensive user state ──────────────────────────────
   const userState: UserState = useMemo(() => {
     const today = new Date();
     const todayStr = format(today, "yyyy-MM-dd");
     const last7Days = subDays(today, 7);
 
-    // Get recent journal entries for mood/energy/stress
+    // Recent journal entries for mood / energy / stress
     const recentJournals = journalEntries
       .filter((j) => new Date(j.date) >= last7Days)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -149,7 +118,7 @@ export default function AICoachPage() {
           recentJournals.length
         : 5;
 
-    // Calculate mood trend
+    // Mood trend (first half vs second half of the week)
     const firstHalf = recentJournals.slice(
       Math.floor(recentJournals.length / 2),
     );
@@ -181,15 +150,14 @@ export default function AICoachPage() {
       (t) => t.status === "completed" && t.completedAt?.startsWith(todayStr),
     );
 
-    // Habits at risk (haven't been completed today but have a streak)
+    // Habits at risk
     const habitsAtRisk = habits.filter((h) => {
       if (!h.active || h.streak <= 3) return false;
-      const completedToday = h.completions?.some(
+      const done = h.completions?.some(
         (c) => c.date === todayStr && c.completed,
       );
-      return !completedToday;
+      return !done;
     });
-
     const activeStreaks = habits.filter((h) => h.active && h.streak > 0);
 
     // Goals analysis
@@ -210,7 +178,7 @@ export default function AICoachPage() {
           new Date(t.date).getFullYear() === thisMonth.getFullYear(),
       )
       .reduce((sum, t) => sum + t.amount, 0);
-    const monthlyBudget = 2500; // Default, could come from settings
+    const monthlyBudget = 2500;
     const daysInMonth = new Date(
       thisMonth.getFullYear(),
       thisMonth.getMonth() + 1,
@@ -218,8 +186,8 @@ export default function AICoachPage() {
     ).getDate();
     const daysRemaining = daysInMonth - thisMonth.getDate();
 
-    // Sleep (from time entries if tracked, otherwise estimate)
-    const avgSleep = 7; // Default
+    // Sleep (default)
+    const avgSleep = 7;
     const sleepDebt = 0;
 
     return {
@@ -250,7 +218,7 @@ export default function AICoachPage() {
     };
   }, [tasks, habits, goals, journalEntries, transactions, timeEntries]);
 
-  // Generate AI assessment based on user state
+  // ── AI assessment ───────────────────────────────────────────────────
   const aiAssessment = useMemo(() => {
     const issues: string[] = [];
     const positives: string[] = [];
@@ -283,7 +251,7 @@ export default function AICoachPage() {
     return "Everything looks balanced. How can I help you today?";
   }, [userState]);
 
-  // Start a new coaching session
+  // ── Start a new coaching session ────────────────────────────────────
   const startNewSession = useCallback(
     (type: CoachSession["sessionType"] = "general") => {
       const session: CoachSession = {
@@ -293,8 +261,6 @@ export default function AICoachPage() {
         sessionType: type,
       };
 
-      // Generate opening message based on type and user state
-      let openingMessage = "";
       const hour = new Date().getHours();
       const greeting =
         hour < 12
@@ -302,6 +268,8 @@ export default function AICoachPage() {
           : hour < 18
             ? "Good afternoon"
             : "Good evening";
+
+      let openingMessage = "";
 
       switch (type) {
         case "stress":
@@ -337,7 +305,7 @@ export default function AICoachPage() {
     [userState, aiAssessment],
   );
 
-  // Send a message
+  // ── Send a message ──────────────────────────────────────────────────
   const sendMessage = useCallback(async () => {
     if (!input.trim() || !currentSession || isThinking) return;
 
@@ -356,12 +324,12 @@ export default function AICoachPage() {
     setInput("");
     setIsThinking(true);
 
-    // Simulate AI response (in real implementation, this would call the AI API)
+    // Simulate AI thinking
     await new Promise((resolve) =>
       setTimeout(resolve, 1000 + Math.random() * 1000),
     );
 
-    // Generate contextual response
+    // Generate contextual response based on keywords
     const userContent = input.toLowerCase();
     let responseContent = "";
 
@@ -426,7 +394,7 @@ export default function AICoachPage() {
     setIsThinking(false);
   }, [input, currentSession, isThinking, userState, tasks]);
 
-  // Generate insights based on patterns
+  // ── Generate insights ───────────────────────────────────────────────
   const insights = useMemo(() => {
     const list: {
       icon: string;
@@ -434,7 +402,6 @@ export default function AICoachPage() {
       type: "suggestion" | "warning" | "pattern" | "insight";
     }[] = [];
 
-    // Mood-exercise correlation
     if (userState.mood.value < 6 && userState.habits.streaksActive > 0) {
       list.push({
         icon: "📈",
@@ -443,7 +410,6 @@ export default function AICoachPage() {
       });
     }
 
-    // Overdue tasks impact
     if (userState.tasks.overdue > 2) {
       list.push({
         icon: "⚠️",
@@ -452,7 +418,6 @@ export default function AICoachPage() {
       });
     }
 
-    // Habit streaks at risk
     if (userState.habits.atRisk > 0) {
       list.push({
         icon: "🔥",
@@ -461,14 +426,12 @@ export default function AICoachPage() {
       });
     }
 
-    // Best focus hours
     list.push({
       icon: "💡",
       text: "Based on your patterns, 9-11 AM tends to be your peak focus time.",
       type: "insight",
     });
 
-    // Budget warning
     if (userState.budget.percentUsed > 80) {
       list.push({
         icon: "💰",
@@ -480,28 +443,31 @@ export default function AICoachPage() {
     return list;
   }, [userState]);
 
+  // ────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ────────────────────────────────────────────────────────────────────
   return (
     <AppLayout>
       <div className="space-y-6 pb-24">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+        {/* ── 1. Header ──────────────────────────────────────────── */}
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-              <Heart className="h-6 w-6 text-pink-500" />
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Brain className="h-6 w-6 text-purple-500" />
               AI Coach
             </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-              Your personal mental health & productivity companion
+            <p className="text-sm text-[var(--color-text-tertiary)] mt-1">
+              Your personal mental health &amp; productivity companion
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => {}} className="gap-2">
+            <Button variant="outline" className="gap-2">
               <History className="h-4 w-4" />
               History
             </Button>
             <Button
               onClick={() => startNewSession("general")}
-              className="gap-2"
+              className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
             >
               <Plus className="h-4 w-4" />
               New Session
@@ -509,22 +475,25 @@ export default function AICoachPage() {
           </div>
         </div>
 
-        {/* User State Overview */}
-        <Card>
+        {/* ── 2. Your Current State Dashboard ────────────────────── */}
+        <Card className="rounded-xl border bg-[var(--color-bg-secondary)]">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               Your Current State
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            {/* Metrics grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {/* Mood */}
-              <div className="flex items-center gap-2 p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)]">
                 <span className="text-2xl">
                   {getMoodEmoji(userState.mood.value)}
                 </span>
                 <div>
-                  <p className="text-xs text-neutral-500">Mood</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">
+                    Mood
+                  </p>
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-semibold">
                       {userState.mood.value}/10
@@ -535,10 +504,12 @@ export default function AICoachPage() {
               </div>
 
               {/* Energy */}
-              <div className="flex items-center gap-2 p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)]">
                 <span className="text-2xl">⚡</span>
                 <div>
-                  <p className="text-xs text-neutral-500">Energy</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">
+                    Energy
+                  </p>
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-semibold">
                       {userState.energy.value}/10
@@ -549,10 +520,12 @@ export default function AICoachPage() {
               </div>
 
               {/* Stress */}
-              <div className="flex items-center gap-2 p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)]">
                 <span className="text-2xl">📊</span>
                 <div>
-                  <p className="text-xs text-neutral-500">Stress</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">
+                    Stress
+                  </p>
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-semibold">
                       {userState.stress.value}/10
@@ -563,10 +536,12 @@ export default function AICoachPage() {
               </div>
 
               {/* Sleep */}
-              <div className="flex items-center gap-2 p-2 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)]">
                 <span className="text-2xl">🛏️</span>
                 <div>
-                  <p className="text-xs text-neutral-500">Sleep</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">
+                    Sleep
+                  </p>
                   <span className="text-sm font-semibold">
                     {userState.sleep.avgHours}h avg
                   </span>
@@ -574,8 +549,8 @@ export default function AICoachPage() {
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            {/* Quick Stats Row */}
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
               <div className="flex items-center gap-2">
                 <CheckSquare className="h-4 w-4 text-blue-500" />
                 <span
@@ -621,26 +596,26 @@ export default function AICoachPage() {
               </div>
             </div>
 
-            {/* AI Assessment */}
-            <div className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg">
+            {/* AI Assessment Banner */}
+            <div className="mt-4 p-4 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
               <p className="text-sm">
-                <span className="font-semibold">AI Assessment: </span>
-                {aiAssessment}
+                <span className="font-bold">AI Assessment:</span> {aiAssessment}
               </p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Chat Area */}
-        <Card className="min-h-[400px] flex flex-col">
+        {/* ── 3. Chat Area ───────────────────────────────────────── */}
+        <Card className="rounded-xl border min-h-[500px] flex flex-col">
           <CardContent className="flex-1 flex flex-col p-0">
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[400px]">
+            {/* Messages area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[500px]">
               {!currentSession ? (
-                <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                /* Empty state */
+                <div className="flex flex-col items-center justify-center h-full text-center py-16">
                   <Brain className="w-16 h-16 text-purple-500 mb-4" />
                   <h3 className="text-xl font-semibold mb-2">Ready to chat?</h3>
-                  <p className="text-neutral-500 mb-6 max-w-md text-sm">
+                  <p className="text-sm text-neutral-500 mb-6 max-w-md">
                     I&apos;m here to listen, support, and help you navigate
                     whatever you&apos;re going through. Start a session or
                     choose a quick action below.
@@ -665,13 +640,13 @@ export default function AICoachPage() {
                     >
                       <div
                         className={cn(
-                          "max-w-[80%] p-3 rounded-2xl",
+                          "max-w-[80%] p-4 rounded-2xl",
                           message.role === "user"
-                            ? "bg-purple-600 text-white"
-                            : "bg-neutral-100 dark:bg-neutral-800",
+                            ? "rounded-br-sm bg-gradient-to-br from-purple-600 to-purple-700 text-white"
+                            : "rounded-bl-sm bg-gradient-to-br from-gray-100 to-gray-50 dark:from-neutral-800 dark:to-neutral-800/80",
                         )}
                       >
-                        <p className="whitespace-pre-wrap text-sm">
+                        <p className="text-sm whitespace-pre-wrap">
                           {message.content}
                         </p>
                         <p
@@ -688,6 +663,7 @@ export default function AICoachPage() {
                     </motion.div>
                   ))}
 
+                  {/* Thinking indicator */}
                   {isThinking && (
                     <div className="flex items-center gap-2 text-neutral-500">
                       <motion.div className="flex gap-1">
@@ -713,7 +689,7 @@ export default function AICoachPage() {
               )}
             </div>
 
-            {/* Input */}
+            {/* Input area */}
             {currentSession && (
               <div className="border-t border-neutral-200 dark:border-neutral-700 p-3">
                 <div className="flex gap-2">
@@ -739,8 +715,8 @@ export default function AICoachPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <Card>
+        {/* ── 4. Quick Actions ───────────────────────────────────── */}
+        <Card className="rounded-xl border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
           </CardHeader>
@@ -757,7 +733,7 @@ export default function AICoachPage() {
                       startNewSession(action.type);
                     }
                   }}
-                  className="text-sm gap-2"
+                  className="text-sm rounded-lg gap-2"
                 >
                   <span>{action.emoji}</span>
                   {action.label}
@@ -767,12 +743,12 @@ export default function AICoachPage() {
           </CardContent>
         </Card>
 
-        {/* Insights & Patterns */}
-        <Card>
+        {/* ── 5. Insights & Patterns ─────────────────────────────── */}
+        <Card className="rounded-xl border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
-              Insights & Patterns
+              Insights &amp; Patterns
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -781,15 +757,15 @@ export default function AICoachPage() {
                 <div
                   key={i}
                   className={cn(
-                    "flex items-start gap-3 p-3 rounded-lg text-sm",
+                    "flex items-start gap-3 p-3 rounded-lg text-sm border-l-[3px]",
                     insight.type === "warning" &&
-                      "bg-amber-50 dark:bg-amber-900/20",
+                      "border-l-amber-500 bg-amber-50 dark:bg-amber-900/20",
                     insight.type === "suggestion" &&
-                      "bg-green-50 dark:bg-green-900/20",
+                      "border-l-green-500 bg-green-50 dark:bg-green-900/20",
                     insight.type === "pattern" &&
-                      "bg-blue-50 dark:bg-blue-900/20",
+                      "border-l-blue-500 bg-blue-50 dark:bg-blue-900/20",
                     insight.type === "insight" &&
-                      "bg-neutral-50 dark:bg-neutral-800/50",
+                      "border-l-purple-500 bg-purple-50 dark:bg-purple-900/20",
                   )}
                 >
                   <span className="text-lg">{insight.icon}</span>
@@ -801,7 +777,7 @@ export default function AICoachPage() {
         </Card>
       </div>
 
-      {/* Breathing Exercise Modal */}
+      {/* ── 6. Breathing Exercise Modal ────────────────────────────── */}
       <BreathingExerciseModal
         open={isBreathingExercise}
         onClose={() => setIsBreathingExercise(false)}
@@ -810,7 +786,9 @@ export default function AICoachPage() {
   );
 }
 
-// Breathing Exercise Modal Component
+// ═══════════════════════════════════════════════════════════════════════
+// Breathing Exercise Modal
+// ═══════════════════════════════════════════════════════════════════════
 function BreathingExerciseModal({
   open,
   onClose,

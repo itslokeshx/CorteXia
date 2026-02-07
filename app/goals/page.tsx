@@ -1,18 +1,29 @@
 "use client";
 
 import { AppLayout } from "@/components/layout/app-layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useApp } from "@/lib/context/app-context";
+import type { Goal, Milestone } from "@/lib/types";
+import { useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { format, parseISO, differenceInDays, addMonths } from "date-fns";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  Plus,
+  ChevronDown,
+  ChevronRight,
+  Check,
+  ArrowLeft,
+  Calendar,
+  Sparkles,
+  BarChart3,
+  Zap,
+  Clock,
+  Pause,
+  Play,
+  Trash2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -20,1445 +31,975 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Plus,
-  Calendar,
-  Trash2,
-  Target,
-  TreePine,
-  Kanban,
-  GanttChart,
-  Sparkles,
-  ChevronDown,
-  ChevronRight,
-  CheckCircle2,
-  Circle,
-  Clock,
-  ArrowRight,
-  Loader2,
-  Zap,
-  TrendingUp,
-  Milestone,
-  Brain,
-  Link2,
-  LayoutList,
-  ListTodo,
-  Flame,
-  Star,
-  Mountain,
-  Compass,
-  CalendarDays,
-  Trophy,
-  Edit2,
-} from "lucide-react";
-import { useState, useMemo, useCallback } from "react";
-import { useApp } from "@/lib/context/app-context";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { format, differenceInDays, addDays } from "date-fns";
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
-};
+// ═════════════════════════════════════════════════════════════════════════════
+//  TYPES
+// ═════════════════════════════════════════════════════════════════════════════
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-
-// Goal horizon types
-const GOAL_HORIZONS = {
-  life: {
-    label: "Life Goal",
-    icon: Mountain,
-    color: "#8b5cf6",
-    description: "Long-term vision (5+ years)",
-  },
-  yearly: {
-    label: "Yearly Goal",
-    icon: Star,
-    color: "#f59e0b",
-    description: "This year's objectives",
-  },
-  quarterly: {
-    label: "Quarterly",
-    icon: Compass,
-    color: "#3b82f6",
-    description: "Next 3 months",
-  },
-  monthly: {
-    label: "Monthly",
-    icon: CalendarDays,
-    color: "#22c55e",
-    description: "This month's focus",
-  },
-  weekly: {
-    label: "Weekly",
-    icon: Calendar,
-    color: "#06b6d4",
-    description: "This week's targets",
-  },
-};
-
-// Category configurations
-const CATEGORY_CONFIG: Record<string, { color: string; emoji: string }> = {
-  personal: { color: "#8b5cf6", emoji: "🌟" },
-  health: { color: "#22c55e", emoji: "💪" },
-  career: { color: "#3b82f6", emoji: "💼" },
-  education: { color: "#f59e0b", emoji: "📚" },
-  financial: { color: "#10b981", emoji: "💰" },
-  family: { color: "#ec4899", emoji: "👨‍👩‍👧" },
-  creativity: { color: "#f97316", emoji: "🎨" },
-  relationships: { color: "#ef4444", emoji: "❤️" },
-};
-
-// Types for AI Roadmap
-interface AIRoadmapStep {
+interface SubGoal {
+  id: string;
   title: string;
-  description: string;
-  timeframe: string;
-  tasks: string[];
+  completed: boolean;
 }
 
-interface AIRoadmap {
-  steps: AIRoadmapStep[];
-  totalTimeWeeks: number;
-  tips: string[];
+interface MonthBlock {
+  month: string; // "2026-02"
+  label: string; // "February"
+  subGoals: SubGoal[];
 }
 
-// Connected Items Component - Shows linked tasks and habits
-function ConnectedItems({ goalId }: { goalId: string }) {
-  const { tasks, habits } = useApp();
+interface QuarterBlock {
+  id: string;
+  label: string; // "Q1 (Feb – Apr)"
+  months: MonthBlock[];
+}
 
-  const linkedTasks = tasks.filter((t) => t.linkedGoalId === goalId);
-  const linkedHabits = habits.filter((h) => h.linkedGoalIds?.includes(goalId));
+// ═════════════════════════════════════════════════════════════════════════════
+//  HELPERS
+// ═════════════════════════════════════════════════════════════════════════════
 
-  if (linkedTasks.length === 0 && linkedHabits.length === 0) {
-    return null;
+const TIMEFRAMES = [
+  { value: "3", label: "3 months" },
+  { value: "6", label: "6 months" },
+  { value: "12", label: "1 year" },
+  { value: "custom", label: "Custom" },
+];
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+function generateQuarters(startDate: Date, months: number): QuarterBlock[] {
+  const quarters: QuarterBlock[] = [];
+  const startMonth = startDate.getMonth();
+  const startYear = startDate.getFullYear();
+  let monthIndex = 0;
+  let quarterNum = 1;
+
+  while (monthIndex < months) {
+    const quarterMonths: MonthBlock[] = [];
+    for (let i = 0; i < 3 && monthIndex < months; i++) {
+      const m = (startMonth + monthIndex) % 12;
+      const y = startYear + Math.floor((startMonth + monthIndex) / 12);
+      quarterMonths.push({
+        month: `${y}-${String(m + 1).padStart(2, "0")}`,
+        label: MONTH_NAMES[m],
+        subGoals: [],
+      });
+      monthIndex++;
+    }
+
+    const startLabel = quarterMonths[0].label.slice(0, 3);
+    const endLabel = quarterMonths[quarterMonths.length - 1].label.slice(0, 3);
+    quarters.push({
+      id: `q${quarterNum}`,
+      label: `Q${quarterNum} (${startLabel} – ${endLabel})`,
+      months: quarterMonths,
+    });
+    quarterNum++;
   }
-
-  return (
-    <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-800">
-      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
-        Connected Items
-      </p>
-      <div className="space-y-1.5">
-        {linkedTasks.slice(0, 3).map((task) => (
-          <div key={task.id} className="flex items-center gap-2 text-xs">
-            <div
-              className={cn(
-                "h-1.5 w-1.5 rounded-full",
-                task.status === "completed" ? "bg-green-500" : "bg-blue-500",
-              )}
-            />
-            <ListTodo className="h-3 w-3 text-muted-foreground" />
-            <span
-              className={cn(
-                task.status === "completed" &&
-                  "line-through text-muted-foreground",
-              )}
-            >
-              {task.title}
-            </span>
-          </div>
-        ))}
-        {linkedHabits.slice(0, 3).map((habit) => (
-          <div key={habit.id} className="flex items-center gap-2 text-xs">
-            <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-            <Flame className="h-3 w-3 text-muted-foreground" />
-            <span>{habit.name}</span>
-            {habit.streak > 0 && (
-              <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
-                🔥 {habit.streak}
-              </Badge>
-            )}
-          </div>
-        ))}
-        {(linkedTasks.length > 3 || linkedHabits.length > 3) && (
-          <p className="text-[10px] text-muted-foreground">
-            +
-            {Math.max(0, linkedTasks.length - 3) +
-              Math.max(0, linkedHabits.length - 3)}{" "}
-            more items
-          </p>
-        )}
-      </div>
-    </div>
-  );
+  return quarters;
 }
 
-// Goal Tree Item Component with hierarchy support
-function GoalTreeItem({
-  goal,
-  onDelete,
-  onMilestoneComplete,
-  onEdit,
-  depth = 0,
-}: {
-  goal: any;
-  onDelete: (id: string) => void;
-  onMilestoneComplete: (goalId: string, milestoneId: string) => void;
-  onEdit: (goal: any) => void;
-  depth?: number;
-}) {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const hasMilestones = goal.milestones && goal.milestones.length > 0;
-  const completedMilestones =
-    goal.milestones?.filter((m: any) => m.completed).length || 0;
-  const totalMilestones = goal.milestones?.length || 0;
+function getStatusDots(progress: number) {
+  const filled = Math.round((progress / 100) * 5);
+  return Array.from({ length: 5 }, (_, i) => i < filled);
+}
 
-  const horizonConfig =
-    GOAL_HORIZONS[goal.horizon as keyof typeof GOAL_HORIZONS] ||
-    GOAL_HORIZONS.quarterly;
-  const HorizonIcon = horizonConfig.icon;
-  const categoryConfig = CATEGORY_CONFIG[goal.category] || { emoji: "🎯" };
+// ═════════════════════════════════════════════════════════════════════════════
+//  COMPONENT
+// ═════════════════════════════════════════════════════════════════════════════
 
-  const targetDate = new Date(goal.targetDate);
-  const daysLeft = differenceInDays(targetDate, new Date());
-  const isOverdue = daysLeft < 0 && goal.status !== "completed";
+export default function GoalsPage() {
+  const { goals, addGoal, updateGoal, deleteGoal, tasks } = useApp();
 
-  const priorityColors = {
-    low: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    medium:
-      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-    high: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  // State
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
+  const [goalName, setGoalName] = useState("");
+  const [timeframe, setTimeframe] = useState("6");
+  const [customDate, setCustomDate] = useState("");
+  const [goalStructures, setGoalStructures] = useState<
+    Record<string, QuarterBlock[]>
+  >({});
+  const [expandedQuarters, setExpandedQuarters] = useState<Set<string>>(
+    new Set(),
+  );
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
+  const [addingSubGoal, setAddingSubGoal] = useState<string | null>(null);
+  const [newSubGoalText, setNewSubGoalText] = useState("");
+
+  // Derived
+  const activeGoals = useMemo(
+    () => goals.filter((g) => g.status !== "abandoned"),
+    [goals],
+  );
+
+  const selectedGoal = useMemo(
+    () => goals.find((g) => g.id === selectedGoalId) || null,
+    [goals, selectedGoalId],
+  );
+
+  // ── Structure builder ────────────────────────────────────────────────────
+  const getGoalStructure = useCallback(
+    (goal: Goal): QuarterBlock[] => {
+      if (goalStructures[goal.id]) return goalStructures[goal.id];
+
+      const targetMonths = goal.targetDate
+        ? Math.max(
+            1,
+            Math.ceil(
+              differenceInDays(
+                parseISO(goal.targetDate),
+                parseISO(goal.createdAt),
+              ) / 30,
+            ),
+          )
+        : 6;
+      const quarters = generateQuarters(parseISO(goal.createdAt), targetMonths);
+
+      // Populate from milestones (format: "month_key|subgoal_title")
+      if (goal.milestones?.length) {
+        for (const m of goal.milestones) {
+          const pipe = m.title.indexOf("|");
+          if (pipe > 0) {
+            const monthKey = m.title.slice(0, pipe);
+            const subTitle = m.title.slice(pipe + 1);
+            for (const q of quarters) {
+              for (const mo of q.months) {
+                if (mo.month === monthKey) {
+                  mo.subGoals.push({
+                    id: m.id,
+                    title: subTitle,
+                    completed: m.completed,
+                  });
+                }
+              }
+            }
+          } else {
+            // Legacy — first month
+            if (quarters[0]?.months[0]) {
+              quarters[0].months[0].subGoals.push({
+                id: m.id,
+                title: m.title,
+                completed: m.completed,
+              });
+            }
+          }
+        }
+      }
+      return quarters;
+    },
+    [goalStructures],
+  );
+
+  // ── Progress calculators ─────────────────────────────────────────────────
+  const calcProgress = useCallback((qs: QuarterBlock[]): number => {
+    let total = 0,
+      done = 0;
+    for (const q of qs)
+      for (const m of q.months)
+        for (const s of m.subGoals) {
+          total++;
+          if (s.completed) done++;
+        }
+    return total === 0 ? 0 : Math.round((done / total) * 100);
+  }, []);
+
+  const monthProgress = useCallback((m: MonthBlock) => {
+    if (!m.subGoals.length) return 0;
+    return Math.round(
+      (m.subGoals.filter((s) => s.completed).length / m.subGoals.length) * 100,
+    );
+  }, []);
+
+  const quarterProgress = useCallback((q: QuarterBlock) => {
+    let total = 0,
+      done = 0;
+    for (const m of q.months)
+      for (const s of m.subGoals) {
+        total++;
+        if (s.completed) done++;
+      }
+    return total === 0 ? 0 : Math.round((done / total) * 100);
+  }, []);
+
+  // ── Sync structure → milestones ──────────────────────────────────────────
+  const syncToMilestones = useCallback(
+    (goalId: string, structure: QuarterBlock[]) => {
+      const milestones: Milestone[] = [];
+      for (const q of structure)
+        for (const m of q.months)
+          for (const sg of m.subGoals) {
+            milestones.push({
+              id: sg.id,
+              title: `${m.month}|${sg.title}`,
+              targetDate: `${m.month}-15`,
+              completed: sg.completed,
+              completedAt: sg.completed ? new Date().toISOString() : undefined,
+            });
+          }
+
+      const progress = calcProgress(structure);
+      const isComplete = progress === 100 && milestones.length > 0;
+
+      updateGoal(goalId, {
+        milestones,
+        progress,
+        status: isComplete ? "completed" : "active",
+        ...(isComplete ? { completedAt: new Date().toISOString() } : {}),
+      });
+    },
+    [calcProgress, updateGoal],
+  );
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
+  const handleCreateGoal = () => {
+    if (!goalName.trim()) return;
+    const months =
+      timeframe === "custom"
+        ? customDate
+          ? Math.max(
+              1,
+              Math.ceil(
+                differenceInDays(parseISO(customDate), new Date()) / 30,
+              ),
+            )
+          : 6
+        : parseInt(timeframe) || 6;
+    const targetDate = addMonths(new Date(), months).toISOString();
+
+    const newGoal = addGoal({
+      title: goalName.trim(),
+      description: "",
+      category: "personal" as Goal["category"],
+      priority: "medium" as Goal["priority"],
+      targetDate,
+      progress: 0,
+      status: "active",
+      level: months <= 3 ? "quarterly" : months <= 12 ? "yearly" : "life",
+      milestones: [],
+    });
+    setGoalName("");
+    setSelectedGoalId(newGoal.id);
   };
 
-  const statusColors = {
-    active: "border-l-blue-500",
-    completed: "border-l-emerald-500",
-    paused: "border-l-amber-500",
-    abandoned: "border-l-gray-500",
-  };
+  const toggleSubGoal = useCallback(
+    (goalId: string, subGoalId: string) => {
+      const goal = goals.find((g) => g.id === goalId);
+      if (!goal) return;
+      const structure = getGoalStructure(goal).map((q) => ({
+        ...q,
+        months: q.months.map((m) => ({
+          ...m,
+          subGoals: m.subGoals.map((sg) =>
+            sg.id === subGoalId ? { ...sg, completed: !sg.completed } : sg,
+          ),
+        })),
+      }));
+      setGoalStructures((prev) => ({ ...prev, [goalId]: structure }));
+      syncToMilestones(goalId, structure);
+    },
+    [goals, getGoalStructure, syncToMilestones],
+  );
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="relative"
-    >
-      <div
-        className={cn(
-          "ml-0 border-l-4 rounded-lg bg-card shadow-sm hover:shadow-md transition-all",
-          statusColors[goal.status as keyof typeof statusColors],
-          isOverdue && goal.status === "active" && "ring-1 ring-red-500/50",
-        )}
-        style={{ marginLeft: `${depth * 24}px` }}
-      >
-        <div className="p-4">
-          {/* Horizon Badge */}
-          <div className="flex items-center gap-2 mb-3">
-            <div
-              className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium"
-              style={{
-                backgroundColor: `${horizonConfig.color}20`,
-                color: horizonConfig.color,
-              }}
-            >
-              <HorizonIcon className="h-3 w-3" />
-              {horizonConfig.label}
+  const addSubGoalToMonth = useCallback(
+    (goalId: string, monthKey: string, title: string) => {
+      const goal = goals.find((g) => g.id === goalId);
+      if (!goal || !title.trim()) return;
+      const newId = `sg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const structure = getGoalStructure(goal).map((q) => ({
+        ...q,
+        months: q.months.map((m) =>
+          m.month === monthKey
+            ? {
+                ...m,
+                subGoals: [
+                  ...m.subGoals,
+                  { id: newId, title: title.trim(), completed: false },
+                ],
+              }
+            : m,
+        ),
+      }));
+      setGoalStructures((prev) => ({ ...prev, [goalId]: structure }));
+      syncToMilestones(goalId, structure);
+    },
+    [goals, getGoalStructure, syncToMilestones],
+  );
+
+  const toggleQuarter = (id: string) =>
+    setExpandedQuarters((prev) => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+
+  const toggleMonth = (key: string) =>
+    setExpandedMonths((prev) => {
+      const n = new Set(prev);
+      n.has(key) ? n.delete(key) : n.add(key);
+      return n;
+    });
+
+  // ── Goal Health ──────────────────────────────────────────────────────────
+  const getGoalHealth = useCallback(
+    (goal: Goal) => {
+      const structure = getGoalStructure(goal);
+      const progress = calcProgress(structure);
+
+      let monthsWithWork = 0,
+        totalMonths = 0;
+      for (const q of structure)
+        for (const m of q.months) {
+          totalMonths++;
+          if (m.subGoals.length > 0) monthsWithWork++;
+        }
+      const consistency =
+        totalMonths > 0 ? Math.round((monthsWithWork / totalMonths) * 100) : 0;
+
+      const linkedTasks = tasks.filter((t) => t.linkedGoalId === goal.id);
+      const timeSpent = linkedTasks.reduce((s, t) => s + (t.timeSpent || 0), 0);
+      const timeEstimate = linkedTasks.reduce(
+        (s, t) => s + (t.timeEstimate || 0),
+        0,
+      );
+      const timeInvested =
+        timeEstimate > 0
+          ? Math.min(100, Math.round((timeSpent / timeEstimate) * 100))
+          : progress > 0
+            ? Math.round(progress * 0.6)
+            : 0;
+
+      const recentCompleted = linkedTasks.filter(
+        (t) =>
+          t.status === "completed" &&
+          t.completedAt &&
+          differenceInDays(new Date(), parseISO(t.completedAt)) < 7,
+      ).length;
+      const momentum = Math.min(
+        100,
+        Math.round(progress * 0.5 + recentCompleted * 15 + consistency * 0.3),
+      );
+
+      return { consistency, timeInvested, momentum, progress };
+    },
+    [getGoalStructure, calcProgress, tasks],
+  );
+
+  const getInsight = useCallback(
+    (goal: Goal) => {
+      const h = getGoalHealth(goal);
+      if (h.momentum > 70) return "You're on fire! Keep this momentum going.";
+      if (h.consistency < 30)
+        return "Try breaking this down into smaller monthly targets.";
+      if (h.timeInvested > h.progress)
+        return "Great time investment — results will follow.";
+      if (h.progress > 50) return "Past the halfway mark. Stay consistent.";
+      return "You make the most progress when tasks are time-blocked.";
+    },
+    [getGoalHealth],
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  DETAIL VIEW
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  if (selectedGoal) {
+    const structure = getGoalStructure(selectedGoal);
+    const health = getGoalHealth(selectedGoal);
+    const daysLeft = selectedGoal.targetDate
+      ? differenceInDays(parseISO(selectedGoal.targetDate), new Date())
+      : null;
+    const dots = getStatusDots(health.progress);
+
+    return (
+      <AppLayout>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="pb-12 max-w-3xl mx-auto"
+        >
+          {/* Back */}
+          <button
+            onClick={() => setSelectedGoalId(null)}
+            className="flex items-center gap-1.5 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            All Goals
+          </button>
+
+          {/* ── Goal Identity ──────────────────────────────────────────── */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
+              {selectedGoal.title}
+            </h1>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+              {daysLeft !== null && daysLeft > 0
+                ? `${Math.ceil(daysLeft / 30)} month goal`
+                : "Goal"}
+            </p>
+
+            {/* Status ●●●○○ */}
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-xs text-[var(--color-text-secondary)]">
+                Status:
+              </span>
+              <span className="text-xs font-medium text-[var(--color-text-primary)] capitalize">
+                {selectedGoal.status === "active"
+                  ? "In Progress"
+                  : selectedGoal.status.replace("_", " ")}
+              </span>
+              <div className="flex items-center gap-1 ml-1">
+                {dots.map((filled, i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      "w-2.5 h-2.5 rounded-full",
+                      filled ? "bg-purple-500" : "bg-gray-200 dark:bg-gray-700",
+                    )}
+                  />
+                ))}
+              </div>
             </div>
-            {isOverdue && (
-              <Badge variant="destructive" className="text-[10px]">
-                Overdue
-              </Badge>
-            )}
+
+            <p className="text-[11px] text-[var(--color-text-tertiary)] mt-2">
+              Started: {format(parseISO(selectedGoal.createdAt), "MMM d")}
+              {selectedGoal.targetDate && (
+                <>
+                  {" "}
+                  | Target:{" "}
+                  {format(parseISO(selectedGoal.targetDate), "MMM d, yyyy")}
+                </>
+              )}
+            </p>
+
+            {/* Quick actions */}
+            <div className="flex items-center gap-2 mt-4">
+              {selectedGoal.status === "active" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5 rounded-lg h-8"
+                  onClick={() =>
+                    updateGoal(selectedGoal.id, { status: "paused" })
+                  }
+                >
+                  <Pause className="w-3 h-3" /> Pause
+                </Button>
+              )}
+              {selectedGoal.status === "paused" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5 rounded-lg h-8"
+                  onClick={() =>
+                    updateGoal(selectedGoal.id, { status: "active" })
+                  }
+                >
+                  <Play className="w-3 h-3" /> Resume
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1.5 rounded-lg h-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                onClick={() => {
+                  deleteGoal(selectedGoal.id);
+                  setSelectedGoalId(null);
+                }}
+              >
+                <Trash2 className="w-3 h-3" /> Delete
+              </Button>
+            </div>
           </div>
 
-          {/* Header */}
-          <div className="flex items-start gap-3">
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="mt-1 p-0.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-            >
-              {hasMilestones ? (
-                isExpanded ? (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-gray-500" />
-                )
-              ) : (
-                <Circle className="w-4 h-4 text-gray-300" />
-              )}
-            </button>
+          {/* ── Progression ────────────────────────────────────────────── */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                Progression
+              </h2>
+              <span className="text-xs font-semibold text-purple-600">
+                {health.progress}%
+              </span>
+            </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{categoryConfig.emoji}</span>
-                  <h3 className="font-semibold text-base">{goal.title}</h3>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px]",
-                      priorityColors[
-                        goal.priority as keyof typeof priorityColors
-                      ],
-                    )}
-                  >
-                    {goal.priority}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(goal)}
-                    className="h-6 w-6 p-0"
-                  >
-                    <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onDelete(goal.id)}
-                    className="h-6 w-6 p-0"
-                  >
-                    <Trash2 className="h-3.5 w-3.5 text-destructive/70" />
-                  </Button>
-                </div>
-              </div>
+            {/* Overall bar */}
+            <div className="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-6">
+              <motion.div
+                className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${health.progress}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
+            </div>
 
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-                {goal.description}
-              </p>
+            {/* Quarter accordion */}
+            <div className="space-y-1">
+              {structure.map((quarter) => {
+                const qProg = quarterProgress(quarter);
+                const isOpen = expandedQuarters.has(quarter.id);
+                const hasContent = quarter.months.some(
+                  (m) => m.subGoals.length > 0,
+                );
 
-              {/* Progress Bar */}
-              <div className="mt-3 space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Progress</span>
-                  <span className="font-medium">{goal.progress}%</span>
+                return (
+                  <div key={quarter.id}>
+                    <button
+                      onClick={() => toggleQuarter(quarter.id)}
+                      className="flex items-center gap-3 w-full py-3 px-4 rounded-xl hover:bg-[var(--color-bg-secondary)] transition-colors"
+                    >
+                      <motion.div
+                        animate={{ rotate: isOpen ? 0 : -90 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        <ChevronDown className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                      </motion.div>
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">
+                        {quarter.label}
+                      </span>
+                      {hasContent && (
+                        <span className="text-xs text-[var(--color-text-tertiary)] ml-auto">
+                          {qProg}%
+                        </span>
+                      )}
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pl-7 space-y-0.5">
+                            {quarter.months.map((month) => {
+                              const mProg = monthProgress(month);
+                              const mKey = `${quarter.id}-${month.month}`;
+                              const mOpen = expandedMonths.has(mKey);
+
+                              return (
+                                <div key={month.month}>
+                                  <button
+                                    onClick={() => toggleMonth(mKey)}
+                                    className="flex items-center gap-3 w-full py-2.5 px-3 rounded-lg hover:bg-[var(--color-bg-secondary)] transition-colors"
+                                  >
+                                    <motion.div
+                                      animate={{ rotate: mOpen ? 0 : -90 }}
+                                      transition={{ duration: 0.15 }}
+                                    >
+                                      <ChevronDown className="w-3.5 h-3.5 text-[var(--color-text-tertiary)]" />
+                                    </motion.div>
+                                    <span className="text-sm text-[var(--color-text-primary)]">
+                                      {month.label}
+                                    </span>
+
+                                    {month.subGoals.length > 0 && (
+                                      <div className="flex items-center gap-0.5 ml-auto">
+                                        {month.subGoals.map((sg) => (
+                                          <span
+                                            key={sg.id}
+                                            className={cn(
+                                              "w-1.5 h-1.5 rounded-full",
+                                              sg.completed
+                                                ? "bg-green-500"
+                                                : "bg-gray-300 dark:bg-gray-600",
+                                            )}
+                                          />
+                                        ))}
+                                        <span className="text-xs text-[var(--color-text-tertiary)] ml-2">
+                                          {mProg}%
+                                        </span>
+                                      </div>
+                                    )}
+                                  </button>
+
+                                  <AnimatePresence initial={false}>
+                                    {mOpen && (
+                                      <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{
+                                          duration: 0.15,
+                                          ease: "easeOut",
+                                        }}
+                                        className="overflow-hidden"
+                                      >
+                                        <div className="pl-7 py-1 space-y-1">
+                                          {month.subGoals.map((sg) => (
+                                            <motion.div
+                                              key={sg.id}
+                                              layout
+                                              className="flex items-center gap-3 py-1.5"
+                                            >
+                                              <button
+                                                onClick={() =>
+                                                  toggleSubGoal(
+                                                    selectedGoal.id,
+                                                    sg.id,
+                                                  )
+                                                }
+                                                className={cn(
+                                                  "w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
+                                                  sg.completed
+                                                    ? "border-green-500 bg-green-500"
+                                                    : "border-gray-300 dark:border-gray-600 hover:border-green-400",
+                                                )}
+                                              >
+                                                {sg.completed && (
+                                                  <Check className="w-3 h-3 text-white" />
+                                                )}
+                                              </button>
+                                              <span
+                                                className={cn(
+                                                  "text-sm",
+                                                  sg.completed
+                                                    ? "line-through text-[var(--color-text-tertiary)]"
+                                                    : "text-[var(--color-text-primary)]",
+                                                )}
+                                              >
+                                                {sg.title}
+                                              </span>
+                                            </motion.div>
+                                          ))}
+
+                                          {/* Add sub-goal inline */}
+                                          {addingSubGoal === month.month ? (
+                                            <div className="flex items-center gap-2 py-1">
+                                              <Input
+                                                value={newSubGoalText}
+                                                onChange={(e) =>
+                                                  setNewSubGoalText(
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                onKeyDown={(e) => {
+                                                  if (
+                                                    e.key === "Enter" &&
+                                                    newSubGoalText.trim()
+                                                  ) {
+                                                    addSubGoalToMonth(
+                                                      selectedGoal.id,
+                                                      month.month,
+                                                      newSubGoalText,
+                                                    );
+                                                    setNewSubGoalText("");
+                                                  }
+                                                  if (e.key === "Escape") {
+                                                    setAddingSubGoal(null);
+                                                    setNewSubGoalText("");
+                                                  }
+                                                }}
+                                                placeholder="What needs to happen?"
+                                                className="h-8 text-sm flex-1"
+                                                autoFocus
+                                              />
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="h-8 text-xs"
+                                                onClick={() => {
+                                                  if (newSubGoalText.trim()) {
+                                                    addSubGoalToMonth(
+                                                      selectedGoal.id,
+                                                      month.month,
+                                                      newSubGoalText,
+                                                    );
+                                                    setNewSubGoalText("");
+                                                  }
+                                                  setAddingSubGoal(null);
+                                                }}
+                                              >
+                                                Done
+                                              </Button>
+                                            </div>
+                                          ) : (
+                                            <button
+                                              onClick={() =>
+                                                setAddingSubGoal(month.month)
+                                              }
+                                              className="flex items-center gap-2 text-xs text-[var(--color-text-tertiary)] hover:text-purple-500 transition-colors py-1"
+                                            >
+                                              <Plus className="w-3.5 h-3.5" />
+                                              Add sub-goal
+                                            </button>
+                                          )}
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Goal Health Dashboard ──────────────────────────────────── */}
+          <div className="p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+            <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">
+              Goal Health
+            </h2>
+
+            <div className="space-y-4">
+              {/* Consistency */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1.5">
+                    <BarChart3 className="w-3.5 h-3.5" /> Consistency
+                  </span>
+                  <span className="text-xs font-semibold text-[var(--color-text-primary)]">
+                    {health.consistency}%
+                  </span>
                 </div>
-                <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-blue-500 to-emerald-500"
+                    className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full"
                     initial={{ width: 0 }}
-                    animate={{ width: `${goal.progress}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    animate={{ width: `${health.consistency}%` }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
                   />
                 </div>
               </div>
 
-              {/* Meta info */}
-              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground flex-wrap">
-                <span
-                  className={cn(
-                    "flex items-center gap-1",
-                    isOverdue && "text-red-500",
-                  )}
-                >
-                  <Calendar className="w-3 h-3" />
-                  {format(targetDate, "MMM d, yyyy")}
-                  {!isOverdue && daysLeft >= 0 && daysLeft <= 7 && (
-                    <span className="text-amber-500">({daysLeft}d left)</span>
-                  )}
-                </span>
-                <Badge variant="secondary" className="text-[10px]">
-                  {categoryConfig.emoji} {goal.category}
-                </Badge>
-                {hasMilestones && (
-                  <span className="flex items-center gap-1">
-                    <Milestone className="w-3 h-3" />
-                    {completedMilestones}/{totalMilestones} milestones
+              {/* Time Invested */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" /> Time Invested
                   </span>
-                )}
-              </div>
-
-              {/* Connected Items */}
-              <ConnectedItems goalId={goal.id} />
-            </div>
-          </div>
-
-          {/* Milestones */}
-          <AnimatePresence>
-            {isExpanded && hasMilestones && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="ml-7 mt-4 space-y-2 overflow-hidden"
-              >
-                {goal.milestones.map((milestone: any, idx: number) => (
+                  <span className="text-xs font-semibold text-[var(--color-text-primary)]">
+                    {health.timeInvested}%
+                  </span>
+                </div>
+                <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                   <motion.div
-                    key={milestone.id}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className={cn(
-                      "flex items-center gap-3 p-2.5 rounded-lg transition-colors cursor-pointer",
-                      milestone.completed
-                        ? "bg-emerald-50 dark:bg-emerald-900/20"
-                        : "bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800",
-                    )}
-                    onClick={() => onMilestoneComplete(goal.id, milestone.id)}
-                  >
-                    <div
-                      className={cn(
-                        "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
-                        milestone.completed
-                          ? "border-emerald-500 bg-emerald-500"
-                          : "border-gray-300 dark:border-gray-600",
-                      )}
-                    >
-                      {milestone.completed && (
-                        <CheckCircle2 className="w-3 h-3 text-white" />
-                      )}
-                    </div>
-                    <span
-                      className={cn(
-                        "flex-1 text-sm",
-                        milestone.completed &&
-                          "line-through text-muted-foreground",
-                      )}
-                    >
-                      {milestone.title}
-                    </span>
-                    {milestone.targetDate && (
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(milestone.targetDate).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "numeric",
-                          },
-                        )}
-                      </span>
-                    )}
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-// Kanban Board Component
-function GoalKanbanBoard({
-  goals,
-  onDelete,
-}: {
-  goals: any[];
-  onDelete: (id: string) => void;
-}) {
-  const columns = [
-    { key: "active", title: "Active", color: "bg-blue-500" },
-    { key: "paused", title: "Paused", color: "bg-amber-500" },
-    { key: "completed", title: "Completed", color: "bg-emerald-500" },
-  ];
-
-  const groupedGoals = useMemo(() => {
-    return columns.map((col) => ({
-      ...col,
-      goals: goals.filter((g) => g.status === col.key),
-    }));
-  }, [goals]);
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-      {groupedGoals.map((column) => (
-        <div key={column.key} className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className={cn("w-3 h-3 rounded-full", column.color)} />
-            <h3 className="font-semibold">{column.title}</h3>
-            <Badge variant="secondary" className="ml-auto">
-              {column.goals.length}
-            </Badge>
-          </div>
-
-          <div className="space-y-3">
-            <AnimatePresence mode="popLayout">
-              {column.goals.map((goal) => (
-                <motion.div
-                  key={goal.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                >
-                  <Card className="border-border/50 hover:shadow-md transition-shadow">
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex items-start justify-between">
-                        <h4 className="font-medium text-sm line-clamp-2">
-                          {goal.title}
-                        </h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDelete(goal.id)}
-                          className="h-6 w-6 p-0 flex-shrink-0"
-                        >
-                          <Trash2 className="h-3 w-3 text-destructive/70" />
-                        </Button>
-                      </div>
-
-                      <Progress value={goal.progress} className="h-1.5" />
-
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <Badge variant="outline" className="text-[9px]">
-                          {goal.category}
-                        </Badge>
-                        <span>{goal.progress}%</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-
-            {column.goals.length === 0 && (
-              <div className="p-6 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg text-center text-sm text-muted-foreground">
-                No goals in {column.title.toLowerCase()}
+                    className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${health.timeInvested}%` }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                  />
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
-// Timeline View Component
-function GoalTimeline({ goals }: { goals: any[] }) {
-  const sortedGoals = useMemo(
-    () =>
-      [...goals].sort(
-        (a, b) =>
-          new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime(),
-      ),
-    [goals],
-  );
-
-  const now = new Date();
-
-  return (
-    <div className="relative space-y-6">
-      {/* Timeline line */}
-      <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-emerald-500" />
-
-      {sortedGoals.map((goal, index) => {
-        const targetDate = new Date(goal.targetDate);
-        const isPast = targetDate < now;
-        const daysLeft = Math.ceil(
-          (targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-        );
-
-        return (
-          <motion.div
-            key={goal.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="relative flex gap-4"
-          >
-            {/* Timeline dot */}
-            <div
-              className={cn(
-                "relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                goal.status === "completed"
-                  ? "bg-emerald-500"
-                  : isPast
-                    ? "bg-red-500"
-                    : "bg-blue-500",
-              )}
-            >
-              {goal.status === "completed" ? (
-                <CheckCircle2 className="w-4 h-4 text-white" />
-              ) : (
-                <Target className="w-4 h-4 text-white" />
-              )}
+              {/* Momentum */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5" /> Momentum
+                  </span>
+                  <span className="text-xs font-semibold text-[var(--color-text-primary)]">
+                    {health.momentum}%
+                  </span>
+                </div>
+                <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${health.momentum}%` }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Content */}
-            <Card className="flex-1 border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold">{goal.title}</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
-                      {goal.description}
-                    </p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-medium">
-                      {targetDate.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </p>
-                    <p
-                      className={cn(
-                        "text-xs",
-                        isPast && goal.status !== "completed"
-                          ? "text-red-500"
-                          : "text-muted-foreground",
-                      )}
-                    >
-                      {goal.status === "completed"
-                        ? "Completed"
-                        : isPast
-                          ? "Overdue"
-                          : `${daysLeft} days left`}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-3 flex items-center gap-3">
-                  <Progress value={goal.progress} className="flex-1 h-1.5" />
-                  <span className="text-xs font-medium">{goal.progress}%</span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        );
-      })}
-
-      {sortedGoals.length === 0 && (
-        <div className="ml-12 p-8 text-center text-muted-foreground">
-          No goals to display on timeline
-        </div>
-      )}
-    </div>
-  );
-}
-
-// AI Roadmap Generator Component
-function AIRoadmapGenerator({
-  onGenerateRoadmap,
-}: {
-  onGenerateRoadmap: (roadmap: AIRoadmap) => void;
-}) {
-  const [goalTitle, setGoalTitle] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [roadmap, setRoadmap] = useState<AIRoadmap | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const generateRoadmap = async () => {
-    if (!goalTitle.trim()) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch("http://localhost:3001/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Generate a detailed roadmap to achieve this goal: "${goalTitle}". 
-          
-          Return ONLY valid JSON in this exact format, no markdown or extra text:
-          {
-            "steps": [
-              {
-                "title": "Step title",
-                "description": "What to do",
-                "timeframe": "Week 1-2",
-                "tasks": ["Task 1", "Task 2", "Task 3"]
-              }
-            ],
-            "totalTimeWeeks": 12,
-            "tips": ["Tip 1", "Tip 2", "Tip 3"]
-          }
-          
-          Include 4-6 steps with 3-5 tasks each. Be specific and actionable.`,
-          context: {
-            tasks: [],
-            habits: [],
-            timeEntries: [],
-            goals: [],
-            journalEntries: [],
-            transactions: [],
-          },
-        }),
-      });
-
-      const data = await response.json();
-
-      // Try to parse the AI response as JSON
-      try {
-        let jsonStr = data.response || data.message || "";
-        jsonStr = jsonStr
-          .replace(/```json\n?/g, "")
-          .replace(/```\n?/g, "")
-          .trim();
-
-        const parsedRoadmap = JSON.parse(jsonStr);
-        setRoadmap(parsedRoadmap);
-        onGenerateRoadmap(parsedRoadmap);
-      } catch {
-        // If parsing fails, create a sample roadmap
-        const sampleRoadmap: AIRoadmap = {
-          steps: [
-            {
-              title: "Foundation & Planning",
-              description: "Set up the basics and create a solid plan",
-              timeframe: "Week 1-2",
-              tasks: [
-                "Define clear objectives",
-                "Research best practices",
-                "Create action plan",
-              ],
-            },
-            {
-              title: "Learning & Skill Building",
-              description: "Acquire necessary knowledge and skills",
-              timeframe: "Week 3-4",
-              tasks: [
-                "Study relevant materials",
-                "Practice core skills",
-                "Get feedback",
-              ],
-            },
-            {
-              title: "Implementation",
-              description: "Start putting your plan into action",
-              timeframe: "Week 5-8",
-              tasks: [
-                "Execute main tasks",
-                "Track progress",
-                "Adjust as needed",
-              ],
-            },
-            {
-              title: "Review & Optimize",
-              description: "Evaluate progress and improve",
-              timeframe: "Week 9-12",
-              tasks: [
-                "Review achievements",
-                "Identify improvements",
-                "Celebrate wins",
-              ],
-            },
-          ],
-          totalTimeWeeks: 12,
-          tips: [
-            "Break large tasks into smaller, manageable chunks",
-            "Track your progress daily",
-            "Don't be afraid to adjust the timeline",
-          ],
-        };
-        setRoadmap(sampleRoadmap);
-        onGenerateRoadmap(sampleRoadmap);
-      }
-    } catch {
-      setError("Failed to generate roadmap. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Input Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-primary">
-          <Sparkles className="w-5 h-5" />
-          <h3 className="font-semibold">AI Roadmap Generator</h3>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Enter your goal and let AI create a personalized roadmap with
-          actionable steps.
-        </p>
-        <div className="flex gap-2">
-          <Input
-            placeholder="e.g., Learn to play guitar, Build a startup, Run a marathon..."
-            value={goalTitle}
-            onChange={(e) => setGoalTitle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && generateRoadmap()}
-            className="flex-1"
-          />
-          <Button
-            onClick={generateRoadmap}
-            disabled={isLoading || !goalTitle.trim()}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Zap className="w-4 h-4 mr-2" />
-                Generate
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Roadmap Display */}
-      {roadmap && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
-          {/* Timeline */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="w-4 h-4" />
-            Estimated completion: {roadmap.totalTimeWeeks} weeks
+            {/* AI Insight */}
+            <div className="mt-5 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+              <p className="text-xs text-[var(--color-text-secondary)] flex items-start gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-purple-500 flex-shrink-0 mt-0.5" />
+                <span className="italic">{getInsight(selectedGoal)}</span>
+              </p>
+            </div>
           </div>
-
-          {/* Steps */}
-          <div className="space-y-4">
-            {roadmap.steps.map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="relative"
-              >
-                {/* Connection line */}
-                {index < roadmap.steps.length - 1 && (
-                  <div className="absolute left-4 top-10 bottom-0 w-0.5 bg-gradient-to-b from-primary to-primary/20" />
-                )}
-
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm flex-shrink-0">
-                    {index + 1}
-                  </div>
-                  <Card className="flex-1 border-border/50">
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex items-start justify-between">
-                        <h4 className="font-semibold">{step.title}</h4>
-                        <Badge variant="secondary" className="text-xs">
-                          {step.timeframe}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {step.description}
-                      </p>
-                      <div className="space-y-1">
-                        {step.tasks.map((task, taskIdx) => (
-                          <div
-                            key={taskIdx}
-                            className="flex items-center gap-2 text-sm"
-                          >
-                            <Circle className="w-3 h-3 text-muted-foreground" />
-                            {task}
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Tips */}
-          {roadmap.tips && roadmap.tips.length > 0 && (
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center gap-2 text-primary font-semibold">
-                  <Brain className="w-4 h-4" />
-                  Pro Tips
-                </div>
-                <ul className="space-y-2">
-                  {roadmap.tips.map((tip, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm">
-                      <ArrowRight className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                      {tip}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
         </motion.div>
-      )}
-    </div>
-  );
-}
+      </AppLayout>
+    );
+  }
 
-export default function GoalsPage() {
-  const {
-    goals,
-    addGoal,
-    updateGoal,
-    deleteGoal,
-    completeMilestone,
-    getGoalStats,
-  } = useApp();
-  const [open, setOpen] = useState(false);
-  const [aiDialogOpen, setAiDialogOpen] = useState(false);
-  const [editingGoal, setEditingGoal] = useState<(typeof goals)[0] | null>(
-    null,
-  );
-  const [activeView, setActiveView] = useState<"tree" | "board" | "timeline">(
-    "tree",
-  );
-  const [horizonFilter, setHorizonFilter] = useState("all");
-
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "education" as string,
-    priority: "high" as "low" | "medium" | "high",
-    horizon: "quarterly" as keyof typeof GOAL_HORIZONS,
-    targetDate: format(addDays(new Date(), 90), "yyyy-MM-dd"),
-    progress: 0,
-    status: "active" as "active" | "paused" | "completed" | "abandoned",
-    milestones: [] as any[],
-  });
-  const [milestoneInput, setMilestoneInput] = useState("");
-
-  const stats = getGoalStats();
-
-  // Filtered goals by horizon
-  const filteredGoals = useMemo(() => {
-    if (horizonFilter === "all") return goals;
-    return goals.filter((g) => g.horizon === horizonFilter);
-  }, [goals, horizonFilter]);
-
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-      category: "education",
-      priority: "high",
-      horizon: "quarterly",
-      targetDate: format(addDays(new Date(), 90), "yyyy-MM-dd"),
-      progress: 0,
-      status: "active",
-      milestones: [],
-    });
-    setEditingGoal(null);
-    setMilestoneInput("");
-  };
-
-  const handleSubmit = () => {
-    if (!formData.title.trim()) return;
-
-    if (editingGoal) {
-      updateGoal(editingGoal.id, formData);
-    } else {
-      addGoal(formData);
-    }
-    resetForm();
-    setOpen(false);
-  };
-
-  const handleEdit = (goal: (typeof goals)[0]) => {
-    setFormData({
-      title: goal.title,
-      description: goal.description || "",
-      category: goal.category,
-      priority: goal.priority,
-      horizon: (goal.horizon || "quarterly") as keyof typeof GOAL_HORIZONS,
-      targetDate: goal.targetDate,
-      progress: goal.progress,
-      status: goal.status,
-      milestones: goal.milestones || [],
-    });
-    setEditingGoal(goal);
-    setOpen(true);
-  };
-
-  const handleAddMilestone = () => {
-    if (milestoneInput.trim()) {
-      setFormData({
-        ...formData,
-        milestones: [
-          ...formData.milestones,
-          {
-            id: crypto.randomUUID(),
-            title: milestoneInput,
-            targetDate: "",
-            completed: false,
-          },
-        ],
-      });
-      setMilestoneInput("");
-    }
-  };
-
-  const handleRoadmapGenerated = (roadmap: AIRoadmap) => {
-    const milestones = roadmap.steps.map((step) => ({
-      id: crypto.randomUUID(),
-      title: step.title,
-      targetDate: "",
-      completed: false,
-    }));
-
-    setFormData({
-      ...formData,
-      milestones,
-    });
-    setAiDialogOpen(false);
-    setOpen(true);
-  };
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  LIST VIEW
+  // ═══════════════════════════════════════════════════════════════════════════
 
   return (
     <AppLayout>
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-6 pb-24"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="pb-12 max-w-3xl mx-auto"
       >
         {/* Header */}
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
-        >
-          <div>
-            <h1 className="text-2xl font-semibold flex items-center gap-2 text-neutral-900 dark:text-white">
-              <Target className="w-6 h-6 text-violet-500" />
-              Goals
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Set ambitious goals and track your journey
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  <span className="hidden sm:inline">AI Roadmap</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh]">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    Generate AI Roadmap
-                  </DialogTitle>
-                  <DialogDescription>
-                    Let AI create a personalized roadmap for your goal
-                  </DialogDescription>
-                </DialogHeader>
-                <ScrollArea className="max-h-[60vh] pr-4">
-                  <AIRoadmapGenerator
-                    onGenerateRoadmap={handleRoadmapGenerated}
-                  />
-                </ScrollArea>
-              </DialogContent>
-            </Dialog>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
+            Goals
+          </h1>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+            {activeGoals.filter((g) => g.status !== "completed").length} active
+            · {activeGoals.filter((g) => g.status === "completed").length}{" "}
+            completed
+          </p>
+        </div>
 
-            <Dialog
-              open={open}
-              onOpenChange={(open) => {
-                setOpen(open);
-                if (!open) resetForm();
-              }}
-            >
-              <DialogTrigger asChild>
-                <Button className="gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white border-0">
-                  <Plus className="h-4 w-4" />
-                  New Goal
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[90vh]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingGoal ? "Edit Goal" : "Create New Goal"}
-                  </DialogTitle>
-                </DialogHeader>
-                <ScrollArea className="max-h-[70vh] pr-4">
-                  <div className="space-y-4 pb-2">
-                    <Input
-                      placeholder="Goal title"
-                      value={formData.title}
-                      onChange={(e) =>
-                        setFormData({ ...formData, title: e.target.value })
-                      }
-                      className="text-base"
-                    />
-                    <Textarea
-                      placeholder="Description - What do you want to achieve?"
-                      value={formData.description}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          description: e.target.value,
-                        })
-                      }
-                    />
+        {/* ── Dead Simple Creation ──────────────────────────────────────── */}
+        <div className="mb-10 p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+          <div className="space-y-3">
+            <Input
+              value={goalName}
+              onChange={(e) => setGoalName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreateGoal()}
+              placeholder="What do you want to achieve?"
+              className="h-11 text-base border-0 bg-transparent px-0 focus-visible:ring-0 placeholder:text-[var(--color-text-tertiary)]"
+            />
+            <div className="flex items-center gap-3">
+              <Select value={timeframe} onValueChange={setTimeframe}>
+                <SelectTrigger className="w-[140px] h-9 text-xs rounded-lg">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIMEFRAMES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-                    {/* Goal Horizon */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">
-                        Goal Horizon
-                      </label>
-                      <div className="grid grid-cols-5 gap-2">
-                        {Object.entries(GOAL_HORIZONS).map(
-                          ([key, { label, icon: Icon, color }]) => (
-                            <button
-                              key={key}
-                              type="button"
-                              onClick={() =>
-                                setFormData({
-                                  ...formData,
-                                  horizon: key as keyof typeof GOAL_HORIZONS,
-                                })
-                              }
-                              className={cn(
-                                "p-2 rounded-lg border-2 transition-all flex flex-col items-center gap-1",
-                                formData.horizon === key
-                                  ? "border-violet-500 bg-violet-50 dark:bg-violet-950/30"
-                                  : "border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600",
-                              )}
-                            >
-                              <Icon className="h-4 w-4" style={{ color }} />
-                              <span className="text-[10px] font-medium">
-                                {label.split(" ")[0]}
-                              </span>
-                            </button>
-                          ),
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">
-                          Category
-                        </label>
-                        <Select
-                          value={formData.category}
-                          onValueChange={(v) =>
-                            setFormData({ ...formData, category: v })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(CATEGORY_CONFIG).map(
-                              ([key, { emoji }]) => (
-                                <SelectItem key={key} value={key}>
-                                  {emoji}{" "}
-                                  {key.charAt(0).toUpperCase() + key.slice(1)}
-                                </SelectItem>
-                              ),
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">
-                          Priority
-                        </label>
-                        <Select
-                          value={formData.priority}
-                          onValueChange={(v) =>
-                            setFormData({ ...formData, priority: v as any })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">🟢 Low</SelectItem>
-                            <SelectItem value="medium">🟡 Medium</SelectItem>
-                            <SelectItem value="high">🔴 High</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Target Date & Status */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">
-                          Target Date
-                        </label>
-                        <Input
-                          type="date"
-                          value={formData.targetDate}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              targetDate: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      {editingGoal && (
-                        <div className="space-y-2">
-                          <label className="text-xs font-medium text-muted-foreground">
-                            Status
-                          </label>
-                          <Select
-                            value={formData.status}
-                            onValueChange={(v) =>
-                              setFormData({ ...formData, status: v as any })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="active">🏃 Active</SelectItem>
-                              <SelectItem value="paused">⏸️ Paused</SelectItem>
-                              <SelectItem value="completed">
-                                ✅ Completed
-                              </SelectItem>
-                              <SelectItem value="abandoned">
-                                ❌ Abandoned
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Progress Slider (for editing) */}
-                    {editingGoal && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-muted-foreground">
-                            Progress
-                          </label>
-                          <span className="text-sm font-semibold">
-                            {formData.progress}%
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={formData.progress}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              progress: parseInt(e.target.value),
-                            })
-                          }
-                          className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-violet-500"
-                        />
-                      </div>
-                    )}
-
-                    {/* Milestones */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">
-                        Milestones
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add a milestone..."
-                          value={milestoneInput}
-                          onChange={(e) => setMilestoneInput(e.target.value)}
-                          onKeyDown={(e) =>
-                            e.key === "Enter" &&
-                            (e.preventDefault(), handleAddMilestone())
-                          }
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleAddMilestone}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      {formData.milestones.length > 0 && (
-                        <div className="space-y-1 mt-2">
-                          {formData.milestones.map((m, idx) => (
-                            <div
-                              key={m.id}
-                              className="flex items-center gap-2 p-2 bg-muted/50 rounded text-sm"
-                            >
-                              <span className="w-5 h-5 rounded-full bg-violet-500/20 text-violet-600 text-xs flex items-center justify-center font-medium">
-                                {idx + 1}
-                              </span>
-                              <span className="flex-1">{m.title}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={() =>
-                                  setFormData({
-                                    ...formData,
-                                    milestones: formData.milestones.filter(
-                                      (_, i) => i !== idx,
-                                    ),
-                                  })
-                                }
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <Button onClick={handleSubmit} className="w-full">
-                      {editingGoal ? "Update Goal" : "Create Goal"}
-                    </Button>
-                  </div>
-                </ScrollArea>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-3"
-        >
-          <div className="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-            <div className="flex items-center gap-2 mb-1">
-              <Target className="h-4 w-4 text-blue-500" />
-            </div>
-            <div className="text-2xl font-semibold">{stats.total}</div>
-            <div className="text-xs text-muted-foreground">Total Goals</div>
-          </div>
-          <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
-            <div className="flex items-center gap-2 mb-1">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-            </div>
-            <div className="text-2xl font-semibold text-green-600 dark:text-green-400">
-              {stats.completed}
-            </div>
-            <div className="text-xs text-green-600 dark:text-green-400">
-              Completed
-            </div>
-          </div>
-          <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-            </div>
-            <div className="text-2xl font-semibold text-blue-600 dark:text-blue-400">
-              {stats.inProgress}
-            </div>
-            <div className="text-xs text-blue-600 dark:text-blue-400">
-              In Progress
-            </div>
-          </div>
-          <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
-            <div className="flex items-center gap-2 mb-1">
-              <Trophy className="h-4 w-4 text-purple-500" />
-            </div>
-            <div className="text-2xl font-semibold text-purple-600 dark:text-purple-400">
-              {stats.avgProgress}%
-            </div>
-            <div className="text-xs text-purple-600 dark:text-purple-400">
-              Avg Progress
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Horizon Filter & View Tabs */}
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-        >
-          {/* Horizon Filter Pills */}
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setHorizonFilter("all")}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
-                horizonFilter === "all"
-                  ? "bg-violet-500 text-white"
-                  : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700",
+              {timeframe === "custom" && (
+                <Input
+                  type="date"
+                  value={customDate}
+                  onChange={(e) => setCustomDate(e.target.value)}
+                  className="w-[160px] h-9 text-xs rounded-lg"
+                />
               )}
-            >
-              All
-            </button>
-            {Object.entries(GOAL_HORIZONS).map(
-              ([key, { label, icon: Icon, color }]) => (
-                <button
-                  key={key}
-                  onClick={() => setHorizonFilter(key)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5",
-                    horizonFilter === key
-                      ? "text-white"
-                      : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700",
-                  )}
-                  style={
-                    horizonFilter === key
-                      ? { backgroundColor: color }
-                      : undefined
-                  }
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {label}
-                </button>
-              ),
-            )}
+
+              <Button
+                onClick={handleCreateGoal}
+                disabled={!goalName.trim()}
+                className="ml-auto h-9 px-4 text-xs rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                Create Goal
+              </Button>
+            </div>
           </div>
+        </div>
 
-          {/* View Tabs */}
-          <Tabs
-            value={activeView}
-            onValueChange={(v) => setActiveView(v as any)}
-          >
-            <TabsList className="grid grid-cols-3">
-              <TabsTrigger value="tree" className="gap-2">
-                <TreePine className="w-4 h-4" />
-                <span className="hidden sm:inline">Tree</span>
-              </TabsTrigger>
-              <TabsTrigger value="board" className="gap-2">
-                <Kanban className="w-4 h-4" />
-                <span className="hidden sm:inline">Board</span>
-              </TabsTrigger>
-              <TabsTrigger value="timeline" className="gap-2">
-                <GanttChart className="w-4 h-4" />
-                <span className="hidden sm:inline">Timeline</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </motion.div>
+        {/* ── Goal List ─────────────────────────────────────────────────── */}
+        <div className="space-y-2">
+          <AnimatePresence mode="popLayout">
+            {activeGoals.length > 0 ? (
+              activeGoals.map((goal, i) => {
+                const h = getGoalHealth(goal);
+                const dLeft = goal.targetDate
+                  ? differenceInDays(parseISO(goal.targetDate), new Date())
+                  : null;
+                const sDots = getStatusDots(h.progress);
+                const isDone = goal.status === "completed" || h.progress >= 100;
 
-        {/* Goals Content */}
-        <motion.div variants={itemVariants}>
-          {activeView === "tree" &&
-            (filteredGoals.length === 0 ? (
-              <div className="text-center py-12 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-dashed border-neutral-200 dark:border-neutral-800">
-                <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">
-                  {horizonFilter === "all"
-                    ? "No goals yet. Create one to get started!"
-                    : `No ${GOAL_HORIZONS[horizonFilter as keyof typeof GOAL_HORIZONS]?.label || horizonFilter} goals yet.`}
-                </p>
-                <Button onClick={() => setOpen(true)} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Create Your First Goal
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredGoals.map((goal) => (
-                  <GoalTreeItem
+                return (
+                  <motion.button
                     key={goal.id}
-                    goal={goal}
-                    onDelete={deleteGoal}
-                    onMilestoneComplete={completeMilestone}
-                    onEdit={handleEdit}
-                  />
-                ))}
-              </div>
-            ))}
-
-          {activeView === "board" && (
-            <GoalKanbanBoard goals={filteredGoals} onDelete={deleteGoal} />
-          )}
-
-          {activeView === "timeline" && <GoalTimeline goals={filteredGoals} />}
-        </motion.div>
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ delay: i * 0.02 }}
+                    onClick={() => setSelectedGoalId(goal.id)}
+                    className={cn(
+                      "w-full text-left p-4 rounded-xl border transition-all duration-200 group",
+                      isDone
+                        ? "bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800/50 opacity-70"
+                        : "bg-[var(--color-bg-secondary)] border-[var(--color-border)] hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-sm",
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className={cn(
+                              "text-sm font-medium truncate",
+                              isDone
+                                ? "text-[var(--color-text-tertiary)] line-through"
+                                : "text-[var(--color-text-primary)]",
+                            )}
+                          >
+                            {goal.title}
+                          </h3>
+                          {isDone && (
+                            <span className="text-xs text-green-500">✓</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <div className="flex items-center gap-0.5">
+                            {sDots.map((filled, j) => (
+                              <span
+                                key={j}
+                                className={cn(
+                                  "w-1.5 h-1.5 rounded-full",
+                                  filled
+                                    ? isDone
+                                      ? "bg-green-400"
+                                      : "bg-purple-500"
+                                    : "bg-gray-200 dark:bg-gray-700",
+                                )}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs text-[var(--color-text-tertiary)]">
+                            {h.progress}%
+                          </span>
+                          {dLeft !== null && dLeft > 0 && (
+                            <>
+                              <span className="text-[var(--color-text-tertiary)]">
+                                ·
+                              </span>
+                              <span className="text-xs text-[var(--color-text-tertiary)]">
+                                {dLeft}d left
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </motion.button>
+                );
+              })
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-20"
+              >
+                <p className="text-sm text-[var(--color-text-tertiary)]">
+                  No goals yet. What do you want to achieve?
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.div>
     </AppLayout>
   );
