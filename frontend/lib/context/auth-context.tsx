@@ -135,11 +135,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return localStorage.getItem("cortexia_token");
   }, []);
 
-  const signInWithGoogle = useCallback(async (credential: string) => {
+  const signInWithGoogle = useCallback(async (accessToken: string) => {
     const res = await fetch(`${API_URL}/api/auth/google`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ credential }),
+      body: JSON.stringify({ access_token: accessToken }),
     });
 
     const data = await res.json();

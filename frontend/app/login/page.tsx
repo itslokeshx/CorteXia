@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Brain, Mail, Lock, Loader2, User } from "lucide-react";
@@ -42,6 +42,9 @@ declare global {
           renderButton: (element: HTMLElement, config: any) => void;
           prompt: (callback?: (notification: any) => void) => void;
         };
+        oauth2: {
+          initTokenClient: (config: any) => { requestAccessToken: () => void };
+        };
       };
     };
   }
@@ -64,6 +67,9 @@ export default function AuthPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [googleReady, setGoogleReady] = useState(false);
+  const tokenClientRef = useRef<{ requestAccessToken: () => void } | null>(
+    null,
+  );
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -72,58 +78,43 @@ export default function AuthPage() {
     }
   }, [isAuthenticated, loading, router]);
 
-  // Handle Google credential response
-  const handleGoogleResponse = useCallback(
-    async (response: any) => {
-      setError("");
-      setIsGoogleLoading(true);
-      try {
-        await signInWithGoogle(response.credential);
-        router.push("/");
-      } catch (err: any) {
-        setError(err.message || "Google sign in failed");
-      } finally {
-        setIsGoogleLoading(false);
-      }
-    },
-    [signInWithGoogle, router],
-  );
-
-  // Initialize Google Sign-In when script loads
+  // Initialize Google OAuth2 token client when script loads
   useEffect(() => {
     if (!googleReady || !window.google) return;
 
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
-    window.google.accounts.id.initialize({
+    // Use OAuth2 token client — opens a real Google popup, no iframe/origin issues
+    tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
       client_id: clientId,
-      callback: handleGoogleResponse,
+      scope: "email profile",
+      callback: async (tokenResponse: any) => {
+        if (tokenResponse.error) {
+          setError("Google sign in was cancelled");
+          setIsGoogleLoading(false);
+          return;
+        }
+        // We got an access token — send it to backend to exchange for user info
+        try {
+          setIsGoogleLoading(true);
+          setError("");
+          await signInWithGoogle(tokenResponse.access_token);
+          router.push("/");
+        } catch (err: any) {
+          setError(err.message || "Google sign in failed");
+        } finally {
+          setIsGoogleLoading(false);
+        }
+      },
     });
+  }, [googleReady, signInWithGoogle, router]);
 
-    // Render hidden Google button so we can trigger it programmatically
-    const hiddenDiv = document.getElementById("google-hidden-btn");
-    if (hiddenDiv) {
-      window.google.accounts.id.renderButton(hiddenDiv, {
-        type: "icon",
-        size: "large",
-      });
-    }
-  }, [googleReady, handleGoogleResponse]);
-
-  // Custom Google button click handler
+  // Google button click — just open the OAuth popup
   const handleGoogleClick = useCallback(() => {
-    // Click the hidden Google-rendered button to trigger the popup
-    const hiddenBtn = document.querySelector(
-      "#google-hidden-btn iframe",
-    ) as HTMLElement;
-    if (hiddenBtn) {
-      hiddenBtn.click();
-      return;
-    }
-    // Fallback: trigger One Tap prompt
-    if (window.google) {
-      window.google.accounts.id.prompt();
+    if (tokenClientRef.current) {
+      setIsGoogleLoading(true);
+      tokenClientRef.current.requestAccessToken();
     }
   }, []);
 
@@ -285,18 +276,7 @@ export default function AuthPage() {
                   : "Continue with Google"}
             </button>
 
-            {/* Hidden Google SDK button for triggering popup */}
-            <div
-              id="google-hidden-btn"
-              style={{
-                position: "absolute",
-                width: 0,
-                height: 0,
-                overflow: "hidden",
-                opacity: 0,
-                pointerEvents: "none",
-              }}
-            />
+            {/* OAuth2 token client — no hidden button needed */}
 
             {/* Divider */}
             <div className="flex items-center gap-3 mb-6">

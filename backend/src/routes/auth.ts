@@ -106,36 +106,60 @@ router.post("/login", async (req: Request, res: Response) => {
 });
 
 // ─── POST /api/auth/google ───
+// Accepts either { credential } (ID token from GSI) OR { access_token } (from OAuth2 token client)
 router.post("/google", async (req: Request, res: Response) => {
   try {
-    const { credential } = req.body;
+    const { credential, access_token } = req.body;
 
-    if (!credential) {
-      res.status(400).json({ error: "Google credential required" });
+    let email: string | undefined;
+    let name: string | undefined;
+    let picture: string | undefined;
+
+    if (access_token) {
+      // OAuth2 implicit flow — exchange access_token for user info
+      const userInfoRes = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        { headers: { Authorization: `Bearer ${access_token}` } },
+      );
+      if (!userInfoRes.ok) {
+        res.status(401).json({ error: "Invalid Google access token" });
+        return;
+      }
+      const userInfo = await userInfoRes.json();
+      email = userInfo.email;
+      name = userInfo.name;
+      picture = userInfo.picture;
+    } else if (credential) {
+      // Classic GSI ID token flow
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      email = payload?.email;
+      name = payload?.name;
+      picture = payload?.picture;
+    } else {
+      res
+        .status(400)
+        .json({ error: "Google credential or access_token required" });
       return;
     }
 
-    // Verify Google ID token
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    if (!payload?.email) {
-      res.status(400).json({ error: "Invalid Google token" });
+    if (!email) {
+      res.status(400).json({ error: "Could not get email from Google" });
       return;
     }
 
     await connectDB();
 
-    let user = await User.findOne({ email: payload.email.toLowerCase() });
+    let user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
       user = await User.create({
-        email: payload.email.toLowerCase(),
-        name: payload.name || payload.email.split("@")[0],
-        image: payload.picture || null,
+        email: email.toLowerCase(),
+        name: name || email.split("@")[0],
+        image: picture || null,
         provider: "google",
         emailVerified: new Date(),
       });
