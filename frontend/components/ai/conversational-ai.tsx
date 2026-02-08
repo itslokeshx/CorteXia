@@ -135,16 +135,39 @@ const DEFAULT_MEMORY: AIMemory = {
 
 function extractMemoryFacts(userMsg: string): Partial<AIMemory> {
   const update: Partial<AIMemory> = {};
+  const facts: string[] = [];
+
+  // Name detection
   const nameMatch = userMsg.match(
-    /(?:my name is|i'?m|call me|i am)\s+([A-Z][a-z]+)/i,
+    /(?:my name is|i'?m|call me|i am|this is)\s+([A-Z][a-z]+)/i,
   );
   if (nameMatch) update.userName = nameMatch[1];
+
+  // Theme preference
   const themeMatch = userMsg.match(
     /(?:prefer|like|switch to|use)\s+(dark|light)\s*(?:mode|theme)?/i,
   );
   if (themeMatch) {
     update.preferences = { theme: themeMatch[1].toLowerCase() };
   }
+
+  // Extract personal facts
+  const factPatterns = [
+    /i (?:work|am working) (?:at|for|in)\s+(.+?)(?:\.|,|$)/i,
+    /i(?:'m| am) a\s+(.+?)(?:\.|,|$)/i,
+    /i (?:study|am studying)\s+(.+?)(?:\.|,|$)/i,
+    /i (?:live|am living) (?:in|at)\s+(.+?)(?:\.|,|$)/i,
+    /i (?:like|love|enjoy)\s+(.+?)(?:\.|,|$)/i,
+    /my (?:goal|aim|target) is\s+(.+?)(?:\.|,|$)/i,
+    /i(?:'m| am) (?:trying|learning|working on)\s+(.+?)(?:\.|,|$)/i,
+  ];
+  for (const pat of factPatterns) {
+    const m = userMsg.match(pat);
+    if (m && m[1].length < 80) facts.push(m[1].trim());
+  }
+  if (facts.length) update.facts = facts;
+
+  // Topic detection
   const topics = [
     "work",
     "study",
@@ -157,6 +180,11 @@ function extractMemoryFacts(userMsg: string): Partial<AIMemory> {
     "meditation",
     "coding",
     "reading",
+    "career",
+    "sleep",
+    "diet",
+    "productivity",
+    "relationships",
   ];
   for (const topic of topics) {
     if (userMsg.toLowerCase().includes(topic)) {
@@ -238,9 +266,28 @@ export function ConversationalAI() {
   } = useApp();
 
   // AI Memory - loaded from settings (MongoDB), not localStorage
-  const [memory, setMemoryState] = useState<AIMemory>(
-    () => (settings?.aiMemory as AIMemory) || DEFAULT_MEMORY,
-  );
+  const [memory, setMemoryState] = useState<AIMemory>(DEFAULT_MEMORY);
+  const memoryHydratedRef = useRef(false);
+
+  // Hydrate memory from MongoDB settings once data arrives
+  useEffect(() => {
+    if (memoryHydratedRef.current) return;
+    if (
+      settings?.aiMemory &&
+      (settings.aiMemory as AIMemory).conversationCount >= 0
+    ) {
+      const saved = settings.aiMemory as AIMemory;
+      setMemoryState({
+        userName: saved.userName || undefined,
+        preferences: saved.preferences || {},
+        facts: saved.facts || [],
+        conversationCount: saved.conversationCount || 0,
+        lastTopic: saved.lastTopic || undefined,
+        lastInteraction: saved.lastInteraction || undefined,
+      });
+      memoryHydratedRef.current = true;
+    }
+  }, [settings?.aiMemory]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
