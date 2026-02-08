@@ -24,8 +24,53 @@ function getNextKey(): string {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// SERVER-SIDE MEMORY EXTRACTION
+// Extract name/facts from user message so memory works even
+// if frontend state hasn't hydrated yet
+// ═══════════════════════════════════════════════════════════════
+
+function extractMemoryFromMessage(
+  userMessage: string,
+  existingMemory: any,
+): { userName?: string; facts?: string[] } {
+  const result: { userName?: string; facts?: string[] } = {};
+
+  // Name detection — multiple patterns
+  const namePatterns = [
+    /(?:my name is|i'?m|call me|i am|this is)\s+([A-Z][a-z]{1,20})/i,
+    /(?:hey,?\s+)?(?:i'?m|it'?s)\s+([A-Z][a-z]{1,20})(?:\s+here)?/i,
+    /(?:name'?s)\s+([A-Z][a-z]{1,20})/i,
+  ];
+  for (const pat of namePatterns) {
+    const m = userMessage.match(pat);
+    if (m) {
+      result.userName =
+        m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
+      break;
+    }
+  }
+
+  // Fact extraction
+  const facts: string[] = [];
+  const factPatterns = [
+    /i (?:work|am working) (?:at|for|in)\s+(.+?)(?:\.|,|!|$)/i,
+    /i(?:'m| am) a\s+(.+?)(?:\.|,|!|$)/i,
+    /i (?:study|am studying)\s+(.+?)(?:\.|,|!|$)/i,
+    /i (?:live|am living) (?:in|at)\s+(.+?)(?:\.|,|!|$)/i,
+    /i (?:like|love|enjoy)\s+(.+?)(?:\.|,|!|$)/i,
+    /my (?:goal|aim|target) is\s+(.+?)(?:\.|,|!|$)/i,
+  ];
+  for (const pat of factPatterns) {
+    const m = userMessage.match(pat);
+    if (m && m[1].length < 80) facts.push(m[1].trim());
+  }
+  if (facts.length) result.facts = facts;
+
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // TOKEN-EFFICIENT CONTEXT BUILDER
-// Compresses all user data into a dense but complete snapshot
 // ═══════════════════════════════════════════════════════════════
 
 function buildSystemPrompt(userData: any, memory: any): string {
@@ -42,17 +87,21 @@ function buildSystemPrompt(userData: any, memory: any): string {
   });
   const today = now.toISOString().split("T")[0];
 
-  // Memory block
+  // Memory block — PROMINENT so LLM sees it clearly
   let mem = "";
   if (memory) {
     const parts: string[] = [];
-    if (memory.userName) parts.push("Name: " + memory.userName);
-    if (memory.facts?.length) parts.push("Known: " + memory.facts.join("; "));
+    if (memory.userName) parts.push("User's name is: " + memory.userName);
+    if (memory.facts?.length)
+      parts.push("Known facts: " + memory.facts.join("; "));
     if (memory.lastTopic) parts.push("Last topic: " + memory.lastTopic);
     if (memory.conversationCount)
-      parts.push("Chats: " + memory.conversationCount);
-    if (memory.preferredTheme) parts.push("Theme: " + memory.preferredTheme);
-    if (parts.length) mem = "\n[MEMORY] " + parts.join(" | ");
+      parts.push("Previous conversations: " + memory.conversationCount);
+    if (memory.preferredTheme)
+      parts.push("Preferred theme: " + memory.preferredTheme);
+    if (parts.length)
+      mem =
+        "\n\n*** USER MEMORY (use this!) ***\n" + parts.join("\n") + "\n***";
   }
 
   // Compressed data blocks
@@ -182,55 +231,48 @@ function buildSystemPrompt(userData: any, memory: any): string {
     }
   }
 
-  return (
-    "You are CorteXia — an intelligent, warm AI life mentor and personal assistant.\n" +
-    "Now: " +
-    day +
-    " " +
-    date +
-    ", " +
-    time +
-    "\n" +
-    (mem ? mem + "\n" : "") +
-    (data ? "\n── USER DATA ──" + data + "\n" : "") +
-    "\n══ RESPONSE FORMAT ══\n" +
-    "You MUST return ONLY valid JSON (no markdown fences, no text outside JSON):\n" +
-    "{\n" +
-    '  "message": "Your conversational reply here",\n' +
-    '  "actions": [\n' +
-    '    {"type": "action_name", "data": { ...parameters }}\n' +
-    "  ],\n" +
-    '  "suggestions": [\n' +
-    '    {"text": "Button label", "action": "action_type", "reason": "Why"}\n' +
-    "  ]\n" +
-    "}\n\n" +
-    "══ ACTION SCHEMAS ══\n" +
-    'IMPORTANT: Every action MUST have "type" and "data" fields. The "data" object contains the parameters.\n' +
-    'When user asks you to create/add something, you MUST include the action in "actions" array.\n\n' +
-    "Available actions with their data schemas:\n" +
-    '• create_task:    {"type":"create_task","data":{"title":"Task name","priority":"medium","dueDate":"2026-02-09","domain":"personal","description":"optional"}}\n' +
-    '• complete_task:  {"type":"complete_task","data":{"taskId":"id"}}\n' +
-    '• create_habit:   {"type":"create_habit","data":{"name":"Habit name","frequency":"daily","category":"health","description":"optional"}}\n' +
-    '• complete_habit: {"type":"complete_habit","data":{"habitId":"id"}}\n' +
-    '• create_goal:    {"type":"create_goal","data":{"title":"Goal name","category":"personal","targetDate":"2026-12-31","description":"optional"}}\n' +
-    '• add_expense:    {"type":"add_expense","data":{"amount":25.50,"category":"food","description":"Lunch"}}\n' +
-    '• add_income:     {"type":"add_income","data":{"amount":5000,"description":"Salary"}}\n' +
-    '• log_time:       {"type":"log_time","data":{"task":"Task name","duration":30,"category":"work"}}\n' +
-    '• log_study:      {"type":"log_study","data":{"subject":"Math","duration":45,"topic":"Calculus"}}\n' +
-    '• create_journal: {"type":"create_journal","data":{"content":"Journal text","mood":7,"energy":6}}\n' +
-    '• navigate:       {"type":"navigate","data":{"path":"/tasks"}}\n' +
-    '• set_theme:      {"type":"set_theme","data":{"theme":"dark"}}\n\n' +
-    "══ RULES ══\n" +
-    "• ALWAYS use the user's name in replies if known from [MEMORY]. Be personal and warm.\n" +
-    "• Reference SPECIFIC data: actual task names, habit streaks, goal %, spending amounts, mood scores.\n" +
-    '• When user says to create/add something → PUT the action in "actions" array. Don\'t just say you did it.\n' +
-    '• "suggestions": 1-3 relevant follow-ups. Always include at least one.\n' +
-    "• Keep replies concise (under 150 words) unless user asks for detail.\n" +
-    "• Be proactive: notice overdue tasks, streak risks, mood dips, spending spikes.\n" +
-    "• You CAN answer general questions (science, coding, advice, etc.) — be a knowledgeable assistant.\n" +
-    "• NEVER say \"I don't have access to your data\" — you DO, it's shown above in USER DATA.\n" +
-    "• NEVER wrap response in markdown code blocks. Return raw JSON only."
-  );
+  return `You are CorteXia — an intelligent, warm AI life mentor and personal assistant.
+Now: ${day} ${date}, ${time}
+${mem}
+${data ? "\n── USER DATA ──" + data + "\n" : ""}
+You MUST respond with a JSON object. No markdown, no code fences, no extra text.
+
+The JSON object MUST have these fields:
+{
+  "message": "Your friendly reply to the user. If you know their name from MEMORY above, USE IT! e.g. 'Hey [Name]! ...'",
+  "actions": [],
+  "suggestions": [{"text": "label", "action": "type", "reason": "why"}]
+}
+
+ACTIONS — when user asks to create/add/do something, put actions in the "actions" array:
+• create_task: {"type":"create_task","data":{"title":"string","priority":"low|medium|high","domain":"work|study|personal|health|finance","dueDate":"YYYY-MM-DD","description":"string"}}
+• complete_task: {"type":"complete_task","data":{"taskId":"id"}}
+• create_habit: {"type":"create_habit","data":{"name":"string","frequency":"daily|weekly","category":"health|productivity|learning|mindfulness|fitness|other","description":"string"}}
+• complete_habit: {"type":"complete_habit","data":{"habitId":"id"}}
+• create_goal: {"type":"create_goal","data":{"title":"string","category":"string","targetDate":"YYYY-MM-DD","description":"string"}}
+• add_expense: {"type":"add_expense","data":{"amount":0.00,"category":"string","description":"string"}}
+• add_income: {"type":"add_income","data":{"amount":0.00,"description":"string"}}
+• log_time: {"type":"log_time","data":{"task":"string","duration":30,"category":"string"}}
+• log_study: {"type":"log_study","data":{"subject":"string","duration":45,"topic":"string"}}
+• create_journal: {"type":"create_journal","data":{"content":"string","mood":7,"energy":6}}
+• navigate: {"type":"navigate","data":{"path":"/tasks"}}
+• set_theme: {"type":"set_theme","data":{"theme":"dark|light"}}
+
+EXAMPLE — user says "create a task to buy milk":
+{"message":"Done! I've created a task to buy milk for you.","actions":[{"type":"create_task","data":{"title":"Buy milk","priority":"medium","domain":"personal"}}],"suggestions":[{"text":"Add more tasks","action":"create_task","reason":"Batch your errands"}]}
+
+EXAMPLE — user says "my name is Alex":
+{"message":"Hey Alex! Great to meet you! I'll remember your name. How can I help you today?","actions":[],"suggestions":[{"text":"Show my tasks","action":"navigate","reason":"See what's on your plate"}]}
+
+RULES:
+• If the user's name is in MEMORY above, ALWAYS greet them by name.
+• When user asks to create/add something, you MUST include the action in "actions". Don't just say you did it.
+• "suggestions": always include 1-3 relevant follow-ups.
+• Keep message under 150 words unless user asks for detail.
+• Be proactive: mention overdue tasks, streak risks, mood dips.
+• You CAN answer general questions (science, coding, advice, etc.).
+• NEVER say "I don't have access to your data" — you DO, it's in USER DATA above.
+• Return ONLY the JSON object. No text before or after.`;
 }
 
 // Normalize an action: ensure it has {type, data} structure
@@ -251,7 +293,7 @@ function normalizeAction(
   return { type, data: rest };
 }
 
-// Parse LLM JSON response with fallbacks
+// Parse LLM JSON response with robust fallbacks
 function parseAIResponse(raw: string): {
   message: string;
   actions: any[];
@@ -259,25 +301,30 @@ function parseAIResponse(raw: string): {
 } {
   let parsed: any = null;
 
-  // Try direct parse
+  // Try direct parse first
   try {
     parsed = JSON.parse(raw);
   } catch {
-    // Strip markdown fences
-    const cleaned = raw
+    // Strip markdown fences and any text before/after JSON
+    let cleaned = raw
       .replace(/```json\s*/gi, "")
       .replace(/```\s*/gi, "")
       .trim();
+
     try {
       parsed = JSON.parse(cleaned);
     } catch {
-      // Try to extract JSON object
-      const jsonMatch = cleaned.match(/\{[\s\S]*"message"[\s\S]*\}/);
-      if (jsonMatch) {
+      // Try to extract the first complete JSON object
+      const startIdx = cleaned.indexOf("{");
+      const endIdx = cleaned.lastIndexOf("}");
+      if (startIdx !== -1 && endIdx > startIdx) {
         try {
-          parsed = JSON.parse(jsonMatch[0]);
+          parsed = JSON.parse(cleaned.substring(startIdx, endIdx + 1));
         } catch {
-          // Give up on JSON
+          console.error(
+            "[AI] Failed to parse JSON from response:",
+            raw.substring(0, 200),
+          );
         }
       }
     }
@@ -307,17 +354,52 @@ router.post("/", async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    const systemPrompt = buildSystemPrompt(userData, memory);
+    // Server-side memory extraction — catches name/facts even if
+    // frontend memory state hasn't hydrated yet
+    const memoryUpdate = extractMemoryFromMessage(message, memory);
+    const effectiveMemory = {
+      ...(memory || {}),
+      // If we just extracted a name from this message, include it
+      // so the LLM can use it in its response
+      ...(memoryUpdate.userName ? { userName: memoryUpdate.userName } : {}),
+    };
+    if (memoryUpdate.facts?.length && effectiveMemory.facts) {
+      effectiveMemory.facts = [
+        ...new Set([...effectiveMemory.facts, ...memoryUpdate.facts]),
+      ];
+    }
+
+    console.log(
+      "[AI] Request:",
+      message.substring(0, 80),
+      "| Memory name:",
+      effectiveMemory.userName || "(none)",
+      "| Facts:",
+      effectiveMemory.facts?.length || 0,
+    );
+
+    const systemPrompt = buildSystemPrompt(userData, effectiveMemory);
     const groqMessages: { role: string; content: string }[] = [
       { role: "system", content: systemPrompt },
     ];
 
+    // Add conversation history — wrap assistant messages in JSON context
     if (conversationHistory?.length) {
       for (const msg of conversationHistory) {
-        groqMessages.push({
-          role: msg.role === "user" ? "user" : "assistant",
-          content: msg.content,
-        });
+        if (msg.role === "user") {
+          groqMessages.push({ role: "user", content: msg.content });
+        } else {
+          // Wrap assistant's plain text message in the expected JSON format
+          // so LLM sees consistent history
+          groqMessages.push({
+            role: "assistant",
+            content: JSON.stringify({
+              message: msg.content,
+              actions: [],
+              suggestions: [],
+            }),
+          });
+        }
       }
     }
 
@@ -339,13 +421,19 @@ router.post("/", async (req: AuthRequest, res: Response) => {
               model: "llama-3.3-70b-versatile",
               messages: groqMessages,
               temperature: 0.7,
-              max_tokens: 1024,
+              max_tokens: 2048,
+              response_format: { type: "json_object" },
             }),
           },
         );
 
         if (!response.ok) {
           const error = await response.json().catch(() => ({}));
+          console.error(
+            "[AI] Groq API error:",
+            response.status,
+            (error as any).error?.message,
+          );
           if (response.status === 429) continue;
           throw new Error(
             (error as any).error?.message ||
@@ -358,18 +446,42 @@ router.post("/", async (req: AuthRequest, res: Response) => {
           data.choices?.[0]?.message?.content ||
           '{"message":"I apologize, I could not generate a response.","actions":[],"suggestions":[]}';
 
+        console.log("[AI] Raw LLM response:", rawReply.substring(0, 300));
+
         const parsed = parseAIResponse(rawReply);
-        res.json(parsed);
+
+        console.log(
+          "[AI] Parsed — message length:",
+          parsed.message.length,
+          "| actions:",
+          parsed.actions.length,
+          parsed.actions.map((a: any) => a.type).join(","),
+          "| suggestions:",
+          parsed.suggestions.length,
+        );
+
+        // Include memory updates extracted server-side so frontend can merge
+        const result: any = {
+          message: parsed.message,
+          actions: parsed.actions,
+          suggestions: parsed.suggestions,
+        };
+        if (memoryUpdate.userName || memoryUpdate.facts?.length) {
+          result.updatedMemory = memoryUpdate;
+        }
+
+        res.json(result);
         return;
       } catch (err: any) {
         lastError = err;
+        console.error("[AI] Attempt", attempt + 1, "failed:", err.message);
         continue;
       }
     }
 
     throw lastError || new Error("All API keys exhausted");
   } catch (error: any) {
-    console.error("AI chat error:", error);
+    console.error("[AI] Chat error:", error.message);
     res.status(500).json({ error: error.message || "AI service unavailable" });
   }
 });

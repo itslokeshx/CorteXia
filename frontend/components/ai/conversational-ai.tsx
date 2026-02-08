@@ -1,13 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/lib/context/app-context";
-import {
-  conversationalAI,
-  type Message,
-  type ConversationResponse,
-} from "@/lib/ai/conversational";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -258,11 +253,6 @@ export function ConversationalAI() {
     updateJournalEntry,
     deleteJournalEntry,
     // Stats
-    getFinanceStats,
-    getExpensesByCategory,
-    getWeeklyStats,
-    getTodayStats,
-    getGoalStats,
   } = useApp();
 
   // AI Memory - loaded from settings (MongoDB), not localStorage
@@ -304,211 +294,6 @@ export function ConversationalAI() {
   }, [isOpen, isMinimized]);
 
   // Build COMPREHENSIVE context for AI with full data access
-  const buildContext = useCallback(() => {
-    const today = new Date().toISOString().split("T")[0];
-    const { expenses, income, balance } = getFinanceStats();
-    const expensesByCategory = getExpensesByCategory();
-    const weeklyStats = getWeeklyStats();
-    const todayStats = getTodayStats();
-    const goalStats = getGoalStats();
-
-    return {
-      history: messages.slice(-10), // Last 10 messages for context
-      currentPage: pathname,
-      currentTime: new Date().toISOString(),
-
-      // FULL DATA ACCESS - All items with details
-      fullData: {
-        tasks: tasks.map((t) => ({
-          id: t.id,
-          title: t.title,
-          description: t.description,
-          domain: t.domain,
-          priority: t.priority,
-          status: t.status,
-          dueDate: t.dueDate,
-          tags: t.tags,
-        })),
-        habits: habits.map((h) => ({
-          id: h.id,
-          name: h.name,
-          category: h.category,
-          frequency: h.frequency,
-          streak: h.streak,
-          completedToday: h.completions?.some(
-            (c) => c.date === today && c.completed,
-          ),
-        })),
-        goals: goals.map((g) => ({
-          id: g.id,
-          title: g.title,
-          description: g.description,
-          category: g.category,
-          priority: g.priority,
-          progress: g.progress,
-          status: g.status,
-          targetDate: g.targetDate,
-          milestones: g.milestones?.map((m) => ({
-            id: m.id,
-            title: m.title,
-            completed: m.completed,
-            targetDate: m.targetDate,
-          })),
-        })),
-        transactions: transactions.slice(0, 20).map((t) => ({
-          id: t.id,
-          type: t.type,
-          amount: t.amount,
-          category: t.category,
-          description: t.description,
-          date: t.date,
-        })),
-        timeEntries: timeEntries.slice(0, 20).map((t) => ({
-          id: t.id,
-          task: t.task,
-          category: t.category,
-          duration: t.duration,
-          date: t.date,
-          focusQuality: t.focusQuality,
-        })),
-        studySessions: studySessions.slice(0, 20).map((s) => ({
-          id: s.id,
-          subject: s.subject,
-          duration: s.duration,
-          topic: s.topic,
-          difficulty: s.difficulty,
-        })),
-        journalEntries: journalEntries.slice(0, 10).map((j) => ({
-          id: j.id,
-          title: j.title,
-          date: j.date,
-          mood: j.mood,
-          energy: j.energy,
-          tags: j.tags,
-          contentPreview: j.content?.substring(0, 100),
-        })),
-      },
-
-      // Summary stats for quick reference
-      stats: {
-        tasks: {
-          total: tasks.length,
-          pending: tasks.filter((t) => t.status !== "completed").length,
-          completed: tasks.filter((t) => t.status === "completed").length,
-          overdue: tasks.filter(
-            (t) =>
-              t.status !== "completed" &&
-              t.dueDate &&
-              new Date(t.dueDate) < new Date(),
-          ).length,
-          todayDue: tasks.filter((t) => t.dueDate?.split("T")[0] === today)
-            .length,
-          highPriority: tasks.filter(
-            (t) => t.priority === "high" && t.status !== "completed",
-          ).length,
-        },
-        habits: {
-          total: habits.length,
-          completedToday: habits.filter((h) =>
-            h.completions?.some((c) => c.date === today && c.completed),
-          ).length,
-          streaksAtRisk: habits
-            .filter(
-              (h) =>
-                h.streak >= 7 &&
-                !h.completions?.some((c) => c.date === today && c.completed),
-            )
-            .map((h) => ({ name: h.name, streak: h.streak })),
-        },
-        goals: goalStats,
-        finance: {
-          income,
-          expenses,
-          balance,
-          byCategory: expensesByCategory,
-        },
-        time: {
-          todayMinutes: todayStats.totalMinutes,
-          weeklyByCategory: weeklyStats.byCategory,
-          weeklyTotal: weeklyStats.total,
-        },
-        study: {
-          totalSessions: studySessions.length,
-          totalHours:
-            studySessions.reduce((sum, s) => sum + s.duration, 0) / 60,
-          subjects: [...new Set(studySessions.map((s) => s.subject))],
-        },
-        journal: {
-          totalEntries: journalEntries.length,
-          avgMood:
-            journalEntries.length > 0
-              ? Math.round(
-                  (journalEntries.reduce((sum, j) => sum + j.mood, 0) /
-                    journalEntries.length) *
-                    10,
-                ) / 10
-              : null,
-          avgEnergy:
-            journalEntries.length > 0
-              ? Math.round(
-                  (journalEntries.reduce((sum, j) => sum + j.energy, 0) /
-                    journalEntries.length) *
-                    10,
-                ) / 10
-              : null,
-        },
-      },
-
-      // Available actions the AI can take
-      availableActions: [
-        "create_task",
-        "update_task",
-        "delete_task",
-        "complete_task",
-        "create_habit",
-        "update_habit",
-        "delete_habit",
-        "complete_habit",
-        "create_goal",
-        "update_goal",
-        "delete_goal",
-        "complete_milestone",
-        "add_tasks_to_goal",
-        "add_expense",
-        "add_income",
-        "delete_transaction",
-        "log_time",
-        "delete_time_entry",
-        "log_study",
-        "delete_study_session",
-        "create_journal",
-        "update_journal",
-        "delete_journal",
-        "navigate",
-        "set_theme",
-        "clear_tasks",
-        "clear_habits",
-        "clear_goals",
-        "clear_all_data",
-      ],
-    };
-  }, [
-    messages,
-    pathname,
-    tasks,
-    habits,
-    transactions,
-    timeEntries,
-    journalEntries,
-    goals,
-    studySessions,
-    getFinanceStats,
-    getExpensesByCategory,
-    getWeeklyStats,
-    getTodayStats,
-    getGoalStats,
-  ]);
-
   // Send message to AI
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
@@ -525,95 +310,111 @@ export function ConversationalAI() {
     setIsLoading(true);
 
     try {
-      // Try the /api/ai/chat route (Groq with deep context)
-      let response: ConversationResponse;
-      try {
-        // Send compact summaries — not full arrays — to save tokens
-        const today = new Date().toISOString().split("T")[0];
-        const compactUserData = {
-          tasks: tasks.map((t) => ({
-            id: t.id,
-            title: t.title,
-            status: t.status,
-            priority: t.priority,
-            dueDate: t.dueDate,
-            domain: t.domain,
+      // Send compact summaries — not full arrays — to save tokens
+      const today = new Date().toISOString().split("T")[0];
+      const compactUserData = {
+        tasks: tasks.map((t) => ({
+          id: t.id,
+          title: t.title,
+          status: t.status,
+          priority: t.priority,
+          dueDate: t.dueDate,
+          domain: t.domain,
+        })),
+        habits: habits
+          .filter((h) => h.active)
+          .map((h) => ({
+            id: h.id,
+            name: h.name,
+            streak: h.streak,
+            completedToday: h.completions?.some(
+              (c) => c.date === today && c.completed,
+            ),
           })),
-          habits: habits
-            .filter((h) => h.active)
-            .map((h) => ({
-              id: h.id,
-              name: h.name,
-              streak: h.streak,
-              completedToday: h.completions?.some(
-                (c) => c.date === today && c.completed,
-              ),
-            })),
-          goals: goals
-            .filter((g) => g.status === "active")
-            .map((g) => ({
-              id: g.id,
-              title: g.title,
-              progress: g.progress,
-            })),
-          transactions: transactions.slice(0, 10).map((t) => ({
-            type: t.type,
-            amount: t.amount,
-            category: t.category,
-            date: t.date,
+        goals: goals
+          .filter((g) => g.status === "active")
+          .map((g) => ({
+            id: g.id,
+            title: g.title,
+            progress: g.progress,
           })),
-          timeEntries: [],
-          studySessions: [],
-          journalEntries: journalEntries.slice(0, 3).map((j) => ({
-            date: j.date,
-            mood: j.mood,
-            energy: j.energy,
+        transactions: transactions.slice(0, 10).map((t) => ({
+          type: t.type,
+          amount: t.amount,
+          category: t.category,
+          date: t.date,
+        })),
+        timeEntries: [],
+        studySessions: [],
+        journalEntries: journalEntries.slice(0, 3).map((j) => ({
+          date: j.date,
+          mood: j.mood,
+          energy: j.energy,
+        })),
+        lifeState: null,
+        settings: {},
+      };
+
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("cortexia_token")
+          : null;
+
+      console.log(
+        "[AI Chat] Sending message:",
+        text.substring(0, 60),
+        "| Memory name:",
+        memory.userName || "(none)",
+        "| Token:",
+        token ? "present" : "MISSING",
+      );
+
+      const apiRes = await fetch(`${API_URL}/api/ai/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          message: text,
+          conversationHistory: messages.slice(-10).map((m) => ({
+            role: m.role,
+            content:
+              m.role === "assistant" && m.content.length > 500
+                ? m.content.substring(0, 500)
+                : m.content,
           })),
-          lifeState: null,
-          settings: {},
-        };
-        const API_URL =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const token =
-          typeof window !== "undefined"
-            ? localStorage.getItem("cortexia_token")
-            : null;
-        const apiRes = await fetch(`${API_URL}/api/ai/chat`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          userData: compactUserData,
+          memory: {
+            userName: memory.userName,
+            facts: memory.facts.slice(-10),
+            lastTopic: memory.lastTopic,
+            conversationCount: memory.conversationCount,
+            preferredTheme: memory.preferences.theme,
+            lastInteraction: memory.lastInteraction,
           },
-          body: JSON.stringify({
-            message: text,
-            conversationHistory: messages.slice(-10).map((m) => ({
-              role: m.role,
-              content:
-                m.role === "assistant" && m.content.length > 500
-                  ? m.content.substring(0, 500)
-                  : m.content,
-            })),
-            userData: compactUserData,
-            memory: {
-              userName: memory.userName,
-              facts: memory.facts.slice(-10),
-              lastTopic: memory.lastTopic,
-              conversationCount: memory.conversationCount,
-              preferredTheme: memory.preferences.theme,
-              lastInteraction: memory.lastInteraction,
-            },
-          }),
-        });
-        if (apiRes.ok) {
-          response = await apiRes.json();
-        } else {
-          throw new Error("API route failed");
-        }
-      } catch {
-        // Fallback to original conversational AI
-        const context = buildContext();
-        response = await conversationalAI.chat(text, context);
+        }),
+      });
+
+      if (!apiRes.ok) {
+        const errorData = await apiRes.json().catch(() => ({}));
+        console.error("[AI Chat] API error:", apiRes.status, errorData);
+        throw new Error(
+          (errorData as any).error || `API error ${apiRes.status}`,
+        );
       }
+
+      const response = await apiRes.json();
+
+      console.log(
+        "[AI Chat] Response received — actions:",
+        response.actions?.length || 0,
+        response.actions?.map((a: any) => a.type),
+        "| has updatedMemory:",
+        !!response.updatedMemory,
+      );
 
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -626,9 +427,24 @@ export function ConversationalAI() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Extract memory from BOTH user message and AI response
+      // === MEMORY UPDATE ===
+      // Merge: frontend extraction + server-side extraction + AI name reference
       const memUpdate = extractMemoryFacts(text);
-      // Also check if AI response references a name we told it
+
+      // Merge server-side memory extraction (name/facts from backend)
+      if (response.updatedMemory) {
+        if (response.updatedMemory.userName && !memUpdate.userName) {
+          memUpdate.userName = response.updatedMemory.userName;
+        }
+        if (response.updatedMemory.facts?.length) {
+          memUpdate.facts = [
+            ...(memUpdate.facts || []),
+            ...response.updatedMemory.facts,
+          ];
+        }
+      }
+
+      // Also check if AI response references a name
       const aiNameRef = response.message?.match(
         /(?:Hi|Hey|Hello|Sure|Got it|Nice to meet you),?\s+([A-Z][a-z]{2,})/,
       );
@@ -654,24 +470,45 @@ export function ConversationalAI() {
         if (memUpdate.userName) updated.userName = memUpdate.userName;
         if (memUpdate.lastTopic) updated.lastTopic = memUpdate.lastTopic;
 
+        console.log(
+          "[AI Chat] Memory updated — name:",
+          updated.userName || "(none)",
+          "| facts:",
+          updated.facts.length,
+          "| conversations:",
+          updated.conversationCount,
+        );
+
         // Defer save to avoid calling parent setState during render
         queueMicrotask(() => updateSettings({ aiMemory: updated }));
 
         return updated;
       });
 
-      // Execute any actions
+      // === EXECUTE ACTIONS ===
       if (response.actions && response.actions.length > 0) {
+        console.log(
+          "[AI Chat] Executing",
+          response.actions.length,
+          "actions:",
+          response.actions.map((a: any) => a.type),
+        );
         for (const action of response.actions) {
-          await executeAction(action);
+          try {
+            await executeAction(action);
+            console.log("[AI Chat] Action executed:", action.type);
+          } catch (actionErr) {
+            console.error("[AI Chat] Action failed:", action.type, actionErr);
+          }
         }
       }
     } catch (error) {
-      console.error("Chat error:", error);
+      console.error("[AI Chat] Error:", error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I'm having trouble connecting right now. Please try again.",
+        content:
+          "I'm having trouble connecting right now. Please try again in a moment.",
         timestamp: new Date().toLocaleTimeString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
