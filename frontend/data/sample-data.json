@@ -1,0 +1,355 @@
+{
+    "tasks": [
+        {
+            "id": "t-1",
+            "title": "Complete Q1 Project Proposal",
+            "description": "Draft the initial outline for the new AI integration project.",
+            "domain": "work",
+            "priority": "critical",
+            "status": "in-progress",
+            "dueDate": "2026-02-10",
+            "dueTime": "14:00",
+            "scheduledFor": "today",
+            "timeEstimate": 120,
+            "timeSpent": 45,
+            "createdAt": "2026-02-01T09:00:00Z",
+            "linkedGoalId": "g-2",
+            "subtasks": [
+                {
+                    "id": "st-1",
+                    "title": "Research competitors",
+                    "completed": true,
+                    "completedAt": "2026-02-02T10:00:00Z"
+                },
+                {
+                    "id": "st-2",
+                    "title": "Draft executive summary",
+                    "completed": false
+                },
+                {
+                    "id": "st-3",
+                    "title": "Review budget requirements",
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "t-2",
+            "title": "Gym Workout - Upper Body",
+            "description": "Focus on chest and triceps.",
+            "domain": "health",
+            "priority": "high",
+            "status": "todo",
+            "dueDate": "2026-02-09",
+            "dueTime": "18:00",
+            "scheduledFor": "today",
+            "timeEstimate": 60,
+            "createdAt": "2026-02-08T20:00:00Z",
+            "linkedHabitId": "h-1"
+        },
+        {
+            "id": "t-3",
+            "title": "Review Monthly Budget",
+            "description": "Check expenses against the new savings plan.",
+            "domain": "finance",
+            "priority": "medium",
+            "status": "todo",
+            "dueDate": "2026-02-15",
+            "scheduledFor": "week",
+            "timeEstimate": 30,
+            "createdAt": "2026-02-05T10:00:00Z",
+            "linkedGoalId": "g-1"
+        },
+        {
+            "id": "t-4",
+            "title": "Read 'Atomic Habits' - Chapter 4",
+            "domain": "personal",
+            "priority": "medium",
+            "status": "completed",
+            "dueDate": "2026-02-08",
+            "scheduledFor": "today",
+            "timeEstimate": 45,
+            "timeSpent": 50,
+            "completedAt": "2026-02-08T21:30:00Z",
+            "createdAt": "2026-02-07T08:00:00Z",
+            "linkedGoalId": "g-3"
+        },
+        {
+            "id": "t-5",
+            "title": "Weekly Team Sync",
+            "domain": "work",
+            "priority": "high",
+            "status": "todo",
+            "dueDate": "2026-02-11",
+            "dueTime": "10:00",
+            "scheduledFor": "week",
+            "timeEstimate": 60,
+            "createdAt": "2026-02-09T08:00:00Z",
+            "recurrence": {
+                "frequency": "weekly",
+                "daysOfWeek": [
+                    3
+                ]
+            }
+        }
+    ],
+    "goals": [
+        {
+            "id": "g-1",
+            "title": "Financial Independence 2030",
+            "description": "Build a net worth of $1M by 2030 through strategic investments and saving.",
+            "category": "financial",
+            "priority": "high",
+            "targetDate": "2030-12-31",
+            "progress": 35,
+            "status": "active",
+            "level": "life",
+            "milestones": [
+                {
+                    "id": "m-1",
+                    "title": "Reach $300k Net Worth",
+                    "targetDate": "2026-12-31",
+                    "completed": false
+                },
+                {
+                    "id": "m-2",
+                    "title": "Debt Free",
+                    "targetDate": "2025-06-30",
+                    "completed": true,
+                    "completedAt": "2025-05-15T00:00:00Z"
+                }
+            ],
+            "createdAt": "2024-01-01T00:00:00Z"
+        },
+        {
+            "id": "g-2",
+            "title": "Launch AI SaaS Product",
+            "description": "Develop and launch the MVP for the new AI-driven analytics tool.",
+            "category": "career",
+            "priority": "critical",
+            "targetDate": "2026-06-30",
+            "progress": 40,
+            "status": "active",
+            "level": "yearly",
+            "createdAt": "2026-01-05T00:00:00Z",
+            "milestones": [
+                {
+                    "id": "m-3",
+                    "title": "2026-02|Beta Release",
+                    "targetDate": "2026-02-28",
+                    "completed": false
+                },
+                {
+                    "id": "m-4",
+                    "title": "2026-03|First 100 Users",
+                    "targetDate": "2026-03-31",
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "g-3",
+            "title": "Master Advanced TypeScript",
+            "description": "Complete advanced courses and build 3 complex projects.",
+            "category": "education",
+            "priority": "medium",
+            "targetDate": "2026-04-01",
+            "progress": 65,
+            "status": "active",
+            "level": "quarterly",
+            "createdAt": "2026-01-10T00:00:00Z",
+            "milestones": [
+                {
+                    "id": "m-5",
+                    "title": "Finish 'Total TypeScript' Course",
+                    "targetDate": "2026-02-15",
+                    "completed": false
+                }
+            ]
+        }
+    ],
+    "habits": [
+        {
+            "id": "h-1",
+            "name": "Morning Workout",
+            "category": "health",
+            "frequency": "daily",
+            "description": "30 mins of cardio or strength training.",
+            "streak": 5,
+            "longestStreak": 21,
+            "active": true,
+            "createdAt": "2025-12-01T00:00:00Z",
+            "completions": [
+                {
+                    "date": "2026-02-09",
+                    "completed": true
+                },
+                {
+                    "date": "2026-02-08",
+                    "completed": true
+                },
+                {
+                    "date": "2026-02-07",
+                    "completed": true
+                },
+                {
+                    "date": "2026-02-06",
+                    "completed": true
+                },
+                {
+                    "date": "2026-02-05",
+                    "completed": true
+                }
+            ]
+        },
+        {
+            "id": "h-2",
+            "name": "Deep Work Block",
+            "category": "productivity",
+            "frequency": "daily",
+            "targetTime": "09:00",
+            "duration": 90,
+            "streak": 2,
+            "longestStreak": 10,
+            "active": true,
+            "createdAt": "2026-01-01T00:00:00Z",
+            "completions": [
+                {
+                    "date": "2026-02-09",
+                    "completed": false
+                },
+                {
+                    "date": "2026-02-08",
+                    "completed": true
+                },
+                {
+                    "date": "2026-02-07",
+                    "completed": true
+                }
+            ]
+        },
+        {
+            "id": "h-3",
+            "name": "Read 10 Pages",
+            "category": "learning",
+            "frequency": "daily",
+            "streak": 12,
+            "longestStreak": 45,
+            "active": true,
+            "createdAt": "2025-11-15T00:00:00Z",
+            "completions": [
+                {
+                    "date": "2026-02-08",
+                    "completed": true
+                }
+            ]
+        }
+    ],
+    "journalEntries": [
+        {
+            "id": "j-1",
+            "date": "2026-02-08",
+            "title": "Reflecting on Progress",
+            "content": "Today was productive. I managed to finish the core module for the project. Need to work on sleep schedule though.",
+            "mood": 8,
+            "energy": 7,
+            "focus": 9,
+            "createdAt": "2026-02-08T22:00:00Z",
+            "aiSummary": "High productivity, good focus, concern about sleep."
+        },
+        {
+            "id": "j-2",
+            "date": "2026-02-07",
+            "title": "A Bit Stressed",
+            "content": "Felt overwhelmed by the deadline approaching. Took a walk and cleared my head.",
+            "mood": 5,
+            "energy": 4,
+            "focus": 6,
+            "stress": 7,
+            "createdAt": "2026-02-07T21:00:00Z"
+        }
+    ],
+    "timeEntries": [
+        {
+            "id": "te-1",
+            "task": "Complete Q1 Project Proposal",
+            "category": "work",
+            "duration": 45,
+            "date": "2026-02-09",
+            "focusQuality": "deep",
+            "interruptions": 0,
+            "createdAt": "2026-02-09T10:00:00Z"
+        },
+        {
+            "id": "te-2",
+            "task": "Daily Planning",
+            "category": "personal",
+            "duration": 15,
+            "date": "2026-02-09",
+            "focusQuality": "moderate",
+            "interruptions": 1,
+            "createdAt": "2026-02-09T08:30:00Z"
+        }
+    ],
+    "finances": {
+        "budgets": [
+            {
+                "id": "b-1",
+                "category": "food",
+                "limit": 600,
+                "spent": 150,
+                "period": "monthly",
+                "createdAt": "2026-02-01T00:00:00Z"
+            },
+            {
+                "id": "b-2",
+                "category": "entertainment",
+                "limit": 200,
+                "spent": 45,
+                "period": "monthly",
+                "createdAt": "2026-02-01T00:00:00Z"
+            }
+        ],
+        "transactions": [
+            {
+                "id": "tx-1",
+                "category": "food",
+                "amount": 85.50,
+                "description": "Weekly groceries",
+                "date": "2026-02-07",
+                "type": "expense",
+                "createdAt": "2026-02-07T14:00:00Z"
+            },
+            {
+                "id": "tx-2",
+                "category": "salary",
+                "amount": 5000,
+                "description": "Monthly Salary",
+                "date": "2026-02-01",
+                "type": "income",
+                "createdAt": "2026-02-01T09:00:00Z"
+            }
+        ]
+    },
+    "settings": {
+        "theme": "dark",
+        "notifications": {
+            "enabled": true,
+            "tasks": true,
+            "habits": true,
+            "insights": true,
+            "dailySummaryTime": "08:00",
+            "streakWarnings": true
+        },
+        "preferences": {
+            "startOfWeek": "monday",
+            "timeFormat": "12h",
+            "language": "en",
+            "compactMode": false
+        },
+        "ai": {
+            "personality": "coach",
+            "insightFrequency": "medium"
+        }
+    }
+}
