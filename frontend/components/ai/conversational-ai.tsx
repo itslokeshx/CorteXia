@@ -586,20 +586,21 @@ export function ConversationalAI() {
           },
           body: JSON.stringify({
             message: text,
-            conversationHistory: messages.slice(-4).map((m) => ({
+            conversationHistory: messages.slice(-10).map((m) => ({
               role: m.role,
               content:
-                m.role === "assistant" && m.content.length > 200
-                  ? m.content.substring(0, 200)
+                m.role === "assistant" && m.content.length > 500
+                  ? m.content.substring(0, 500)
                   : m.content,
             })),
             userData: compactUserData,
             memory: {
               userName: memory.userName,
-              facts: memory.facts.slice(-5),
+              facts: memory.facts.slice(-10),
               lastTopic: memory.lastTopic,
               conversationCount: memory.conversationCount,
               preferredTheme: memory.preferences.theme,
+              lastInteraction: memory.lastInteraction,
             },
           }),
         });
@@ -625,8 +626,16 @@ export function ConversationalAI() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Extract and save memory from this conversation turn
+      // Extract memory from BOTH user message and AI response
       const memUpdate = extractMemoryFacts(text);
+      // Also check if AI response references a name we told it
+      const aiNameRef = response.message?.match(
+        /(?:Hi|Hey|Hello|Sure|Got it|Nice to meet you),?\s+([A-Z][a-z]{2,})/,
+      );
+      if (aiNameRef && !memUpdate.userName) {
+        memUpdate.userName = aiNameRef[1];
+      }
+
       setMemoryState((prev) => {
         const updated: AIMemory = {
           ...prev,
@@ -635,7 +644,10 @@ export function ConversationalAI() {
             ...prev.preferences,
             ...(memUpdate.preferences || {}),
           },
-          facts: [...prev.facts, ...(memUpdate.facts || [])].slice(-20),
+          // Deduplicate facts
+          facts: [
+            ...new Set([...prev.facts, ...(memUpdate.facts || [])]),
+          ].slice(-20),
           conversationCount: prev.conversationCount + 1,
           lastInteraction: new Date().toISOString(),
         };
@@ -671,327 +683,321 @@ export function ConversationalAI() {
   // Execute AI actions - FULL CAPABILITIES
   const executeAction = async (action: {
     type: string;
-    data: Record<string, unknown>;
+    data?: Record<string, unknown>;
+    [key: string]: unknown;
   }) => {
     const today = new Date().toISOString().split("T")[0];
 
-    switch (action.type) {
-      // === TASK ACTIONS ===
-      case "create_task":
-        const newTask = addTask({
-          title: action.data.title as string,
-          description: (action.data.description as string) || "",
-          domain:
-            (action.data.domain as
-              | "work"
-              | "study"
-              | "personal"
-              | "health"
-              | "finance") || "work",
-          priority:
-            (action.data.priority as "low" | "medium" | "high") || "medium",
-          dueDate: (action.data.dueDate as string) || "",
-          status: "todo",
-          tags: (action.data.tags as string[]) || [],
-        });
-        toast.success(`✅ Task created: ${action.data.title}`);
-        return newTask;
+    // Normalize: if action.data is missing, treat all non-type keys as data
+    const d: Record<string, unknown> =
+      action.data && typeof action.data === "object"
+        ? action.data
+        : (() => {
+            const { type: _, data: _d, ...rest } = action;
+            return rest;
+          })();
 
-      case "update_task":
-        updateTask(
-          action.data.taskId as string,
-          action.data.updates as Partial<any>,
-        );
-        toast.success(`📝 Task updated`);
-        break;
+    try {
+      switch (action.type) {
+        // === TASK ACTIONS ===
+        case "create_task":
+          addTask({
+            title: (d.title as string) || "Untitled Task",
+            description: (d.description as string) || "",
+            domain:
+              (d.domain as
+                | "work"
+                | "study"
+                | "personal"
+                | "health"
+                | "finance") || "personal",
+            priority: (d.priority as "low" | "medium" | "high") || "medium",
+            dueDate: (d.dueDate as string) || "",
+            status: "todo",
+            tags: (d.tags as string[]) || [],
+          });
+          toast.success(`✅ Task created: ${d.title}`);
+          break;
 
-      case "delete_task":
-        deleteTask(action.data.taskId as string);
-        toast.success(`🗑️ Task deleted`);
-        break;
+        case "update_task":
+          updateTask(d.taskId as string, (d.updates as Partial<any>) || d);
+          toast.success(`📝 Task updated`);
+          break;
 
-      case "complete_task":
-        completeTask(action.data.taskId as string);
-        toast.success(`✅ Task completed!`);
-        break;
+        case "delete_task":
+          deleteTask(d.taskId as string);
+          toast.success(`🗑️ Task deleted`);
+          break;
 
-      // === HABIT ACTIONS ===
-      case "create_habit":
-        const newHabit = addHabit({
-          name: action.data.name as string,
-          category:
-            (action.data.category as
-              | "health"
-              | "productivity"
-              | "learning"
-              | "fitness"
-              | "mindfulness"
-              | "social") || "productivity",
-          frequency:
-            (action.data.frequency as "daily" | "weekly" | "monthly") ||
-            "daily",
-          description: (action.data.description as string) || "",
-          streak: 0,
-          longestStreak: 0,
-          active: true,
-        });
-        toast.success(`🎯 Habit created: ${action.data.name}`);
-        return newHabit;
+        case "complete_task":
+          completeTask(d.taskId as string);
+          toast.success(`✅ Task completed!`);
+          break;
 
-      case "update_habit":
-        updateHabit(
-          action.data.habitId as string,
-          action.data.updates as Partial<any>,
-        );
-        toast.success(`📝 Habit updated`);
-        break;
+        // === HABIT ACTIONS ===
+        case "create_habit":
+          addHabit({
+            name: (d.name as string) || "Untitled Habit",
+            category:
+              (d.category as
+                | "health"
+                | "productivity"
+                | "learning"
+                | "fitness"
+                | "mindfulness"
+                | "social") || "productivity",
+            frequency:
+              (d.frequency as "daily" | "weekly" | "monthly") || "daily",
+            description: (d.description as string) || "",
+            streak: 0,
+            longestStreak: 0,
+            active: true,
+          });
+          toast.success(`🎯 Habit created: ${d.name}`);
+          break;
 
-      case "delete_habit":
-        deleteHabit(action.data.habitId as string);
-        toast.success(`🗑️ Habit deleted`);
-        break;
+        case "update_habit":
+          updateHabit(d.habitId as string, (d.updates as Partial<any>) || d);
+          toast.success(`📝 Habit updated`);
+          break;
 
-      case "complete_habit":
-        completeHabit(action.data.habitId as string, today);
-        toast.success(`✅ Habit marked as complete!`);
-        break;
+        case "delete_habit":
+          deleteHabit(d.habitId as string);
+          toast.success(`🗑️ Habit deleted`);
+          break;
 
-      // === GOAL ACTIONS ===
-      case "create_goal":
-        const newGoal = addGoal({
-          title: action.data.title as string,
-          description: (action.data.description as string) || "",
-          category:
-            (action.data.category as
-              | "personal"
-              | "health"
-              | "career"
-              | "financial"
-              | "education"
-              | "family") || "personal",
-          priority:
-            (action.data.priority as "low" | "medium" | "high") || "medium",
-          targetDate:
-            (action.data.targetDate as string) ||
-            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .split("T")[0],
-          progress: 0,
-          status: "active",
-          milestones: (action.data.milestones as any[]) || [],
-        });
-        toast.success(`🎯 Goal created: ${action.data.title}`);
-        return newGoal;
+        case "complete_habit":
+          completeHabit(d.habitId as string, today);
+          toast.success(`✅ Habit marked as complete!`);
+          break;
 
-      case "update_goal":
-        updateGoal(
-          action.data.goalId as string,
-          action.data.updates as Partial<any>,
-        );
-        toast.success(`📝 Goal updated`);
-        break;
+        // === GOAL ACTIONS ===
+        case "create_goal":
+          addGoal({
+            title: (d.title as string) || "Untitled Goal",
+            description: (d.description as string) || "",
+            category:
+              (d.category as
+                | "personal"
+                | "health"
+                | "career"
+                | "financial"
+                | "education"
+                | "family") || "personal",
+            priority: (d.priority as "low" | "medium" | "high") || "medium",
+            targetDate:
+              (d.targetDate as string) ||
+              new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+            progress: 0,
+            status: "active",
+            milestones: (d.milestones as any[]) || [],
+          });
+          toast.success(`🎯 Goal created: ${d.title}`);
+          break;
 
-      case "delete_goal":
-        deleteGoal(action.data.goalId as string);
-        toast.success(`🗑️ Goal deleted`);
-        break;
+        case "update_goal":
+          updateGoal(d.goalId as string, (d.updates as Partial<any>) || d);
+          toast.success(`📝 Goal updated`);
+          break;
 
-      case "complete_milestone":
-        completeMilestone(
-          action.data.goalId as string,
-          action.data.milestoneId as string,
-        );
-        toast.success(`✅ Milestone completed!`);
-        break;
+        case "delete_goal":
+          deleteGoal(d.goalId as string);
+          toast.success(`🗑️ Goal deleted`);
+          break;
 
-      case "add_tasks_to_goal":
-        // Create tasks linked to a goal
-        const goalTasks = action.data.tasks as Array<{
-          title: string;
-          description?: string;
-          priority?: string;
-        }>;
-        const goalId = action.data.goalId as string;
-        const goal = goals.find((g) => g.id === goalId);
+        case "complete_milestone":
+          completeMilestone(d.goalId as string, d.milestoneId as string);
+          toast.success(`✅ Milestone completed!`);
+          break;
 
-        if (goal && goalTasks) {
-          for (const taskData of goalTasks) {
-            addTask({
-              title: taskData.title,
-              description:
-                taskData.description || `Part of goal: ${goal.title}`,
-              domain: "work",
-              priority:
-                (taskData.priority as "low" | "medium" | "high") || "medium",
-              status: "todo",
-              tags: [`goal:${goalId}`],
-            });
+        case "add_tasks_to_goal": {
+          const goalTasks = d.tasks as Array<{
+            title: string;
+            description?: string;
+            priority?: string;
+          }>;
+          const gId = d.goalId as string;
+          const g = goals.find((x) => x.id === gId);
+          if (g && goalTasks) {
+            for (const taskData of goalTasks) {
+              addTask({
+                title: taskData.title,
+                description: taskData.description || `Part of goal: ${g.title}`,
+                domain: "work",
+                priority:
+                  (taskData.priority as "low" | "medium" | "high") || "medium",
+                status: "todo",
+                tags: [`goal:${gId}`],
+              });
+            }
+            toast.success(
+              `✅ Added ${goalTasks.length} tasks to goal: ${g.title}`,
+            );
           }
-          toast.success(
-            `✅ Added ${goalTasks.length} tasks to goal: ${goal.title}`,
+          break;
+        }
+
+        // === FINANCE ACTIONS ===
+        case "add_expense":
+          addTransaction({
+            type: "expense",
+            amount: Number(d.amount) || 0,
+            category:
+              (d.category as
+                | "food"
+                | "transport"
+                | "entertainment"
+                | "health"
+                | "learning"
+                | "utilities"
+                | "other") || "other",
+            description: (d.description as string) || "",
+            date: (d.date as string) || new Date().toISOString(),
+          });
+          toast.success(`💸 Expense recorded: ${d.amount}`);
+          break;
+
+        case "add_income":
+          addTransaction({
+            type: "income",
+            amount: Number(d.amount) || 0,
+            category: "salary",
+            description: (d.description as string) || "",
+            date: (d.date as string) || new Date().toISOString(),
+          });
+          toast.success(`💰 Income recorded: ${d.amount}`);
+          break;
+
+        case "delete_transaction":
+          deleteTransaction(d.transactionId as string);
+          toast.success(`🗑️ Transaction deleted`);
+          break;
+
+        // === TIME TRACKING ACTIONS ===
+        case "log_time":
+          addTimeEntry({
+            task: (d.task as string) || "Work",
+            category:
+              (d.category as "work" | "study" | "health" | "personal") ||
+              "work",
+            duration: Number(d.duration) || 30,
+            date: (d.date as string) || new Date().toISOString(),
+            focusQuality:
+              (d.focusQuality as "deep" | "moderate" | "shallow") || "moderate",
+            interruptions: (d.interruptions as number) || 0,
+            notes: (d.notes as string) || "",
+          });
+          toast.success(`⏱️ Time logged: ${d.duration} minutes`);
+          break;
+
+        case "delete_time_entry":
+          deleteTimeEntry(d.entryId as string);
+          toast.success(`🗑️ Time entry deleted`);
+          break;
+
+        // === STUDY ACTIONS ===
+        case "log_study":
+          addStudySession({
+            subject: (d.subject as string) || "General",
+            duration: Number(d.duration) || 30,
+            pomodoros:
+              (d.pomodoros as number) ||
+              Math.ceil(Number(d.duration || 30) / 25),
+            difficulty:
+              (d.difficulty as "easy" | "medium" | "hard") || "medium",
+            topic: (d.topic as string) || "",
+            startTime: new Date().toISOString(),
+            endTime: new Date(
+              Date.now() + Number(d.duration || 30) * 60000,
+            ).toISOString(),
+          });
+          toast.success(`📚 Study session logged: ${d.subject}`);
+          break;
+
+        case "delete_study_session":
+          deleteStudySession(d.sessionId as string);
+          toast.success(`🗑️ Study session deleted`);
+          break;
+
+        // === JOURNAL ACTIONS ===
+        case "create_journal":
+          addJournalEntry({
+            title:
+              (d.title as string) ||
+              `Journal - ${new Date().toLocaleDateString()}`,
+            content: (d.content as string) || "",
+            date: (d.date as string) || new Date().toISOString(),
+            mood: (d.mood as number) || 5,
+            energy: (d.energy as number) || 5,
+            focus: (d.focus as number) || 5,
+            tags: (d.tags as string[]) || [],
+          });
+          toast.success(`📝 Journal entry created`);
+          break;
+
+        case "update_journal":
+          updateJournalEntry(
+            d.entryId as string,
+            (d.updates as Partial<any>) || d,
           );
+          toast.success(`📝 Journal updated`);
+          break;
+
+        case "delete_journal":
+          deleteJournalEntry(d.entryId as string);
+          toast.success(`🗑️ Journal entry deleted`);
+          break;
+
+        // === NAVIGATION ===
+        case "navigate": {
+          const navPath = d.path as string;
+          if (navPath) window.location.href = navPath;
+          break;
         }
-        break;
 
-      // === FINANCE ACTIONS ===
-      case "add_expense":
-        addTransaction({
-          type: "expense",
-          amount: action.data.amount as number,
-          category:
-            (action.data.category as
-              | "food"
-              | "transport"
-              | "entertainment"
-              | "health"
-              | "learning"
-              | "utilities"
-              | "other") || "other",
-          description: (action.data.description as string) || "",
-          date: (action.data.date as string) || new Date().toISOString(),
-        });
-        toast.success(`💸 Expense recorded: $${action.data.amount}`);
-        break;
-
-      case "add_income":
-        addTransaction({
-          type: "income",
-          amount: action.data.amount as number,
-          category: "salary",
-          description: (action.data.description as string) || "",
-          date: (action.data.date as string) || new Date().toISOString(),
-        });
-        toast.success(`💰 Income recorded: $${action.data.amount}`);
-        break;
-
-      case "delete_transaction":
-        deleteTransaction(action.data.transactionId as string);
-        toast.success(`🗑️ Transaction deleted`);
-        break;
-
-      // === TIME TRACKING ACTIONS ===
-      case "log_time":
-        addTimeEntry({
-          task: action.data.task as string,
-          category:
-            (action.data.category as
-              | "work"
-              | "study"
-              | "health"
-              | "personal") || "work",
-          duration: action.data.duration as number,
-          date: (action.data.date as string) || new Date().toISOString(),
-          focusQuality:
-            (action.data.focusQuality as "deep" | "moderate" | "shallow") ||
-            "moderate",
-          interruptions: (action.data.interruptions as number) || 0,
-          notes: (action.data.notes as string) || "",
-        });
-        toast.success(`⏱️ Time logged: ${action.data.duration} minutes`);
-        break;
-
-      case "delete_time_entry":
-        deleteTimeEntry(action.data.entryId as string);
-        toast.success(`🗑️ Time entry deleted`);
-        break;
-
-      // === STUDY ACTIONS ===
-      case "log_study":
-        addStudySession({
-          subject: action.data.subject as string,
-          duration: action.data.duration as number,
-          pomodoros:
-            (action.data.pomodoros as number) ||
-            Math.ceil((action.data.duration as number) / 25),
-          difficulty:
-            (action.data.difficulty as "easy" | "medium" | "hard") || "medium",
-          topic: (action.data.topic as string) || "",
-          startTime: new Date().toISOString(),
-          endTime: new Date(
-            Date.now() + (action.data.duration as number) * 60000,
-          ).toISOString(),
-        });
-        toast.success(`📚 Study session logged: ${action.data.subject}`);
-        break;
-
-      case "delete_study_session":
-        deleteStudySession(action.data.sessionId as string);
-        toast.success(`🗑️ Study session deleted`);
-        break;
-
-      // === JOURNAL ACTIONS ===
-      case "create_journal":
-        addJournalEntry({
-          title:
-            (action.data.title as string) ||
-            `Journal - ${new Date().toLocaleDateString()}`,
-          content: action.data.content as string,
-          date: (action.data.date as string) || new Date().toISOString(),
-          mood: (action.data.mood as number) || 5,
-          energy: (action.data.energy as number) || 5,
-          focus: (action.data.focus as number) || 5,
-          tags: (action.data.tags as string[]) || [],
-        });
-        toast.success(`📝 Journal entry created`);
-        break;
-
-      case "update_journal":
-        updateJournalEntry(
-          action.data.entryId as string,
-          action.data.updates as Partial<any>,
-        );
-        toast.success(`📝 Journal updated`);
-        break;
-
-      case "delete_journal":
-        deleteJournalEntry(action.data.entryId as string);
-        toast.success(`🗑️ Journal entry deleted`);
-        break;
-
-      // === NAVIGATION ===
-      case "navigate":
-        const path = action.data.path as string;
-        if (path) {
-          window.location.href = path;
+        // === THEME CONTROL ===
+        case "set_theme": {
+          const newTheme = (d.theme as string) || "dark";
+          setTheme(newTheme);
+          toast.success(`🎨 Theme switched to ${newTheme}`);
+          break;
         }
-        break;
 
-      // === THEME CONTROL ===
-      case "set_theme":
-        const newTheme = (action.data.theme as string) || "dark";
-        setTheme(newTheme);
-        toast.success(`🎨 Theme switched to ${newTheme}`);
-        break;
+        // === DATA CLEARING ===
+        case "clear_tasks":
+          for (const t of tasks) deleteTask(t.id);
+          toast.success("🗑️ All tasks cleared");
+          break;
 
-      // === DATA CLEARING ===
-      case "clear_tasks":
-        for (const t of tasks) deleteTask(t.id);
-        toast.success("🗑️ All tasks cleared");
-        break;
+        case "clear_habits":
+          for (const h of habits) deleteHabit(h.id);
+          toast.success("🗑️ All habits cleared");
+          break;
 
-      case "clear_habits":
-        for (const h of habits) deleteHabit(h.id);
-        toast.success("🗑️ All habits cleared");
-        break;
+        case "clear_goals":
+          for (const g of goals) deleteGoal(g.id);
+          toast.success("🗑️ All goals cleared");
+          break;
 
-      case "clear_goals":
-        for (const g of goals) deleteGoal(g.id);
-        toast.success("🗑️ All goals cleared");
-        break;
+        case "clear_all_data":
+          for (const t of tasks) deleteTask(t.id);
+          for (const h of habits) deleteHabit(h.id);
+          for (const g of goals) deleteGoal(g.id);
+          for (const tx of transactions) deleteTransaction(tx.id);
+          for (const te of timeEntries) deleteTimeEntry(te.id);
+          for (const s of studySessions) deleteStudySession(s.id);
+          for (const j of journalEntries) deleteJournalEntry(j.id);
+          toast.success("🗑️ All data cleared");
+          break;
 
-      case "clear_all_data":
-        for (const t of tasks) deleteTask(t.id);
-        for (const h of habits) deleteHabit(h.id);
-        for (const g of goals) deleteGoal(g.id);
-        for (const tx of transactions) deleteTransaction(tx.id);
-        for (const te of timeEntries) deleteTimeEntry(te.id);
-        for (const s of studySessions) deleteStudySession(s.id);
-        for (const j of journalEntries) deleteJournalEntry(j.id);
-        toast.success("🗑️ All data cleared");
-        break;
-
-      default:
-        console.log("Unknown action type:", action.type);
+        default:
+          console.log("Unknown action type:", action.type, d);
+      }
+    } catch (err) {
+      console.error("Failed to execute action:", action.type, err);
+      toast.error(`Failed to execute: ${action.type}`);
     }
   };
 

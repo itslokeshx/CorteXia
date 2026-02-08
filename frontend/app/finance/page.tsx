@@ -2,7 +2,7 @@
 
 import { AppLayout } from "@/components/layout/app-layout";
 import { useApp } from "@/lib/context/app-context";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
@@ -100,10 +100,46 @@ const CATEGORIES: Record<
   },
 };
 
+const CURRENCIES = [
+  { code: "USD", symbol: "$", label: "US Dollar" },
+  { code: "INR", symbol: "₹", label: "Indian Rupee" },
+  { code: "GBP", symbol: "£", label: "British Pound" },
+  { code: "EUR", symbol: "€", label: "Euro" },
+  { code: "JPY", symbol: "¥", label: "Japanese Yen" },
+  { code: "AUD", symbol: "A$", label: "Australian Dollar" },
+  { code: "CAD", symbol: "C$", label: "Canadian Dollar" },
+] as const;
+
 export default function FinancePage() {
-  const { transactions, addTransaction, deleteTransaction, goals } = useApp();
+  const {
+    transactions,
+    addTransaction,
+    deleteTransaction,
+    goals,
+    settings,
+    updateSettings,
+  } = useApp();
   const [createOpen, setCreateOpen] = useState(false);
   const [view, setView] = useState("this-month");
+
+  // Currency — persisted in settings
+  const currencyCode = (settings?.preferences as any)?.currency || "USD";
+  const currencyInfo =
+    CURRENCIES.find((c) => c.code === currencyCode) || CURRENCIES[0];
+  const sym = currencyInfo.symbol;
+
+  const handleCurrencyChange = useCallback(
+    (code: string) => {
+      updateSettings({
+        preferences: {
+          ...((settings?.preferences as any) || {}),
+          currency: code,
+        },
+      });
+    },
+    [settings, updateSettings],
+  );
+
   const [newTx, setNewTx] = useState({
     description: "",
     amount: "",
@@ -183,9 +219,7 @@ export default function FinancePage() {
 
   return (
     <AppLayout>
-      <motion.div
-        className="space-y-6 pb-12"
-      >
+      <motion.div className="space-y-6 pb-12">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -196,89 +230,116 @@ export default function FinancePage() {
               Track your spending, grow your wealth
             </p>
           </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
-                <Plus className="w-4 h-4" /> Add Transaction
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add Transaction</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <Input
-                  placeholder="Description"
-                  value={newTx.description}
-                  onChange={(e) =>
-                    setNewTx({ ...newTx, description: e.target.value })
-                  }
-                  autoFocus
-                />
-                <Input
-                  type="number"
-                  placeholder="Amount"
-                  value={newTx.amount}
-                  onChange={(e) =>
-                    setNewTx({ ...newTx, amount: e.target.value })
-                  }
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5 block">
-                      Type
-                    </label>
-                    <Select
-                      value={newTx.type}
-                      onValueChange={(v) =>
-                        setNewTx({ ...newTx, type: v as "income" | "expense" })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="expense">Expense</SelectItem>
-                        <SelectItem value="income">Income</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5 block">
-                      Category
-                    </label>
-                    <Select
-                      value={newTx.category}
-                      onValueChange={(v) => setNewTx({ ...newTx, category: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(CATEGORIES).map(([key, val]) => (
-                          <SelectItem key={key} value={key}>
-                            {val.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+          <div className="flex items-center gap-2">
+            {/* Currency Selector */}
+            <Select value={currencyCode} onValueChange={handleCurrencyChange}>
+              <SelectTrigger className="w-[130px] rounded-xl border-[var(--color-border)] bg-[var(--color-bg-secondary)] text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CURRENCIES.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>
+                    <span className="font-medium">{c.symbol}</span>{" "}
+                    <span className="text-[var(--color-text-secondary)]">
+                      {c.code}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
+                  <Plus className="w-4 h-4" /> Add Transaction
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add Transaction</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <Input
+                    placeholder="Description"
+                    value={newTx.description}
+                    onChange={(e) =>
+                      setNewTx({ ...newTx, description: e.target.value })
+                    }
+                    autoFocus
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Amount"
+                    value={newTx.amount}
+                    onChange={(e) =>
+                      setNewTx({ ...newTx, amount: e.target.value })
+                    }
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5 block">
+                        Type
+                      </label>
+                      <Select
+                        value={newTx.type}
+                        onValueChange={(v) =>
+                          setNewTx({
+                            ...newTx,
+                            type: v as "income" | "expense",
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="expense">Expense</SelectItem>
+                          <SelectItem value="income">Income</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5 block">
+                        Category
+                      </label>
+                      <Select
+                        value={newTx.category}
+                        onValueChange={(v) =>
+                          setNewTx({ ...newTx, category: v })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(CATEGORIES).map(([key, val]) => (
+                            <SelectItem key={key} value={key}>
+                              {val.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreate}
-                  disabled={!newTx.description.trim() || !newTx.amount}
-                  className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
-                >
-                  Add
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCreateOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreate}
+                    disabled={!newTx.description.trim() || !newTx.amount}
+                    className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
+                  >
+                    Add
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* View Tabs */}
@@ -303,7 +364,8 @@ export default function FinancePage() {
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              ${stats.income.toFixed(2)}
+              {sym}
+              {stats.income.toFixed(2)}
             </p>
           </div>
           <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-5">
@@ -316,7 +378,8 @@ export default function FinancePage() {
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              ${stats.expenses.toFixed(2)}
+              {sym}
+              {stats.expenses.toFixed(2)}
             </p>
           </div>
           <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-5">
@@ -333,7 +396,8 @@ export default function FinancePage() {
                 "text-2xl font-bold text-gray-900 dark:text-gray-100",
               )}
             >
-              ${stats.net.toFixed(2)}
+              {sym}
+              {stats.net.toFixed(2)}
             </p>
           </div>
         </div>
@@ -367,13 +431,12 @@ export default function FinancePage() {
                             {catInfo.label}
                           </span>
                           <span className="text-sm font-medium text-[var(--color-text-primary)]">
-                            ${amount.toFixed(2)}
+                            {sym}
+                            {amount.toFixed(2)}
                           </span>
                         </div>
                         <div className="h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden">
-                          <motion.div
-                            className="h-full rounded-full bg-gray-900 dark:bg-gray-100"
-                          />
+                          <motion.div className="h-full rounded-full bg-gray-900 dark:bg-gray-100" />
                         </div>
                       </div>
                     </div>
@@ -450,7 +513,9 @@ export default function FinancePage() {
                         "text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100",
                       )}
                     >
-                      {isIncome ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                      {isIncome ? "+" : "-"}
+                      {sym}
+                      {Math.abs(tx.amount).toFixed(2)}
                     </span>
                     <button
                       onClick={() => deleteTransaction(tx.id)}

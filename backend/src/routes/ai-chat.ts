@@ -67,9 +67,7 @@ function buildSystemPrompt(userData: any, memory: any): string {
     const overdue = pending.filter(
       (x: any) => x.dueDate && new Date(x.dueDate) < now,
     );
-    const todayDue = pending.filter((x: any) =>
-      x.dueDate?.startsWith(today),
-    );
+    const todayDue = pending.filter((x: any) => x.dueDate?.startsWith(today));
     const high = pending.filter((x: any) => x.priority === "high");
     data += "\n[TASKS] " + pending.length + " pending, " + done + " done";
     if (overdue.length) data += ", " + overdue.length + " overdue";
@@ -185,22 +183,72 @@ function buildSystemPrompt(userData: any, memory: any): string {
   }
 
   return (
-    "You are CorteXia \u2014 an intelligent, warm AI life mentor and personal assistant inside the CorteXia productivity app.\n" +
-    "Now: " + day + " " + date + ", " + time + mem + "\n" +
-    (data ? "\n\u2500\u2500 USER DATA \u2500\u2500" + data + "\n" : "") +
-    "\nRESPONSE FORMAT \u2014 You MUST return valid JSON only (no markdown fences):\n" +
-    '{"message":"Your reply here","actions":[],"suggestions":[{"text":"Label","action":"type","reason":"Why"}]}\n\n' +
-    "RULES:\n" +
-    "\u2022 \"message\": Be conversational, personal, concise. Use the user's name if known. Reference their actual data.\n" +
-    "\u2022 \"actions\": Array of executable actions (create_task, complete_task, create_habit, complete_habit, create_goal, add_expense, add_income, log_time, log_study, create_journal, navigate, set_theme, etc). Empty [] if none.\n" +
-    "\u2022 \"suggestions\": 1-3 smart follow-ups with \"text\", \"action\", \"reason\".\n" +
-    "\u2022 ALWAYS greet by name if you know it. REMEMBER everything shared in conversation.\n" +
-    "\u2022 Reference real data: task names, habit streaks, goal progress, spending patterns, mood trends.\n" +
-    "\u2022 Keep under 150 words unless asked for detail.\n" +
-    "\u2022 Be proactive: notice overdue tasks, streak risks, mood dips, spending spikes.\n" +
-    "\u2022 You CAN answer questions outside the app \u2014 be a knowledgeable general assistant too.\n" +
-    "\u2022 NEVER say \"I don't have access to your data\" \u2014 you DO, it's shown above."
+    "You are CorteXia — an intelligent, warm AI life mentor and personal assistant.\n" +
+    "Now: " +
+    day +
+    " " +
+    date +
+    ", " +
+    time +
+    "\n" +
+    (mem ? mem + "\n" : "") +
+    (data ? "\n── USER DATA ──" + data + "\n" : "") +
+    "\n══ RESPONSE FORMAT ══\n" +
+    "You MUST return ONLY valid JSON (no markdown fences, no text outside JSON):\n" +
+    "{\n" +
+    '  "message": "Your conversational reply here",\n' +
+    '  "actions": [\n' +
+    '    {"type": "action_name", "data": { ...parameters }}\n' +
+    "  ],\n" +
+    '  "suggestions": [\n' +
+    '    {"text": "Button label", "action": "action_type", "reason": "Why"}\n' +
+    "  ]\n" +
+    "}\n\n" +
+    "══ ACTION SCHEMAS ══\n" +
+    'IMPORTANT: Every action MUST have "type" and "data" fields. The "data" object contains the parameters.\n' +
+    'When user asks you to create/add something, you MUST include the action in "actions" array.\n\n' +
+    "Available actions with their data schemas:\n" +
+    '• create_task:    {"type":"create_task","data":{"title":"Task name","priority":"medium","dueDate":"2026-02-09","domain":"personal","description":"optional"}}\n' +
+    '• complete_task:  {"type":"complete_task","data":{"taskId":"id"}}\n' +
+    '• create_habit:   {"type":"create_habit","data":{"name":"Habit name","frequency":"daily","category":"health","description":"optional"}}\n' +
+    '• complete_habit: {"type":"complete_habit","data":{"habitId":"id"}}\n' +
+    '• create_goal:    {"type":"create_goal","data":{"title":"Goal name","category":"personal","targetDate":"2026-12-31","description":"optional"}}\n' +
+    '• add_expense:    {"type":"add_expense","data":{"amount":25.50,"category":"food","description":"Lunch"}}\n' +
+    '• add_income:     {"type":"add_income","data":{"amount":5000,"description":"Salary"}}\n' +
+    '• log_time:       {"type":"log_time","data":{"task":"Task name","duration":30,"category":"work"}}\n' +
+    '• log_study:      {"type":"log_study","data":{"subject":"Math","duration":45,"topic":"Calculus"}}\n' +
+    '• create_journal: {"type":"create_journal","data":{"content":"Journal text","mood":7,"energy":6}}\n' +
+    '• navigate:       {"type":"navigate","data":{"path":"/tasks"}}\n' +
+    '• set_theme:      {"type":"set_theme","data":{"theme":"dark"}}\n\n' +
+    "══ RULES ══\n" +
+    "• ALWAYS use the user's name in replies if known from [MEMORY]. Be personal and warm.\n" +
+    "• Reference SPECIFIC data: actual task names, habit streaks, goal %, spending amounts, mood scores.\n" +
+    '• When user says to create/add something → PUT the action in "actions" array. Don\'t just say you did it.\n' +
+    '• "suggestions": 1-3 relevant follow-ups. Always include at least one.\n' +
+    "• Keep replies concise (under 150 words) unless user asks for detail.\n" +
+    "• Be proactive: notice overdue tasks, streak risks, mood dips, spending spikes.\n" +
+    "• You CAN answer general questions (science, coding, advice, etc.) — be a knowledgeable assistant.\n" +
+    "• NEVER say \"I don't have access to your data\" — you DO, it's shown above in USER DATA.\n" +
+    "• NEVER wrap response in markdown code blocks. Return raw JSON only."
   );
+}
+
+// Normalize an action: ensure it has {type, data} structure
+function normalizeAction(
+  action: any,
+): { type: string; data: Record<string, any> } | null {
+  if (!action || typeof action !== "object") return null;
+  const type = action.type;
+  if (!type || typeof type !== "string") return null;
+
+  // If action already has a `data` object, use it
+  if (action.data && typeof action.data === "object") {
+    return { type, data: action.data };
+  }
+
+  // Otherwise, everything except `type` IS the data (flat format from LLM)
+  const { type: _, ...rest } = action;
+  return { type, data: rest };
 }
 
 // Parse LLM JSON response with fallbacks
@@ -209,29 +257,45 @@ function parseAIResponse(raw: string): {
   actions: any[];
   suggestions: any[];
 } {
+  let parsed: any = null;
+
+  // Try direct parse
   try {
-    const parsed = JSON.parse(raw);
-    return {
-      message: parsed.message || raw,
-      actions: parsed.actions || [],
-      suggestions: parsed.suggestions || [],
-    };
+    parsed = JSON.parse(raw);
   } catch {
-    const jsonMatch = raw.match(/\{[\s\S]*"message"[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return {
-          message: parsed.message || raw,
-          actions: parsed.actions || [],
-          suggestions: parsed.suggestions || [],
-        };
-      } catch {
-        // Fall through
+    // Strip markdown fences
+    const cleaned = raw
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/gi, "")
+      .trim();
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      // Try to extract JSON object
+      const jsonMatch = cleaned.match(/\{[\s\S]*"message"[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          parsed = JSON.parse(jsonMatch[0]);
+        } catch {
+          // Give up on JSON
+        }
       }
     }
+  }
+
+  if (!parsed) {
     return { message: raw, actions: [], suggestions: [] };
   }
+
+  // Normalize actions to always have {type, data} structure
+  const rawActions = Array.isArray(parsed.actions) ? parsed.actions : [];
+  const actions = rawActions.map(normalizeAction).filter(Boolean);
+
+  return {
+    message: parsed.message || raw,
+    actions,
+    suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+  };
 }
 
 router.post("/", async (req: AuthRequest, res: Response) => {

@@ -125,7 +125,11 @@ router.post("/google", async (req: Request, res: Response) => {
         res.status(401).json({ error: "Invalid Google access token" });
         return;
       }
-      const userInfo = await userInfoRes.json();
+      const userInfo = (await userInfoRes.json()) as {
+        email?: string;
+        name?: string;
+        picture?: string;
+      };
       email = userInfo.email;
       name = userInfo.name;
       picture = userInfo.picture;
