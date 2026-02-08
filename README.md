@@ -17,31 +17,6 @@
 
 </div>
 
----
-
-## 📖 Table of Contents
-
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Tech Stack](#-tech-stack)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Environment Setup](#environment-setup)
-  - [MongoDB Setup](#mongodb-setup)
-  - [Google OAuth Setup](#google-oauth-setup)
-- [Project Structure](#-project-structure)
-- [Features Deep Dive](#-features-deep-dive)
-- [API Documentation](#-api-documentation)
-- [Database Schema](#-database-schema)
-- [AI System](#-ai-system)
-- [Deployment](#-deployment)
-- [Contributing](#-contributing)
-- [License](#-license)
-- [Acknowledgments](#-acknowledgments)
-
----
-
 ## 🌟 Overview
 
 **CorteXia** is a world-class, AI-powered productivity platform that serves as your cognitive operating system. Unlike traditional task managers, CorteXia deeply understands your life through advanced AI, providing proactive insights, intelligent automation, and seamless integration across all aspects of your personal and professional life.
@@ -441,7 +416,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <div align="center">
 
 **Built with 💜 by developers, for developers**
-
-[⬆ Back to Top](#-cortexia---your-second-brain)
 
 </div>
