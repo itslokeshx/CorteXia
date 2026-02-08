@@ -150,6 +150,46 @@ export default function TasksPage() {
     }
   };
 
+  // Sync a time-blocked task to the day planner
+  const syncTaskToPlanner = useCallback(
+    (
+      taskTitle: string,
+      taskDate: string,
+      startTime: string,
+      endTime: string,
+      taskId?: string,
+    ) => {
+      try {
+        const blocks = ((settings?.plannerBlocks as unknown[]) || []) as {
+          id: string;
+        }[];
+        // Remove any existing block for this task
+        const prefix = taskId ? `task-${taskId}-` : `task-new-`;
+        const filtered = blocks.filter((b) => !b.id.startsWith(prefix));
+        const [sh, sm] = startTime.split(":").map(Number);
+        const [eh, em] = endTime.split(":").map(Number);
+        filtered.push({
+          id: `task-${taskId || Date.now()}-${Date.now()}`,
+          title: taskTitle,
+          date: taskDate,
+          type: "task",
+          startHour: sh,
+          startMinute: sm,
+          endHour: eh,
+          endMinute: em,
+          completed: false,
+        } as any);
+        updateSettings({
+          plannerBlocks: filtered as unknown as Record<string, unknown>[],
+        });
+        window.dispatchEvent(new Event("planner-blocks-updated"));
+      } catch {
+        /* ignore */
+      }
+    },
+    [settings, updateSettings],
+  );
+
   const filteredTasks = useMemo(() => {
     let filtered = [...tasks];
     switch (view) {
@@ -238,18 +278,23 @@ export default function TasksPage() {
   const handleCreate = () => {
     if (!formTitle.trim()) return;
     const dur = formDurH * 60 + formDurM;
+    const taskDate = scheduleToDate(formSchedule);
     addTask({
       title: formTitle.trim(),
       description: formDescription.trim() || undefined,
       domain: "personal",
       priority: formPriority,
       status: "todo",
-      dueDate: scheduleToDate(formSchedule),
+      dueDate: taskDate,
       dueTime: formTimeBlock ? formStartTime : undefined,
       scheduledFor: formSchedule,
       timeEstimate: dur > 0 ? dur : undefined,
       linkedGoalId: formGoalId || undefined,
     });
+    // Auto-sync to day planner if time block is set
+    if (formTimeBlock) {
+      syncTaskToPlanner(formTitle.trim(), taskDate, formStartTime, formEndTime);
+    }
     resetForm();
     setShowModal(false);
   };
@@ -257,16 +302,27 @@ export default function TasksPage() {
   const handleSaveEdit = () => {
     if (!editingTaskId || !formTitle.trim()) return;
     const dur = formDurH * 60 + formDurM;
+    const taskDate = scheduleToDate(formSchedule);
     updateTask(editingTaskId, {
       title: formTitle.trim(),
       description: formDescription.trim() || undefined,
       priority: formPriority,
-      dueDate: scheduleToDate(formSchedule),
+      dueDate: taskDate,
       dueTime: formTimeBlock ? formStartTime : undefined,
       scheduledFor: formSchedule,
       timeEstimate: dur > 0 ? dur : undefined,
       linkedGoalId: formGoalId || undefined,
     });
+    // Auto-sync to day planner if time block is set
+    if (formTimeBlock) {
+      syncTaskToPlanner(
+        formTitle.trim(),
+        taskDate,
+        formStartTime,
+        formEndTime,
+        editingTaskId,
+      );
+    }
     resetForm();
     setEditingTaskId(null);
     setShowModal(false);
