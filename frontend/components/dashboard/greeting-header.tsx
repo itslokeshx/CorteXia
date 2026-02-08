@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import type { LucideIcon } from "lucide-react";
 
 function getGreeting(hour: number): { icon: LucideIcon; text: string } {
-  if (hour >= 0 && hour < 5) return { icon: Moon, text: "Quiet. Focus. Now." };
-  if (hour >= 5 && hour < 8) return { icon: Sunrise, text: "Ahead of Noise" };
-  if (hour >= 8 && hour < 12) return { icon: Sun, text: "Build Momentum" };
-  if (hour >= 12 && hour < 17) return { icon: Sun, text: "Stay Consistent" };
-  if (hour >= 17 && hour < 21) return { icon: Sunset, text: "Finish With Purpose" };
-  return { icon: Moon, text: "Slow. Focus. Count." };
+  if (hour >= 5 && hour < 8) return { icon: Sunrise, text: "A new beginning" };
+  if (hour >= 8 && hour < 12) return { icon: Sun, text: "Today begins now" };
+  if (hour >= 12 && hour < 17) return { icon: Sun, text: "Making steady progress" };
+  if (hour >= 17 && hour < 21) return { icon: Sunset, text: "Time to reflect" };
+  if (hour >= 21 || hour < 5) return { icon: Moon, text: "It still matters" }; // 9 PM - 5 AM cover
+  return { icon: Moon, text: "You’re still here" }; // Fallback/Specific 12AM-5AM overlap handling if needed, but the above covers it.
 }
 
 export function GreetingHeader({ onAddTask }: { onAddTask?: () => void }) {
