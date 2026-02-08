@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![CorteXia Banner](https://via.placeholder.com/1200x400/8B5CF6/FFFFFF?text=CorteXia+-+Organize+Your+Life.+Achieve+Your+Goals.)
+![CorteXia Banner](frontend/public/Cortexia-icon.jpeg)
 
 **The Ultimate AI-Powered Life Operating System**
 
@@ -795,12 +795,6 @@ See [LICENSE](LICENSE) file for full details.
 - 🐛 [Report Issues](https://github.com/yourusername/cortexia/issues)
 - ✨ [Request Features](https://github.com/yourusername/cortexia/issues/new)
 
-**Connect With Us**
-- 🌐 Website: [cortexia.app](#)
-- 🐦 Twitter: [@cortexia](#)
-- 📧 Email: hello@cortexia.app
-
----
 
 <div align="center">
 
