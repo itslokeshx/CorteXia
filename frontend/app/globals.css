@@ -117,6 +117,18 @@
   --sidebar-ring: #3f3f46;
 }
 
+/* Dashboard spec aliases (same as above) */
+:root {
+  --bg-primary: var(--color-bg-primary);
+  --bg-secondary: var(--color-bg-secondary);
+  --bg-tertiary: var(--color-bg-tertiary);
+  --border-subtle: var(--color-border-subtle);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+  --accent-primary: var(--color-accent-primary);
+}
+
 .dark {
   --color-bg-primary: #0a0b0d;
   --color-bg-secondary: #151618;
@@ -160,6 +172,65 @@
   --sidebar-accent-foreground: var(--color-text-primary);
   --sidebar-border: var(--color-border);
   --sidebar-ring: #71717a;
+
+  --bg-primary: var(--color-bg-primary);
+  --bg-secondary: var(--color-bg-secondary);
+  --bg-tertiary: var(--color-bg-tertiary);
+  --border-subtle: var(--color-border-subtle);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+  --accent-primary: var(--color-accent-primary);
+}
+
+/* Dashboard: current block pulse */
+@keyframes dashboard-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.dashboard-pulse {
+  animation: dashboard-pulse 2s ease-in-out infinite;
+}
+
+/* Dashboard: symmetric card grid with comfortable spacing */
+.dashboard-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  background: var(--bg-secondary);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.dashboard-card-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+}
+.dashboard-card-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+.dashboard-card-body::-webkit-scrollbar {
+  width: 6px;
+}
+.dashboard-card-body::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+.dashboard-card-footer {
+  flex-shrink: 0;
+  padding: 0.625rem 1rem;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
 }
 
 @theme inline {

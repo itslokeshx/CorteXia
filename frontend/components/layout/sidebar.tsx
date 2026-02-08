@@ -8,7 +8,6 @@ import {
   Target,
   Clock,
   DollarSign,
-  BookOpen,
   Flag,
   Brain,
   PenTool,
@@ -29,9 +28,8 @@ const navItems = [
   { href: "/time-tracker", label: "Focus", icon: Clock },
   { href: "/timeline", label: "Timeline", icon: CalendarRange },
   { href: "/finance", label: "Money", icon: DollarSign },
-  { href: "/study", label: "Study", icon: BookOpen },
   { href: "/goals", label: "Goals", icon: Flag },
-  { href: "/insights", label: "AI Insights", icon: Brain },
+  { href: "/ai-coach", label: "AI Coach", icon: Brain },
   { href: "/journal", label: "Journal", icon: PenTool },
 ];
 

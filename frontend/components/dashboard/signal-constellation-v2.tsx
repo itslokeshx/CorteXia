@@ -226,7 +226,7 @@ export function SignalConstellationV2() {
         status: studyStatus,
         value: `${studyHours}h`,
         domain: "Learning today",
-        href: "/study",
+        href: "/tasks",
         angle: 225,
       },
       {

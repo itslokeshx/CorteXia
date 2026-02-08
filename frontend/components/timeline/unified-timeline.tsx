@@ -313,10 +313,10 @@ export function UnifiedTimeline() {
   }, [events]);
 
   return (
-    <div className="space-y-6">
-      {/* View Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+    <div className="space-y-5 sm:space-y-6">
+      {/* View Controls — responsive */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {(["day", "week", "month", "year"] as TimelineView[]).map((v) => {
             const Icon = VIEW_ICONS[v];
             return (
@@ -325,29 +325,31 @@ export function UnifiedTimeline() {
                 variant={view === v ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setView(v)}
-                className="gap-2"
+                className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3"
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="capitalize">{v}</span>
               </Button>
             );
           })}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center sm:justify-end gap-1.5 sm:gap-2">
           <Button
             variant="outline"
             size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => navigate("prev")}
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={goToToday}>
+          <Button variant="outline" size="sm" className="h-8 sm:h-9 text-xs sm:text-sm" onClick={goToToday}>
             Today
           </Button>
           <Button
             variant="outline"
             size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => navigate("next")}
           >
             <ChevronRight className="w-4 h-4" />
@@ -356,71 +358,71 @@ export function UnifiedTimeline() {
       </div>
 
       {/* Current Date Display */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold">{formatDateDisplay()}</h2>
-        <p className="text-muted-foreground text-sm">{events.length} events</p>
+      <div className="text-center px-2">
+        <h2 className="text-lg font-bold sm:text-xl md:text-2xl break-words">
+          {formatDateDisplay()}
+        </h2>
+        <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">{events.length} events</p>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
         <Card className="border-border/50">
-          <CardContent className="p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-blue-500" />
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
             </div>
-            <div>
-              <p className="text-xl font-bold">{stats.taskEvents}</p>
-              <p className="text-[10px] text-muted-foreground">Tasks</p>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-xl font-bold truncate">{stats.taskEvents}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Tasks</p>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-border/50">
-          <CardContent className="p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-              <Flame className="w-5 h-5 text-orange-500" />
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+              <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
             </div>
-            <div>
-              <p className="text-xl font-bold">{stats.habitEvents}</p>
-              <p className="text-[10px] text-muted-foreground">Habits</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50">
-          <CardContent className="p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-emerald-500" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">
-                {Math.round(stats.timeLogged / 60)}h
-              </p>
-              <p className="text-[10px] text-muted-foreground">Focused</p>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-xl font-bold truncate">{stats.habitEvents}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Habits</p>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-border/50">
-          <CardContent className="p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-emerald-500" />
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
             </div>
-            <div>
-              <p className="text-xl font-bold">${stats.income.toFixed(0)}</p>
-              <p className="text-[10px] text-muted-foreground">Income</p>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-xl font-bold truncate">{Math.round(stats.timeLogged / 60)}h</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Focused</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/50">
-          <CardContent className="p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-              <TrendingDown className="w-5 h-5 text-red-500" />
+        <Card className="border-border/50 hidden sm:block">
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
             </div>
-            <div>
-              <p className="text-xl font-bold">${stats.expenses.toFixed(0)}</p>
-              <p className="text-[10px] text-muted-foreground">Expenses</p>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-xl font-bold truncate">${stats.income.toFixed(0)}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Income</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 hidden sm:block">
+          <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+              <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-xl font-bold truncate">${stats.expenses.toFixed(0)}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Expenses</p>
             </div>
           </CardContent>
         </Card>
@@ -474,11 +476,11 @@ export function UnifiedTimeline() {
                     )}
                   </div>
 
-                  <Card className="flex-1 border-border/50 hover:shadow-sm transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-2">
+                  <Card className="flex-1 border-border/50 hover:shadow-sm transition-shadow min-w-0">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-start justify-between gap-2 min-w-0">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{event.title}</p>
+                          <p className="font-medium truncate text-sm sm:text-base">{event.title}</p>
                           {event.description && (
                             <p className="text-sm text-muted-foreground mt-1">
                               {event.description}

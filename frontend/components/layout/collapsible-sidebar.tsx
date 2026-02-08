@@ -9,6 +9,7 @@ import {
   Target,
   Flag,
   CalendarDays,
+  Clock,
   Timer,
   Wallet,
   BookOpen,
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/habits", label: "Habits", icon: Target },
   { href: "/goals", label: "Goals", icon: Flag },
   { href: "/day-planner", label: "Day Planner", icon: CalendarDays },
+  { href: "/timeline", label: "Timeline", icon: Clock },
   { href: "/time-tracker", label: "Focus", icon: Timer },
   { href: "/finance", label: "Expenses", icon: Wallet },
   { href: "/journal", label: "Journal", icon: BookOpen },
@@ -169,35 +171,34 @@ export function CollapsibleSidebar() {
           isCollapsed ? "w-[68px]" : "w-[260px]",
         )}
       >
-        {/* Logo and Toggle */}
+        {/* Logo row: hover sidebar → collapsed: hide logo, show expand; expanded: show minimize at end */}
         <div
           className={cn(
-            "flex items-center h-14 px-3 border-b border-[var(--color-border)] relative flex-shrink-0",
+            "flex items-center h-14 px-3 border-b border-[var(--color-border)] flex-shrink-0",
             isCollapsed ? "justify-center" : "gap-2.5",
           )}
         >
           {isCollapsed ? (
-            /* Centered icon with overlay expand button */
-            <div className="relative w-8 h-8 flex-shrink-0">
-              <div className="w-8 h-8 rounded-lg overflow-hidden">
-                <Image
-                  src="/Cortexia-icon.jpeg"
-                  alt="CorteXia"
-                  width={32}
-                  height={32}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <button
-                onClick={toggleCollapse}
-                className="absolute inset-0 flex items-center justify-center rounded-lg text-white bg-gray-900/80 dark:bg-gray-100/80 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-900/90 dark:hover:bg-gray-100/90"
-                title="Expand sidebar"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            /* Collapsed: hover logo area → hide image, show ChevronRight (expand) */
+            <button
+              type="button"
+              onClick={toggleCollapse}
+              className="group/logo relative w-8 h-8 flex-shrink-0 rounded-lg flex items-center justify-center overflow-hidden"
+              title="Expand sidebar"
+            >
+              <Image
+                src="/Cortexia-icon.jpeg"
+                alt="CorteXia"
+                width={32}
+                height={32}
+                className="w-full h-full object-cover transition-opacity duration-200 group-hover/logo:opacity-0"
+              />
+              <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200 pointer-events-none">
+                <ChevronRight className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+              </span>
+            </button>
           ) : (
-            /* Expanded view */
+            /* Expanded: logo + text; on sidebar hover → minimize chevron at end of row */
             <>
               <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
                 <Image
@@ -208,7 +209,7 @@ export function CollapsibleSidebar() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="flex flex-col min-w-0 overflow-hidden whitespace-nowrap">
+              <div className="flex flex-col min-w-0 overflow-hidden whitespace-nowrap flex-1">
                 <span className="font-semibold text-sm tracking-tight text-[var(--color-text-primary)]">
                   CorteXia
                 </span>
@@ -217,8 +218,9 @@ export function CollapsibleSidebar() {
                 </span>
               </div>
               <button
+                type="button"
                 onClick={toggleCollapse}
-                className="p-2 ml-auto rounded-lg text-gray-600 dark:text-gray-400 hover:bg-[#ececf1] dark:hover:bg-[#2a2b32] transition-all opacity-0 group-hover:opacity-100"
+                className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-[#ececf1] dark:hover:bg-[#2a2b32] transition-all opacity-0 group-hover:opacity-100"
                 title="Collapse sidebar"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -234,7 +236,7 @@ export function CollapsibleSidebar() {
           ))}
         </nav>
 
-        {/* Bottom */}
+        {/* Bottom: Settings only */}
         <div className="px-2 py-2 border-t border-[var(--color-border)] space-y-0.5 flex-shrink-0">
           {bottomItems.map((item) => (
             <NavLink key={item.href} item={item} collapsed={isCollapsed} />

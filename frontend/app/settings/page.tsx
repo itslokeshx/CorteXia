@@ -191,7 +191,7 @@ export default function SettingsPage() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="space-y-6 pb-24 max-w-2xl"
+        className="space-y-6 pb-24 max-w-2xl mx-auto w-full"
       >
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">

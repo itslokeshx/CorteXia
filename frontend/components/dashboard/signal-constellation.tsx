@@ -191,7 +191,7 @@ export function SignalConstellation() {
         status: studyStatus as "stable" | "warning" | "critical",
         value: `${studyHours}h`,
         domain: "Learning time today",
-        href: "/study",
+        href: "/tasks",
       },
       {
         id: "journal",
