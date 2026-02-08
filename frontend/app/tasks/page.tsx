@@ -182,7 +182,11 @@ export default function TasksPage() {
         updateSettings({
           plannerBlocks: filtered as unknown as Record<string, unknown>[],
         });
-        window.dispatchEvent(new Event("planner-blocks-updated"));
+        window.dispatchEvent(
+          new CustomEvent("planner-blocks-updated", {
+            detail: { blocks: filtered },
+          }),
+        );
       } catch {
         /* ignore */
       }
@@ -418,7 +422,11 @@ export default function TasksPage() {
         updateSettings({
           plannerBlocks: filtered as unknown as Record<string, unknown>[],
         });
-        window.dispatchEvent(new Event("planner-blocks-updated"));
+        window.dispatchEvent(
+          new CustomEvent("planner-blocks-updated", {
+            detail: { blocks: filtered },
+          }),
+        );
       } catch {
         /* ignore */
       }

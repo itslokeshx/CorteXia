@@ -167,16 +167,21 @@ export default function DayPlannerPage() {
 
   // ─── Persistence (via MongoDB settings) ────────────────────────────────
 
-  // Load planner blocks from settings on mount
+  // Load planner blocks from settings (re-runs when settings hydrate from MongoDB)
+  const plannerHydratedRef = useRef(false);
   useEffect(() => {
     if (settings?.plannerBlocks && Array.isArray(settings.plannerBlocks)) {
-      setTimeBlocks(settings.plannerBlocks as unknown as PlannerBlock[]);
+      // Always sync from settings on initial hydration + when settings change
+      if (!plannerHydratedRef.current) {
+        plannerHydratedRef.current = true;
+        setTimeBlocks(settings.plannerBlocks as unknown as PlannerBlock[]);
+      }
     }
     const timer = setTimeout(() => {
       isInitialMount.current = false;
     }, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [settings?.plannerBlocks]);
 
   // Save planner blocks to MongoDB when they change
   useEffect(() => {
@@ -188,8 +193,15 @@ export default function DayPlannerPage() {
 
   // Listen for planner-blocks-updated event from other pages
   useEffect(() => {
-    const handleCustom = () => {
-      if (settings?.plannerBlocks && Array.isArray(settings.plannerBlocks)) {
+    const handleCustom = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.blocks && Array.isArray(detail.blocks)) {
+        // Use blocks passed directly via event detail (avoids stale settings)
+        setTimeBlocks(detail.blocks as unknown as PlannerBlock[]);
+      } else if (
+        settings?.plannerBlocks &&
+        Array.isArray(settings.plannerBlocks)
+      ) {
         setTimeBlocks(settings.plannerBlocks as unknown as PlannerBlock[]);
       }
     };
