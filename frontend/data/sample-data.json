@@ -76,21 +76,15 @@
         },
         {
             "id": "t-5",
-            "title": "Weekly Team Sync",
+            "title": "Project Sync Meeting",
             "domain": "work",
             "priority": "high",
             "status": "todo",
-            "dueDate": "2026-02-11",
+            "dueDate": "2026-02-09",
             "dueTime": "10:00",
-            "scheduledFor": "week",
+            "scheduledFor": "today",
             "timeEstimate": 60,
-            "createdAt": "2026-02-09T08:00:00Z",
-            "recurrence": {
-                "frequency": "weekly",
-                "daysOfWeek": [
-                    3
-                ]
-            }
+            "createdAt": "2026-02-09T08:00:00Z"
         }
     ],
     "goals": [
@@ -135,13 +129,13 @@
             "milestones": [
                 {
                     "id": "m-3",
-                    "title": "2026-02|Beta Release",
+                    "title": "Beta Release",
                     "targetDate": "2026-02-28",
                     "completed": false
                 },
                 {
                     "id": "m-4",
-                    "title": "2026-03|First 100 Users",
+                    "title": "First 100 Users",
                     "targetDate": "2026-03-31",
                     "completed": false
                 }
@@ -245,28 +239,159 @@
             ]
         }
     ],
-    "journalEntries": [
+    "timeBlocks": [
         {
-            "id": "j-1",
-            "date": "2026-02-08",
-            "title": "Reflecting on Progress",
-            "content": "Today was productive. I managed to finish the core module for the project. Need to work on sleep schedule though.",
-            "mood": 8,
-            "energy": 7,
-            "focus": 9,
-            "createdAt": "2026-02-08T22:00:00Z",
-            "aiSummary": "High productivity, good focus, concern about sleep."
+            "id": "tb-1",
+            "title": "Morning Routine",
+            "type": "habit",
+            "date": "2026-02-09",
+            "startTime": "07:00",
+            "endTime": "08:00",
+            "duration": 60,
+            "status": "completed",
+            "color": "green",
+            "linkedHabitId": "h-1",
+            "completed": true
         },
         {
-            "id": "j-2",
+            "id": "tb-2",
+            "title": "Daily Planning",
+            "type": "task",
+            "date": "2026-02-09",
+            "startTime": "08:30",
+            "endTime": "09:00",
+            "duration": 30,
+            "status": "completed",
+            "color": "blue",
+            "completed": true
+        },
+        {
+            "id": "tb-3",
+            "title": "Deep Work: Project Proposal",
+            "type": "deep_work",
+            "date": "2026-02-09",
+            "startTime": "09:00",
+            "endTime": "11:30",
+            "duration": 150,
+            "status": "in_progress",
+            "color": "purple",
+            "linkedTaskId": "t-1",
+            "notes": "Focus on the budget section first."
+        },
+        {
+            "id": "tb-4",
+            "title": "Lunch Break",
+            "type": "break",
+            "date": "2026-02-09",
+            "startTime": "12:00",
+            "endTime": "13:00",
+            "duration": 60,
+            "status": "planned",
+            "color": "gray"
+        },
+        {
+            "id": "tb-5",
+            "title": "Team Sync",
+            "type": "meeting",
+            "date": "2026-02-09",
+            "startTime": "14:00",
+            "endTime": "15:00",
+            "duration": 60,
+            "status": "planned",
+            "color": "orange",
+            "linkedTaskId": "t-5"
+        },
+        {
+            "id": "tb-6",
+            "title": "Gym Session",
+            "type": "personal",
+            "date": "2026-02-09",
+            "startTime": "18:00",
+            "endTime": "19:30",
+            "duration": 90,
+            "status": "planned",
+            "color": "red",
+            "linkedTaskId": "t-2"
+        }
+    ],
+    "studySessions": [
+        {
+            "id": "ss-1",
+            "subject": "TypeScript",
+            "topic": "Generics and Utility Types",
+            "duration": 60,
+            "pomodoros": 2,
+            "difficulty": "hard",
+            "notes": "Struggled with mapped types, need review.",
+            "startTime": "2026-02-08T14:00:00Z",
+            "endTime": "2026-02-08T15:00:00Z",
+            "retention": 75,
+            "createdAt": "2026-02-08T15:05:00Z"
+        },
+        {
+            "id": "ss-2",
+            "subject": "System Design",
+            "topic": "Load Balancing",
+            "duration": 45,
+            "pomodoros": 1,
+            "difficulty": "medium",
+            "startTime": "2026-02-07T10:00:00Z",
+            "endTime": "2026-02-07T10:45:00Z",
+            "retention": 90,
+            "createdAt": "2026-02-07T10:50:00Z"
+        }
+    ],
+    "transactions": [
+        {
+            "id": "tx-1",
+            "category": "food",
+            "amount": 85.50,
+            "description": "Weekly groceries (Whole Foods)",
             "date": "2026-02-07",
-            "title": "A Bit Stressed",
-            "content": "Felt overwhelmed by the deadline approaching. Took a walk and cleared my head.",
-            "mood": 5,
-            "energy": 4,
-            "focus": 6,
-            "stress": 7,
-            "createdAt": "2026-02-07T21:00:00Z"
+            "type": "expense",
+            "vendor": "Whole Foods",
+            "createdAt": "2026-02-07T14:00:00Z"
+        },
+        {
+            "id": "tx-2",
+            "category": "salary",
+            "amount": 5000,
+            "description": "Monthly Salary",
+            "date": "2026-02-01",
+            "type": "income",
+            "createdAt": "2026-02-01T09:00:00Z"
+        },
+        {
+            "id": "tx-3",
+            "category": "subscription",
+            "amount": 15.99,
+            "description": "Netflix Premium",
+            "date": "2026-02-05",
+            "type": "expense",
+            "recurring": true,
+            "vendor": "Netflix",
+            "createdAt": "2026-02-05T00:00:00Z"
+        },
+        {
+            "id": "tx-4",
+            "category": "utilities",
+            "amount": 120.00,
+            "description": "Electric Bill",
+            "date": "2026-02-03",
+            "type": "expense",
+            "createdAt": "2026-02-03T00:00:00Z"
+        },
+        {
+            "id": "tx-5",
+            "category": "health",
+            "amount": 45.00,
+            "description": "Gym Membership",
+            "date": "2026-02-01",
+            "type": "expense",
+            "recurring": true,
+            "vendor": "Equinox",
+            "linkedHabitId": "h-1",
+            "createdAt": "2026-02-01T00:00:00Z"
         }
     ],
     "timeEntries": [
@@ -291,46 +416,36 @@
             "createdAt": "2026-02-09T08:30:00Z"
         }
     ],
-    "finances": {
-        "budgets": [
-            {
-                "id": "b-1",
-                "category": "food",
-                "limit": 600,
-                "spent": 150,
-                "period": "monthly",
-                "createdAt": "2026-02-01T00:00:00Z"
-            },
-            {
-                "id": "b-2",
-                "category": "entertainment",
-                "limit": 200,
-                "spent": 45,
-                "period": "monthly",
-                "createdAt": "2026-02-01T00:00:00Z"
-            }
-        ],
-        "transactions": [
-            {
-                "id": "tx-1",
-                "category": "food",
-                "amount": 85.50,
-                "description": "Weekly groceries",
-                "date": "2026-02-07",
-                "type": "expense",
-                "createdAt": "2026-02-07T14:00:00Z"
-            },
-            {
-                "id": "tx-2",
-                "category": "salary",
-                "amount": 5000,
-                "description": "Monthly Salary",
-                "date": "2026-02-01",
-                "type": "income",
-                "createdAt": "2026-02-01T09:00:00Z"
-            }
-        ]
-    },
+    "journalEntries": [
+        {
+            "id": "j-1",
+            "date": "2026-02-08",
+            "title": "Reflecting on Progress",
+            "content": "Today was productive. I managed to finish the core module for the project. Need to work on sleep schedule though.",
+            "mood": 8,
+            "energy": 7,
+            "focus": 9,
+            "createdAt": "2026-02-08T22:00:00Z",
+            "aiSummary": "High productivity, good focus, concern about sleep.",
+            "aiSentiment": "positive"
+        },
+        {
+            "id": "j-2",
+            "date": "2026-02-07",
+            "title": "A Bit Stressed",
+            "content": "Felt overwhelmed by the deadline approaching. Took a walk and cleared my head.",
+            "mood": 5,
+            "energy": 4,
+            "focus": 6,
+            "stress": 7,
+            "createdAt": "2026-02-07T21:00:00Z",
+            "aiThemes": [
+                "stress",
+                "deadline",
+                "exercise"
+            ]
+        }
+    ],
     "settings": {
         "theme": "dark",
         "notifications": {
@@ -343,13 +458,21 @@
         },
         "preferences": {
             "startOfWeek": "monday",
-            "timeFormat": "12h",
+            "timeFormat": "24h",
             "language": "en",
             "compactMode": false
         },
         "ai": {
             "personality": "coach",
             "insightFrequency": "medium"
+        },
+        "budgets": {
+            "monthlyLimit": 2000,
+            "categoryLimits": {
+                "food": 600,
+                "entertainment": 200,
+                "shopping": 300
+            }
         }
     }
 }

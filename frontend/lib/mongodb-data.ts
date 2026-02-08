@@ -342,3 +342,22 @@ export async function syncSettings(
     console.error("syncSettings error:", err);
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// IMPORT API
+// ═══════════════════════════════════════════════════════════════
+
+export async function importUserData(data: any): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/api/user-data/import`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error("importUserData error:", err);
+    return false;
+  }
+}
+

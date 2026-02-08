@@ -150,6 +150,7 @@ interface AppContextType {
   isLoading: boolean;
   dataReady: boolean;
   error: string | null;
+  importData: (data: any) => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -1025,6 +1026,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // ═══════════════════════════════════════════════════════════
+  // DATA IMPORT
+  // ═══════════════════════════════════════════════════════════
+
+  const importData = async (data: any): Promise<boolean> => {
+    if (!userId) return false;
+
+    setIsLoading(true);
+    try {
+      // Import via API
+      const { importUserData } = await import("@/lib/mongodb-data");
+      const success = await importUserData(data);
+
+      if (success) {
+        // Force reload to re-hydrate fresh data
+        window.location.reload();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Context importData error:", error);
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════
   // VALUE
   // ═══════════════════════════════════════════════════════════
 
@@ -1081,6 +1108,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     dataReady,
     error,
+    importData,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

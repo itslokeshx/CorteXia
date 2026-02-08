@@ -46,6 +46,7 @@ export default function SettingsPage() {
     goals,
     studySessions,
     journalEntries,
+    importData,
   } = useApp();
 
   const { user, profile, signOut, isDemoMode } = useAuth();
@@ -129,12 +130,16 @@ export default function SettingsPage() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
-        toast.success("Data imported successfully");
+        toast.promise(importData(data), {
+          loading: "Importing data...",
+          success: "Data imported successfully! Reloading...",
+          error: "Failed to import data",
+        });
       } catch {
-        toast.error("Failed to import data");
+        toast.error("Failed to parse import file");
       }
     };
     reader.readAsText(file);
