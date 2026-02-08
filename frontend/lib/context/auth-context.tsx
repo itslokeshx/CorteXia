@@ -3,13 +3,12 @@
 import React, {
   createContext,
   useContext,
-  useEffect,
-  useState,
   useCallback,
-  useRef,
+  useState,
+  useEffect,
 } from "react";
-import { supabase } from "@/lib/supabase";
-import type { User, Session } from "@supabase/supabase-js";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -28,16 +27,56 @@ export interface UserProfile {
   updated_at: string;
 }
 
+interface AuthUser {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  image?: string | null;
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   profile: UserProfile | null;
-  session: Session | null;
+  session: any;
   loading: boolean;
   isAuthenticated: boolean;
-  signInWithGoogle: () => Promise<void>;
+  isDemoMode: boolean;
+  signInWithGoogle: (credential: string) => Promise<void>;
+  signInWithCredentials: (
+    email: string,
+    password: string,
+  ) => Promise<{ error?: string }>;
+  signUpWithCredentials: (
+    email: string,
+    password: string,
+    name: string,
+  ) => Promise<{ error?: string }>;
+  signInAsDemo: () => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  getToken: () => string | null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOKEN HELPERS
+// ═══════════════════════════════════════════════════════════════
+function saveAuth(token: string, user: AuthUser) {
+  localStorage.setItem("cortexia_token", token);
+  localStorage.setItem("cortexia_user", JSON.stringify(user));
+}
+
+function loadAuth(): { token: string | null; user: AuthUser | null } {
+  if (typeof window === "undefined") return { token: null, user: null };
+  const token = localStorage.getItem("cortexia_token");
+  const userStr = localStorage.getItem("cortexia_user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  return { token, user };
+}
+
+function clearAuth() {
+  localStorage.removeItem("cortexia_token");
+  localStorage.removeItem("cortexia_user");
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -46,130 +85,162 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const profileFetched = useRef(false);
 
-  // ─── Fetch user profile ───
-  const fetchProfile = useCallback(async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        console.error("Profile fetch error:", error);
-      }
-      if (data) {
-        setProfile(data as UserProfile);
-      }
-    } catch (err) {
-      console.error("Profile fetch failed:", err);
-    }
-  }, []);
-
-  // ─── Initialize auth ───
+  // Restore session on mount
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user && !profileFetched.current) {
-        profileFetched.current = true;
-        fetchProfile(s.user.id);
-      }
+    const { token, user: savedUser } = loadAuth();
+    if (token && savedUser) {
+      fetch(`${API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error("Token invalid");
+        })
+        .then((data) => {
+          setUser(data);
+          saveAuth(token, data);
+        })
+        .catch(() => {
+          clearAuth();
+          setUser(null);
+        })
+        .finally(() => setLoading(false));
+    } else {
       setLoading(false);
-    });
-
-    // Listen for changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user && !profileFetched.current) {
-        profileFetched.current = true;
-        fetchProfile(s.user.id);
-      }
-      if (!s?.user) {
-        setProfile(null);
-        profileFetched.current = false;
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [fetchProfile]);
-
-  // ─── Sign in with Google ───
-  const signInWithGoogle = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) {
-      console.error("Google sign-in error:", error);
     }
   }, []);
 
-  // ─── Sign out ───
-  const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setSession(null);
-    profileFetched.current = false;
+  const profile: UserProfile | null = user
+    ? {
+        id: user.id,
+        email: user.email || "",
+        full_name: user.name || null,
+        avatar_url: user.image || null,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        theme: "dark",
+        notification_preferences: {},
+        onboarding_completed: true,
+        last_active_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+    : null;
+
+  const isDemoMode = false;
+
+  const getToken = useCallback(() => {
+    return localStorage.getItem("cortexia_token");
   }, []);
 
-  // ─── Update profile ───
-  const updateProfile = useCallback(
-    async (updates: Partial<UserProfile>) => {
-      if (!user) return;
-      const { error } = await supabase
-        .from("user_profiles")
-        .update(updates)
-        .eq("id", user.id);
+  const signInWithGoogle = useCallback(async (credential: string) => {
+    const res = await fetch(`${API_URL}/api/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential }),
+    });
 
-      if (error) {
-        console.error("Profile update error:", error);
-      } else {
-        setProfile((prev) => (prev ? { ...prev, ...updates } : null));
-      }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Google sign in failed");
+
+    saveAuth(data.token, data.user);
+    setUser(data.user);
+  }, []);
+
+  const signInWithCredentials = useCallback(
+    async (email: string, password: string) => {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) return { error: data.error || "Login failed" };
+
+      saveAuth(data.token, data.user);
+      setUser(data.user);
+      return {};
     },
-    [user],
+    [],
   );
 
-  // ─── Refresh profile ───
+  const signUpWithCredentials = useCallback(
+    async (email: string, password: string, name: string) => {
+      const res = await fetch(`${API_URL}/api/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) return { error: data.error || "Signup failed" };
+
+      saveAuth(data.token, data.user);
+      setUser(data.user);
+      return {};
+    },
+    [],
+  );
+
+  const signInAsDemo = useCallback(async () => {
+    console.warn("Demo mode not available.");
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    clearAuth();
+    setUser(null);
+    window.location.href = "/login";
+  }, []);
+
+  const updateProfile = useCallback(async (_updates: Partial<UserProfile>) => {
+    // Profile updates go through settings API
+  }, []);
+
   const refreshProfile = useCallback(async () => {
-    if (user) {
-      await fetchProfile(user.id);
+    const token = localStorage.getItem("cortexia_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+        saveAuth(token, data);
+      }
+    } catch {
+      // Ignore
     }
-  }, [user, fetchProfile]);
+  }, []);
 
   const value: AuthContextType = {
     user,
     profile,
-    session,
+    session: user ? { user } : null,
     loading,
     isAuthenticated: !!user,
+    isDemoMode,
     signInWithGoogle,
-    signOut,
+    signInWithCredentials,
+    signUpWithCredentials,
+    signInAsDemo,
+    signOut: handleSignOut,
     updateProfile,
     refreshProfile,
+    getToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextType {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-  return ctx;
+  return context;
 }

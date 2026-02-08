@@ -144,7 +144,8 @@ type ViewMode = "day" | "month";
 // ─── Page Component ─────────────────────────────────────────────────────────
 
 export default function DayPlannerPage() {
-  const { habits, completeHabit, getHabitStreak } = useApp();
+  const { habits, completeHabit, getHabitStreak, settings, updateSettings } =
+    useApp();
   const [timeBlocks, setTimeBlocks] = useState<PlannerBlock[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [createOpen, setCreateOpen] = useState(false);
@@ -163,103 +164,42 @@ export default function DayPlannerPage() {
   const dateStr = format(selectedDate, "yyyy-MM-dd");
   const isToday = isTodayFn(selectedDate);
   const isInitialMount = useRef(true);
-  const lastSyncTime = useRef<number>(Date.now());
-  const localBlocksJson = useRef<string>("");
 
-  // ─── Persistence ────────────────────────────────────────────────────────
+  // ─── Persistence (via MongoDB settings) ────────────────────────────────
 
-  const loadFromStorage = useCallback(() => {
-    try {
-      const saved = localStorage.getItem("cortexia-planner-blocks");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setTimeBlocks(parsed);
-          localBlocksJson.current = saved;
-          lastSyncTime.current = Date.now();
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
+  // Load planner blocks from settings on mount
   useEffect(() => {
-    loadFromStorage();
-    // Allow save effect to work after initial load
+    if (settings?.plannerBlocks && Array.isArray(settings.plannerBlocks)) {
+      setTimeBlocks(settings.plannerBlocks as unknown as PlannerBlock[]);
+    }
     const timer = setTimeout(() => {
       isInitialMount.current = false;
     }, 100);
     return () => clearTimeout(timer);
-  }, [loadFromStorage]);
+  }, []);
 
-  // Save to localStorage (skip initial mount, and check for external changes)
+  // Save planner blocks to MongoDB when they change
   useEffect(() => {
     if (isInitialMount.current) return;
+    updateSettings({
+      plannerBlocks: timeBlocks as unknown as Record<string, unknown>[],
+    });
+  }, [timeBlocks, updateSettings]);
 
-    try {
-      // Check if localStorage has changed externally (e.g., from tasks page)
-      const current = localStorage.getItem("cortexia-planner-blocks") || "[]";
-      if (current !== localBlocksJson.current) {
-        // External change detected - reload instead of saving
-        const parsed = JSON.parse(current);
-        if (
-          Array.isArray(parsed) &&
-          JSON.stringify(parsed) !== JSON.stringify(timeBlocks)
-        ) {
-          setTimeBlocks(parsed);
-          localBlocksJson.current = current;
-          return;
-        }
-      }
-
-      // Safe to save
-      const newJson = JSON.stringify(timeBlocks);
-      localStorage.setItem("cortexia-planner-blocks", newJson);
-      localBlocksJson.current = newJson;
-    } catch {
-      /* ignore */
-    }
-  }, [timeBlocks]);
-
-  // Re-sync from localStorage when page regains focus (picks up blocked tasks from tasks page)
+  // Listen for planner-blocks-updated event from other pages
   useEffect(() => {
-    const handleFocus = () => {
-      loadFromStorage();
-    };
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === "cortexia-planner-blocks") {
-        loadFromStorage();
-      }
-    };
     const handleCustom = () => {
-      // Custom event from tasks page - force reload
-      loadFromStorage();
+      if (settings?.plannerBlocks && Array.isArray(settings.plannerBlocks)) {
+        setTimeBlocks(settings.plannerBlocks as unknown as PlannerBlock[]);
+      }
     };
 
-    // Poll for changes every 2 seconds when page is visible
-    const pollInterval = setInterval(() => {
-      if (!document.hidden) {
-        const current = localStorage.getItem("cortexia-planner-blocks") || "[]";
-        if (current !== localBlocksJson.current) {
-          loadFromStorage();
-        }
-      }
-    }, 2000);
-
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("storage", handleStorage);
     window.addEventListener("planner-blocks-updated", handleCustom);
-    window.addEventListener("visibilitychange", handleFocus);
 
     return () => {
-      clearInterval(pollInterval);
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("storage", handleStorage);
       window.removeEventListener("planner-blocks-updated", handleCustom);
-      window.removeEventListener("visibilitychange", handleFocus);
     };
-  }, [loadFromStorage]);
+  }, [settings]);
 
   // ─── Clock Tick ─────────────────────────────────────────────────────────
 

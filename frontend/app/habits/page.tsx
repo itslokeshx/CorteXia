@@ -46,21 +46,26 @@ import {
 
 // ─── Categories (only the 6 valid Habit type categories) ───
 const CATEGORIES = [
-  { value: "health", label: "Health", color: "#71717a" },
-  { value: "productivity", label: "Productivity", color: "#71717a" },
-  { value: "learning", label: "Learning", color: "#71717a" },
-  { value: "fitness", label: "Fitness", color: "#71717a" },
-  { value: "mindfulness", label: "Mindfulness", color: "#71717a" },
-  { value: "social", label: "Social", color: "#71717a" },
+  { value: "health", label: "Health", color: "#22c55e", emoji: "💚" },
+  {
+    value: "productivity",
+    label: "Productivity",
+    color: "#8b5cf6",
+    emoji: "⚡",
+  },
+  { value: "learning", label: "Learning", color: "#3b82f6", emoji: "📚" },
+  { value: "fitness", label: "Fitness", color: "#f97316", emoji: "🔥" },
+  { value: "mindfulness", label: "Mindfulness", color: "#06b6d4", emoji: "🧘" },
+  { value: "social", label: "Social", color: "#ec4899", emoji: "💬" },
 ] as const;
 
 const CATEGORY_COLOR_MAP: Record<string, string> = {
-  health: "#71717a",
-  productivity: "#71717a",
-  learning: "#71717a",
-  fitness: "#71717a",
-  mindfulness: "#71717a",
-  social: "#71717a",
+  health: "#22c55e",
+  productivity: "#8b5cf6",
+  learning: "#3b82f6",
+  fitness: "#f97316",
+  mindfulness: "#06b6d4",
+  social: "#ec4899",
 };
 
 // ─── GitHub-exact heatmap colors ───
@@ -97,7 +102,7 @@ export default function HabitsPage() {
     description: "",
     frequency: "daily",
     category: "health",
-    color: "#71717a",
+    color: "#22c55e",
   });
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -240,7 +245,7 @@ export default function HabitsPage() {
       description: "",
       frequency: "daily",
       category: "health",
-      color: "#71717a",
+      color: "#22c55e",
     });
     setCreateOpen(false);
   };
@@ -248,13 +253,14 @@ export default function HabitsPage() {
   const handleComplete = (habitId: string) => {
     setCheckAnimating(habitId);
     completeHabit(habitId, today);
-    setTimeout(() => setCheckAnimating(null), 300);
+    setTimeout(() => setCheckAnimating(null), 600);
   };
 
   // ─── Detect color scheme for heatmap ───
   const isDark =
     typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+    (document.documentElement.classList.contains("dark") ||
+      window.matchMedia?.("(prefers-color-scheme: dark)").matches);
 
   const heatmapColors = isDark ? HEATMAP_COLORS.dark : HEATMAP_COLORS.light;
 
@@ -291,14 +297,26 @@ export default function HabitsPage() {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="currentColor"
+          stroke="url(#habitProgress)"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          className="text-green-500 transition-all duration-500 ease-out"
+          className="transition-all duration-500 ease-out"
         />
+        <defs>
+          <linearGradient
+            id="habitProgress"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#22c55e" />
+          </linearGradient>
+        </defs>
       </svg>
     );
   };
@@ -436,9 +454,9 @@ export default function HabitsPage() {
 
           {/* Completion Rate */}
           <div className="relative p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gray-300 dark:bg-gray-700" />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r from-purple-500 to-blue-500" />
             <div className="flex items-center gap-2 mb-1 mt-1">
-              <TrendingUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <TrendingUp className="w-4 h-4 text-purple-500" />
               <span className="text-xs text-[var(--color-text-tertiary)]">
                 Completion Rate
               </span>
@@ -453,9 +471,9 @@ export default function HabitsPage() {
 
           {/* Best Streak */}
           <div className="relative p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gray-300 dark:bg-gray-700" />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r from-yellow-500 to-amber-500" />
             <div className="flex items-center gap-2 mb-1 mt-1">
-              <Trophy className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <Trophy className="w-4 h-4 text-yellow-500" />
               <span className="text-xs text-[var(--color-text-tertiary)]">
                 Best Streak
               </span>
@@ -470,9 +488,9 @@ export default function HabitsPage() {
 
           {/* At Risk */}
           <div className="relative p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gray-300 dark:bg-gray-700" />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r from-red-500 to-pink-500" />
             <div className="flex items-center gap-2 mb-1 mt-1">
-              <AlertTriangle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <AlertTriangle className="w-4 h-4 text-red-500" />
               <span className="text-xs text-[var(--color-text-tertiary)]">
                 At Risk
               </span>
@@ -542,18 +560,37 @@ export default function HabitsPage() {
                         onClick={() => handleComplete(habit.id)}
                         animate={
                           checkAnimating === habit.id
-                            ? { scale: [1, 1.2, 1] }
+                            ? { scale: [1, 1.3, 0.95, 1.1, 1] }
                             : {}
                         }
+                        transition={{ duration: 0.5, ease: "easeOut" }}
                         className={cn(
-                          "w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
+                          "w-7 h-7 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
                           habit.isCompleted
-                            ? "border-green-500 bg-green-500"
-                            : "border-[var(--color-border)] hover:border-green-400",
+                            ? "border-transparent"
+                            : "border-[var(--color-border)] hover:border-opacity-70",
                         )}
+                        style={
+                          habit.isCompleted
+                            ? {
+                                backgroundColor: catColor,
+                                borderColor: catColor,
+                              }
+                            : { borderColor: `${catColor}50` }
+                        }
                       >
                         {habit.isCompleted && (
-                          <Check className="w-3.5 h-3.5 text-white" />
+                          <motion.div
+                            initial={{ scale: 0, rotate: -45 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 15,
+                            }}
+                          >
+                            <Check className="w-4 h-4 text-white" />
+                          </motion.div>
                         )}
                       </motion.button>
 
@@ -594,19 +631,18 @@ export default function HabitsPage() {
                       {/* Streak counter */}
                       <div className="flex items-center gap-1">
                         <Flame
-                          className={cn(
-                            "w-4 h-4",
-                            habit.streak > 0
-                              ? "text-gray-600 dark:text-gray-400"
-                              : "text-gray-400 dark:text-gray-600",
-                          )}
+                          className="w-4 h-4"
+                          style={{
+                            color: habit.streak > 0 ? catColor : undefined,
+                            opacity: habit.streak > 0 ? 1 : 0.3,
+                          }}
                         />
                         <span
                           className={cn(
-                            "text-xs font-semibold",
+                            "text-xs font-semibold tabular-nums",
                             habit.streak > 0
-                              ? "text-gray-900 dark:text-gray-100"
-                              : "text-gray-400 dark:text-gray-600",
+                              ? "text-[var(--color-text-primary)]"
+                              : "text-[var(--color-text-tertiary)] opacity-50",
                           )}
                         >
                           {habit.streak}

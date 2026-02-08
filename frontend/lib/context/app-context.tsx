@@ -26,7 +26,7 @@ import {
   deleteGoalSync,
   deleteStudySessionSync,
   deleteJournalEntrySync,
-} from "@/lib/supabase-data";
+} from "@/lib/mongodb-data";
 import type {
   Task,
   Habit,
@@ -162,6 +162,7 @@ const DEFAULT_SETTINGS: UserSettings = {
     tasks: true,
     habits: true,
     insights: true,
+    streakWarnings: true,
   },
   privacy: {
     dataCollection: true,
@@ -171,6 +172,27 @@ const DEFAULT_SETTINGS: UserSettings = {
     startOfWeek: "monday",
     timeFormat: "24h",
     language: "en",
+    compactMode: false,
+  },
+  timer: {
+    workDuration: 25,
+    shortBreakDuration: 5,
+    longBreakDuration: 15,
+    pomodorosBeforeLongBreak: 4,
+    autoStartBreaks: false,
+    autoStartPomodoros: false,
+    soundEnabled: true,
+    notificationsEnabled: true,
+  },
+  ai: {
+    personality: "casual",
+    insightFrequency: "medium",
+    morningBriefing: true,
+    weeklySynthesisDay: 0,
+  },
+  budgets: {
+    monthlyLimit: 3000,
+    categoryLimits: {},
   },
 };
 
@@ -185,7 +207,7 @@ const DEFAULT_LIFE_STATE: LifeState = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// PROVIDER — 100% SUPABASE, ZERO localStorage
+// PROVIDER — 100% MONGODB, ZERO localStorage
 // ═══════════════════════════════════════════════════════════════
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -223,7 +245,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
   // ═══════════════════════════════════════════════════════════
-  // HYDRATE FROM SUPABASE ON LOGIN
+  // HYDRATE FROM MONGODB ON LOGIN
   // ═══════════════════════════════════════════════════════════
 
   useEffect(() => {
@@ -234,7 +256,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setError(null);
 
       try {
-        const data = await fetchAllUserData(userId);
+        const data = await fetchAllUserData();
         if (data) {
           setTasks(deduplicateById(data.tasks));
           setHabits(deduplicateById(data.habits));
@@ -250,7 +272,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         hydratedRef.current = true;
         setDataReady(true);
       } catch (err) {
-        console.error("Failed to load data from Supabase:", err);
+        console.error("Failed to load data from MongoDB:", err);
         setError("Failed to load your data. Please refresh.");
       } finally {
         setIsLoading(false);
@@ -289,7 +311,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTasks((prev) => [newTask, ...prev]);
-    if (userId) syncTask(newTask, userId);
+    if (userId) syncTask(newTask);
     return newTask;
   };
 
@@ -297,14 +319,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTasks((prev) => {
       const updated = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
       const task = updated.find((t) => t.id === id);
-      if (task && userId) syncTask(task, userId);
+      if (task && userId) syncTask(task);
       return updated;
     });
   };
 
   const deleteTask = (id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
-    if (userId) deleteTaskSync(id, userId);
+    if (userId) deleteTaskSync(id);
   };
 
   const completeTask = (id: string) => {
@@ -319,7 +341,64 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           : t,
       );
       const task = updated.find((t) => t.id === id);
-      if (task && userId) syncTask(task, userId);
+      if (task && userId) syncTask(task);
+
+      // ── Cross-page sync: update linked goal progress ──
+      if (task?.linkedGoalId) {
+        const linkedTasks = updated.filter(
+          (t) => t.linkedGoalId === task.linkedGoalId,
+        );
+        const completedCount = linkedTasks.filter(
+          (t) => t.status === "completed",
+        ).length;
+        const newProgress = Math.round(
+          (completedCount / Math.max(linkedTasks.length, 1)) * 100,
+        );
+        setGoals((gPrev) => {
+          const gUpdated = gPrev.map((g) =>
+            g.id === task.linkedGoalId
+              ? {
+                  ...g,
+                  progress: Math.max(g.progress, newProgress),
+                  ...(newProgress >= 100
+                    ? {
+                        status: "completed" as const,
+                        completedAt: new Date().toISOString(),
+                      }
+                    : {}),
+                }
+              : g,
+          );
+          const goal = gUpdated.find((g) => g.id === task.linkedGoalId);
+          if (goal && userId) syncGoal(goal);
+          return gUpdated;
+        });
+      }
+      // Also check tag-based goal links: tags like "goal:goalId"
+      const goalTag = task?.tags?.find((t) => t.startsWith("goal:"));
+      if (goalTag && !task?.linkedGoalId) {
+        const tagGoalId = goalTag.split(":")[1];
+        const linkedTasks = updated.filter((t) =>
+          t.tags?.some((tag) => tag === goalTag),
+        );
+        const completedCount = linkedTasks.filter(
+          (t) => t.status === "completed",
+        ).length;
+        const newProgress = Math.round(
+          (completedCount / Math.max(linkedTasks.length, 1)) * 100,
+        );
+        setGoals((gPrev) => {
+          const gUpdated = gPrev.map((g) =>
+            g.id === tagGoalId
+              ? { ...g, progress: Math.max(g.progress, newProgress) }
+              : g,
+          );
+          const goal = gUpdated.find((g) => g.id === tagGoalId);
+          if (goal && userId) syncGoal(goal);
+          return gUpdated;
+        });
+      }
+
       return updated;
     });
   };
@@ -332,7 +411,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           : t,
       );
       const task = updated.find((t) => t.id === id);
-      if (task && userId) syncTask(task, userId);
+      if (task && userId) syncTask(task);
       return updated;
     });
   };
@@ -349,7 +428,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       completions: [],
     };
     setHabits((prev) => [newHabit, ...prev]);
-    if (userId) syncHabit(newHabit, userId);
+    if (userId) syncHabit(newHabit);
     return newHabit;
   };
 
@@ -357,14 +436,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setHabits((prev) => {
       const updated = prev.map((h) => (h.id === id ? { ...h, ...updates } : h));
       const habit = updated.find((h) => h.id === id);
-      if (habit && userId) syncHabit(habit, userId);
+      if (habit && userId) syncHabit(habit);
       return updated;
     });
   };
 
   const deleteHabit = (id: string) => {
     setHabits((prev) => prev.filter((h) => h.id !== id));
-    if (userId) deleteHabitSync(id, userId);
+    if (userId) deleteHabitSync(id);
   };
 
   const completeHabit = (id: string, date: string) => {
@@ -382,7 +461,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           : [...h.completions, { date, completed: true }];
 
         if (userId) {
-          syncHabitCompletion(h.id, userId, date, newCompleted);
+          syncHabitCompletion(h.id, date, newCompleted);
         }
 
         return { ...h, completions: updatedCompletions };
@@ -432,7 +511,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTransactions((prev) => [newTransaction, ...prev]);
-    if (userId) syncTransaction(newTransaction, userId);
+    if (userId) syncTransaction(newTransaction);
     return newTransaction;
   };
 
@@ -440,14 +519,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTransactions((prev) => {
       const updated = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
       const tx = updated.find((t) => t.id === id);
-      if (tx && userId) syncTransaction(tx, userId);
+      if (tx && userId) syncTransaction(tx);
       return updated;
     });
   };
 
   const deleteTransaction = (id: string) => {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
-    if (userId) deleteTransactionSync(id, userId);
+    if (userId) deleteTransactionSync(id);
   };
 
   const getBudgetStatus = (category: string) => {
@@ -470,7 +549,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTimeEntries((prev) => [newEntry, ...prev]);
-    if (userId) syncTimeEntry(newEntry, userId);
+    if (userId) syncTimeEntry(newEntry);
+
+    // ── Cross-page sync: update matching task's timeSpent ──
+    if (entry.task) {
+      setTasks((prev) => {
+        const taskName = entry.task.toLowerCase();
+        const match = prev.find(
+          (t) =>
+            t.title.toLowerCase() === taskName ||
+            t.title.toLowerCase().includes(taskName) ||
+            taskName.includes(t.title.toLowerCase()),
+        );
+        if (!match) return prev;
+        const updated = prev.map((t) =>
+          t.id === match.id
+            ? { ...t, timeSpent: (t.timeSpent || 0) + entry.duration }
+            : t,
+        );
+        const task = updated.find((t) => t.id === match.id);
+        if (task && userId) syncTask(task);
+        return updated;
+      });
+    }
+
     return newEntry;
   };
 
@@ -478,14 +580,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTimeEntries((prev) => {
       const updated = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
       const entry = updated.find((t) => t.id === id);
-      if (entry && userId) syncTimeEntry(entry, userId);
+      if (entry && userId) syncTimeEntry(entry);
       return updated;
     });
   };
 
   const deleteTimeEntry = (id: string) => {
     setTimeEntries((prev) => prev.filter((t) => t.id !== id));
-    if (userId) deleteTimeEntrySync(id, userId);
+    if (userId) deleteTimeEntrySync(id);
   };
 
   // ═══════════════════════════════════════════════════════════
@@ -499,7 +601,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setGoals((prev) => [newGoal, ...prev]);
-    if (userId) syncGoal(newGoal, userId);
+    if (userId) syncGoal(newGoal);
     return newGoal;
   };
 
@@ -507,31 +609,48 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setGoals((prev) => {
       const updated = prev.map((g) => (g.id === id ? { ...g, ...updates } : g));
       const goal = updated.find((g) => g.id === id);
-      if (goal && userId) syncGoal(goal, userId);
+      if (goal && userId) syncGoal(goal);
       return updated;
     });
   };
 
   const deleteGoal = (id: string) => {
     setGoals((prev) => prev.filter((g) => g.id !== id));
-    if (userId) deleteGoalSync(id, userId);
+    if (userId) deleteGoalSync(id);
   };
 
   const completeMilestone = (goalId: string, milestoneId: string) => {
     setGoals((prev) => {
       const updated = prev.map((g) => {
         if (g.id !== goalId) return g;
+        const updatedMilestones = g.milestones.map((m) =>
+          m.id === milestoneId
+            ? { ...m, completed: true, completedAt: new Date().toISOString() }
+            : m,
+        );
+        // ── Cross-page sync: auto-recalculate goal progress from milestones ──
+        const totalMilestones = updatedMilestones.length;
+        const completedMilestones = updatedMilestones.filter(
+          (m) => m.completed,
+        ).length;
+        const milestoneProgress =
+          totalMilestones > 0
+            ? Math.round((completedMilestones / totalMilestones) * 100)
+            : g.progress;
         return {
           ...g,
-          milestones: g.milestones.map((m) =>
-            m.id === milestoneId
-              ? { ...m, completed: true, completedAt: new Date().toISOString() }
-              : m,
-          ),
+          milestones: updatedMilestones,
+          progress: Math.max(g.progress, milestoneProgress),
+          ...(milestoneProgress >= 100
+            ? {
+                status: "completed" as const,
+                completedAt: new Date().toISOString(),
+              }
+            : {}),
         };
       });
       const goal = updated.find((g) => g.id === goalId);
-      if (goal && userId) syncGoal(goal, userId);
+      if (goal && userId) syncGoal(goal);
       return updated;
     });
   };
@@ -547,7 +666,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setStudySessions((prev) => [newSession, ...prev]);
-    if (userId) syncStudySession(newSession, userId);
+    if (userId) syncStudySession(newSession);
     return newSession;
   };
 
@@ -555,14 +674,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setStudySessions((prev) => {
       const updated = prev.map((s) => (s.id === id ? { ...s, ...updates } : s));
       const session = updated.find((s) => s.id === id);
-      if (session && userId) syncStudySession(session, userId);
+      if (session && userId) syncStudySession(session);
       return updated;
     });
   };
 
   const deleteStudySession = (id: string) => {
     setStudySessions((prev) => prev.filter((s) => s.id !== id));
-    if (userId) deleteStudySessionSync(id, userId);
+    if (userId) deleteStudySessionSync(id);
   };
 
   // ═══════════════════════════════════════════════════════════
@@ -576,7 +695,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setJournalEntries((prev) => [newEntry, ...prev]);
-    if (userId) syncJournalEntry(newEntry, userId);
+    if (userId) syncJournalEntry(newEntry);
     return newEntry;
   };
 
@@ -584,14 +703,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setJournalEntries((prev) => {
       const updated = prev.map((j) => (j.id === id ? { ...j, ...updates } : j));
       const entry = updated.find((j) => j.id === id);
-      if (entry && userId) syncJournalEntry(entry, userId);
+      if (entry && userId) syncJournalEntry(entry);
       return updated;
     });
   };
 
   const deleteJournalEntry = (id: string) => {
     setJournalEntries((prev) => prev.filter((j) => j.id !== id));
-    if (userId) deleteJournalEntrySync(id, userId);
+    if (userId) deleteJournalEntrySync(id);
   };
 
   // ═══════════════════════════════════════════════════════════
@@ -668,9 +787,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       try {
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-        const aiRes = await fetch(`${apiUrl}/api/ai/chat`, {
+        const aiRes = await fetch(`/api/ai/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -785,7 +902,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const updateSettings = (updates: Partial<UserSettings>) => {
     setSettings((prev) => {
       const updated = { ...prev, ...updates };
-      if (userId) syncSettings(updated as Record<string, any>, userId);
+      if (userId) syncSettings(updated as Record<string, any>);
       return updated;
     });
   };

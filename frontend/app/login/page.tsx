@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Brain } from "lucide-react";
+import { Brain, Mail, Lock, Loader2, User } from "lucide-react";
 import { useAuth } from "@/lib/context/auth-context";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import Script from "next/script";
 
 // ═══ Google G icon SVG ═══
 function GoogleIcon({ className }: { className?: string }) {
@@ -30,9 +33,35 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void;
+          renderButton: (element: HTMLElement, config: any) => void;
+        };
+      };
+    };
+  }
+}
+
 export default function AuthPage() {
   const router = useRouter();
-  const { isAuthenticated, loading, signInWithGoogle } = useAuth();
+  const {
+    isAuthenticated,
+    loading,
+    signInWithGoogle,
+    signInWithCredentials,
+    signUpWithCredentials,
+  } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [googleReady, setGoogleReady] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -41,84 +70,325 @@ export default function AuthPage() {
     }
   }, [isAuthenticated, loading, router]);
 
+  // Handle Google credential response
+  const handleGoogleResponse = useCallback(
+    async (response: any) => {
+      setError("");
+      setIsSubmitting(true);
+      try {
+        await signInWithGoogle(response.credential);
+        router.push("/");
+      } catch (err: any) {
+        setError(err.message || "Google sign in failed");
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [signInWithGoogle, router],
+  );
+
+  // Initialize Google Sign-In when script loads
+  useEffect(() => {
+    if (!googleReady || !window.google) return;
+
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: handleGoogleResponse,
+    });
+
+    const buttonDiv = document.getElementById("google-signin-btn");
+    if (buttonDiv) {
+      window.google.accounts.id.renderButton(buttonDiv, {
+        theme: "outline",
+        size: "large",
+        width: "100%",
+        text: "continue_with",
+      });
+    }
+  }, [googleReady, handleGoogleResponse]);
+
+  const handleCredentialAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      if (isSignUp) {
+        const result = await signUpWithCredentials(email, password, name);
+        if (result.error) {
+          setError(result.error);
+          setIsSubmitting(false);
+          return;
+        }
+        router.push("/");
+      } else {
+        const result = await signInWithCredentials(email, password);
+        if (result.error) {
+          setError(result.error);
+          setIsSubmitting(false);
+          return;
+        }
+        router.push("/");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)]">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "var(--color-bg-primary)" }}
+      >
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         >
-          <Brain className="w-8 h-8 text-[var(--color-text-tertiary)]" />
+          <Brain
+            className="w-8 h-8"
+            style={{ color: "var(--color-text-tertiary)" }}
+          />
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)] p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-sm"
+    <>
+      <Script
+        src="https://accounts.google.com/gsi/client"
+        strategy="afterInteractive"
+        onLoad={() => setGoogleReady(true)}
+      />
+      <div
+        className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden"
+        style={{ background: "var(--color-bg-primary)" }}
       >
-        {/* Card */}
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] p-8 sm:p-10 text-center shadow-sm">
-          {/* Logo */}
-          <div className="mb-8">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1, duration: 0.4 }}
+        {/* Subtle ambient glow */}
+        <motion.div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            background:
+              "radial-gradient(circle at 30% 50%, var(--color-accent-primary) 0%, transparent 60%)",
+          }}
+          animate={{ opacity: [0.03, 0.05, 0.03] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-md relative z-10"
+        >
+          {/* Card */}
+          <div
+            className="rounded-2xl border backdrop-blur-xl p-8 sm:p-10 text-center"
+            style={{
+              borderColor: "var(--color-border-primary)",
+              background: "var(--color-bg-secondary)",
+            }}
+          >
+            {/* Logo */}
+            <div className="mb-8">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{
+                  delay: 0.1,
+                  duration: 0.5,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="relative inline-block"
+              >
+                <div
+                  className="absolute inset-0 blur-2xl opacity-20 scale-150"
+                  style={{
+                    background:
+                      "radial-gradient(circle, var(--color-accent-primary) 0%, transparent 70%)",
+                  }}
+                />
+                <Brain
+                  className="w-14 h-14 mx-auto relative z-10 mb-4"
+                  style={{ color: "var(--color-text-primary)" }}
+                  strokeWidth={1.3}
+                />
+              </motion.div>
+              <h1
+                className="text-3xl font-bold tracking-tight"
+                style={{ color: "var(--color-text-primary)" }}
+              >
+                CorteXia
+              </h1>
+              <p
+                className="text-sm mt-1.5"
+                style={{ color: "var(--color-text-tertiary)" }}
+              >
+                Your Second Brain
+              </p>
+            </div>
+
+            {/* Value proposition */}
+            <p
+              className="text-sm mb-8 leading-relaxed"
+              style={{ color: "var(--color-text-secondary)" }}
             >
-              <Brain
-                className="w-12 h-12 mx-auto text-[var(--color-text-primary)] mb-4"
-                strokeWidth={1.5}
+              Organize your life. Achieve your goals.
+              <br />
+              All in one intelligent system.
+            </p>
+
+            {/* Google Sign-In Button (rendered by Google SDK) */}
+            <div id="google-signin-btn" className="flex justify-center mb-6" />
+
+            {/* Fallback Google button if SDK not loaded */}
+            {!googleReady && (
+              <button
+                disabled
+                className="w-full flex items-center justify-center gap-3 rounded-xl border px-5 py-3.5 text-sm font-medium opacity-50 mb-6"
+                style={{
+                  borderColor: "var(--color-border-primary)",
+                  background: "var(--color-bg-tertiary)",
+                  color: "var(--color-text-primary)",
+                }}
+              >
+                <GoogleIcon className="w-5 h-5" />
+                Loading Google Sign-In...
+              </button>
+            )}
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 mb-6">
+              <div
+                className="flex-1 h-px"
+                style={{ background: "var(--color-border-primary)" }}
               />
-            </motion.div>
-            <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-text-primary)]">
-              CorteXia
-            </h1>
-            <p className="text-sm text-[var(--color-text-tertiary)] mt-1">
-              Your Second Brain
+              <span
+                className="text-[11px] uppercase tracking-wider"
+                style={{ color: "var(--color-text-tertiary)" }}
+              >
+                or {isSignUp ? "create account" : "sign in with email"}
+              </span>
+              <div
+                className="flex-1 h-px"
+                style={{ background: "var(--color-border-primary)" }}
+              />
+            </div>
+
+            {/* Email/Password Form */}
+            <form onSubmit={handleCredentialAuth} className="space-y-4">
+              {isSignUp && (
+                <div className="relative">
+                  <User
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
+                    style={{ color: "var(--color-text-tertiary)" }}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              )}
+              <div className="relative">
+                <Mail
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: "var(--color-text-tertiary)" }}
+                />
+                <Input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
+              <div className="relative">
+                <Lock
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: "var(--color-text-tertiary)" }}
+                />
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {error && (
+                <p className="text-xs text-red-400 text-left">{error}</p>
+              )}
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full"
+                style={{
+                  background: "var(--color-accent-primary)",
+                  color: "white",
+                }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {isSignUp ? "Creating account..." : "Signing in..."}
+                  </>
+                ) : isSignUp ? (
+                  "Create Account"
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+
+            {/* Toggle sign in / sign up */}
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError("");
+                }}
+                className="text-sm transition-colors hover:opacity-80"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                {isSignUp
+                  ? "Already have an account? Sign in"
+                  : "Don't have an account? Sign up"}
+              </button>
+            </div>
+
+            {/* Legal */}
+            <p
+              className="mt-8 text-[10px] leading-relaxed"
+              style={{ color: "var(--color-text-tertiary)" }}
+            >
+              By continuing, you agree to our{" "}
+              <span className="underline cursor-pointer hover:opacity-70">
+                Terms
+              </span>{" "}
+              and{" "}
+              <span className="underline cursor-pointer hover:opacity-70">
+                Privacy Policy
+              </span>
             </p>
           </div>
-
-          {/* Value proposition */}
-          <p className="text-sm text-[var(--color-text-secondary)] mb-8 leading-relaxed">
-            Organize your life. Achieve your goals.
-            <br />
-            All in one intelligent system.
-          </p>
-
-          {/* Google Sign-In */}
-          <button
-            onClick={signInWithGoogle}
-            className="w-full flex items-center justify-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] px-5 py-3.5 text-sm font-medium text-[var(--color-text-primary)] transition-all duration-150 hover:border-[var(--color-text-tertiary)] active:scale-[0.98]"
-          >
-            <GoogleIcon className="w-5 h-5" />
-            Continue with Google
-          </button>
-
-          {/* Trust indicators */}
-          <div className="mt-6 space-y-1.5 text-[11px] text-[var(--color-text-tertiary)]">
-            <p>No credit card required</p>
-            <p>Free forever · Data encrypted</p>
-          </div>
-
-          {/* Legal */}
-          <p className="mt-8 text-[10px] text-[var(--color-text-tertiary)] leading-relaxed">
-            By continuing, you agree to our{" "}
-            <span className="underline cursor-pointer hover:text-[var(--color-text-secondary)]">
-              Terms
-            </span>{" "}
-            and{" "}
-            <span className="underline cursor-pointer hover:text-[var(--color-text-secondary)]">
-              Privacy Policy
-            </span>
-          </p>
-        </div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </>
   );
 }

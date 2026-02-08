@@ -1,74 +1,19 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain } from "lucide-react";
+import { Brain, Sparkles } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════
 // LOADING MESSAGES
 // ═══════════════════════════════════════════════════════════════
 const MESSAGES = [
-  { icon: "🧠", text: "Your second brain is waking up…" },
-  { icon: "📊", text: "Analyzing your life patterns…" },
-  { icon: "🎯", text: "Organizing your goals…" },
-  { icon: "✨", text: "Preparing personalized insights…" },
-  { icon: "🔄", text: "Syncing your universe…" },
-  { icon: "💡", text: "Building your clarity…" },
+  { icon: "🧠", text: "Initializing CorteXia…" },
+  { icon: "📊", text: "Loading your workspace…" },
+  { icon: "🎯", text: "Syncing your data…" },
+  { icon: "✨", text: "Preparing insights…" },
+  { icon: "🚀", text: "Almost ready…" },
 ];
-
-const SUBTEXTS = [
-  "Every great day starts with clarity.",
-  "You're about to see your life from a new perspective.",
-  "Organizing chaos into progress…",
-  "Your future self will thank you.",
-];
-
-// ═══════════════════════════════════════════════════════════════
-// PARTICLE BACKGROUND
-// ═══════════════════════════════════════════════════════════════
-function ParticleField() {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 40 }, (_, i) => ({
-        id: i,
-        sx: Math.random() * 100,
-        sy: Math.random() * 100,
-        ex: (i % 8) * 12.5 + 6.25,
-        ey: Math.floor(i / 8) * 20 + 10,
-        size: 2 + Math.random() * 3,
-      })),
-    [],
-  );
-
-  return (
-    <div className="absolute inset-0 overflow-hidden opacity-20 pointer-events-none">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full bg-[var(--color-text-tertiary)]"
-          style={{ width: p.size, height: p.size }}
-          initial={{
-            left: `${p.sx}%`,
-            top: `${p.sy}%`,
-            scale: 0,
-            opacity: 0,
-          }}
-          animate={{
-            left: `${p.ex}%`,
-            top: `${p.ey}%`,
-            scale: 1,
-            opacity: 0.5,
-          }}
-          transition={{
-            duration: 2.5,
-            delay: p.id * 0.04,
-            ease: "easeOut",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 // ═══════════════════════════════════════════════════════════════
 // LOADING SCREEN
@@ -76,55 +21,120 @@ function ParticleField() {
 export function LoadingScreen({
   progress = 0,
   stage,
+  onComplete,
 }: {
   progress: number;
   stage?: string;
+  onComplete?: () => void;
 }) {
   const [msgIndex, setMsgIndex] = useState(0);
-  const [subtext] = useState(
-    () => SUBTEXTS[Math.floor(Math.random() * SUBTEXTS.length)],
-  );
+  const [internalProgress, setInternalProgress] = useState(0);
 
+  // Smooth 5-second 0-100% progress
+  useEffect(() => {
+    const startTime = Date.now();
+    const duration = 5000; // 5 seconds
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const newProgress = Math.min((elapsed / duration) * 100, 100);
+      setInternalProgress(newProgress);
+
+      if (newProgress >= 100) {
+        clearInterval(interval);
+        onComplete?.();
+      }
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [onComplete]);
+
+  // Cycle through messages
   useEffect(() => {
     const interval = setInterval(() => {
       setMsgIndex((i) => (i + 1) % MESSAGES.length);
-    }, 1800);
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
+  const displayProgress = progress || internalProgress;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-bg-primary)]">
-      <ParticleField />
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center"
+      style={{
+        background: "var(--color-bg-primary)",
+      }}
+    >
+      {/* Subtle ambient glow */}
+      <motion.div
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          background:
+            "radial-gradient(circle at 30% 40%, var(--color-accent-primary) 0%, transparent 50%)",
+        }}
+        animate={{
+          opacity: [0.02, 0.04, 0.02],
+          scale: [1, 1.1, 1],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
 
       <div className="relative z-10 text-center px-8 max-w-md w-full">
-        {/* Brain icon */}
+        {/* Brain icon with subtle pulse */}
         <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
+          initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="mb-8"
         >
           <motion.div
             animate={{
-              scale: [1, 1.04, 1],
-              rotate: [0, 3, -3, 0],
+              scale: [1, 1.03, 1],
             }}
             transition={{
-              duration: 3,
+              duration: 2.5,
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="inline-block"
+            className="inline-block relative"
           >
+            <div
+              className="absolute inset-0 blur-2xl opacity-20 scale-150"
+              style={{
+                background:
+                  "radial-gradient(circle, var(--color-accent-primary) 0%, transparent 70%)",
+              }}
+            />
             <Brain
-              className="w-16 h-16 text-[var(--color-text-primary)]"
-              strokeWidth={1.2}
+              className="w-16 h-16 relative z-10"
+              style={{ color: "var(--color-text-primary)" }}
+              strokeWidth={1.3}
             />
           </motion.div>
 
-          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] mt-5 tracking-tight">
+          <motion.h1
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-3xl font-bold mt-4 tracking-tight"
+            style={{ color: "var(--color-text-primary)" }}
+          >
             CorteXia
-          </h1>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="text-sm mt-1.5"
+            style={{ color: "var(--color-text-tertiary)" }}
+          >
+            Your Second Brain
+          </motion.p>
         </motion.div>
 
         {/* Rotating message */}
@@ -132,56 +142,87 @@ export function LoadingScreen({
           <AnimatePresence mode="wait">
             <motion.div
               key={msgIndex}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.35 }}
-              className="flex items-center justify-center gap-2"
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center justify-center gap-2.5"
             >
-              <span className="text-lg">{MESSAGES[msgIndex].icon}</span>
-              <span className="text-sm text-[var(--color-text-secondary)]">
+              <span className="text-base">{MESSAGES[msgIndex].icon}</span>
+              <span
+                className="text-sm font-medium"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 {MESSAGES[msgIndex].text}
               </span>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Progress bar */}
-        <div className="w-full max-w-xs mx-auto mb-3">
-          <div className="h-1.5 bg-[var(--color-bg-tertiary)] rounded-full overflow-hidden">
+        {/* Premium progress bar */}
+        <div className="w-full max-w-[320px] mx-auto mb-3">
+          <div
+            className="h-1.5 rounded-full overflow-hidden backdrop-blur-sm"
+            style={{
+              background: "var(--color-bg-secondary)",
+            }}
+          >
             <motion.div
-              className="h-full bg-[var(--color-text-primary)] rounded-full"
+              className="h-full rounded-full relative"
+              style={{
+                background: "var(--color-accent-primary)",
+              }}
               initial={{ width: "0%" }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            />
+              animate={{ width: `${displayProgress}%` }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              {/* Subtle shimmer effect */}
+              <motion.div
+                className="absolute inset-0 opacity-30"
+                style={{
+                  background:
+                    "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
+                }}
+                animate={{
+                  x: ["-100%", "200%"],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </motion.div>
           </div>
           <motion.p
-            className="text-[11px] text-[var(--color-text-tertiary)] mt-2 tabular-nums"
+            className="text-xs mt-2.5 tabular-nums font-medium"
+            style={{ color: "var(--color-text-tertiary)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.4 }}
           >
-            {progress}%
+            {Math.round(displayProgress)}%
           </motion.p>
         </div>
 
-        {/* Subtext */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="text-[12px] italic text-[var(--color-text-tertiary)] mt-6"
+        {/* Sparkle icon */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 0.3, scale: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
         >
-          "{subtext}"
-        </motion.p>
+          <Sparkles
+            className="w-5 h-5 mx-auto"
+            style={{ color: "var(--color-accent-primary)" }}
+          />
+        </motion.div>
       </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════
-// LOADING HOOK
+// HOOK FOR APP LOADING STATE
 // ═══════════════════════════════════════════════════════════════
 type LoadingStage = "auth" | "database" | "userData" | "ready";
 
@@ -191,42 +232,33 @@ export function useAppLoading(authReady: boolean, dataReady: boolean) {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    // Stage 1: auth check → 0-40%
-    if (!authReady) {
-      setStage("auth");
-      const t = setTimeout(() => setProgress(20), 200);
-      return () => clearTimeout(t);
-    }
+    const startTime = Date.now();
+    const totalDuration = 5000; // 5 seconds total
 
-    // Stage 2: auth done → 40-70%
-    setProgress(40);
-    setStage("database");
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const calculatedProgress = Math.min((elapsed / totalDuration) * 100, 100);
+      setProgress(calculatedProgress);
 
-    const t1 = setTimeout(() => setProgress(60), 300);
-
-    // Stage 3: data → 70-100%
-    if (dataReady) {
-      const t2 = setTimeout(() => {
-        setProgress(85);
+      // Update stages based on progress
+      if (calculatedProgress < 25) {
+        setStage("auth");
+      } else if (calculatedProgress < 60) {
+        setStage("database");
+      } else if (calculatedProgress < 95) {
         setStage("userData");
-      }, 400);
-
-      const t3 = setTimeout(() => {
-        setProgress(100);
+      } else {
         setStage("ready");
-      }, 700);
+      }
 
-      const t4 = setTimeout(() => setDone(true), 1100);
+      // Done when both ready AND progress is 100%
+      if (authReady && dataReady && calculatedProgress >= 100) {
+        setDone(true);
+        clearInterval(interval);
+      }
+    }, 50);
 
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-        clearTimeout(t4);
-      };
-    }
-
-    return () => clearTimeout(t1);
+    return () => clearInterval(interval);
   }, [authReady, dataReady]);
 
   return { stage, progress, isLoading: !done };

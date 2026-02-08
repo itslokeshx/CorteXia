@@ -1,4 +1,9 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("cortexia_token");
+}
 
 interface FetchOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
@@ -29,11 +34,13 @@ class ApiClient {
   async fetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
     const { params, ...fetchOptions } = options;
     const url = this.buildUrl(endpoint, params);
+    const token = getAuthToken();
 
     const response = await fetch(url, {
       ...fetchOptions,
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...fetchOptions.headers,
       },
     });

@@ -5,7 +5,7 @@ import { useApp } from "@/lib/context/app-context";
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { format, subDays } from "date-fns";
+import { format, subDays, startOfWeek, addDays as addDaysFn } from "date-fns";
 import {
   Play,
   Pause,
@@ -18,6 +18,7 @@ import {
   Brain,
   ChevronRight,
   X,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -128,41 +129,30 @@ export default function TimeTrackerPage() {
     if (mode === "running") {
       intervalRef.current = setInterval(() => {
         setElapsedSeconds((prev) => {
-          if (prev + 1 >= totalSeconds) {
+          const next = prev + 1;
+          if (next >= totalSeconds) {
+            // Timer complete - clean up interval
             if (intervalRef.current) clearInterval(intervalRef.current);
-            setMode("select");
-            setFullscreen(false);
-            return 0;
+            // Schedule state updates outside of the setter
+            setTimeout(() => {
+              // Save the full duration since timer completed naturally
+              saveEntry(selectedPreset, selectedPreset.duration);
+              setMode("select");
+              setFullscreen(false);
+              setElapsedSeconds(0);
+              setStartTime(null);
+              setTotalSeconds(0);
+            }, 0);
+            return next; // Return the final value briefly
           }
-          return prev + 1;
+          return next;
         });
       }, 1000);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [mode, totalSeconds]);
-
-  // When session completes via timer
-  useEffect(() => {
-    if (
-      mode === "select" &&
-      startTime &&
-      elapsedSeconds === 0 &&
-      totalSeconds > 0
-    ) {
-      saveEntry(selectedPreset, selectedPreset.duration);
-      setStartTime(null);
-      setTotalSeconds(0);
-    }
-  }, [
-    mode,
-    startTime,
-    elapsedSeconds,
-    totalSeconds,
-    saveEntry,
-    selectedPreset,
-  ]);
+  }, [mode, totalSeconds, saveEntry, selectedPreset]);
 
   // Stats
   const stats = useMemo(() => {
@@ -183,6 +173,26 @@ export default function TimeTrackerPage() {
       todaySessions: todayEntries.length,
       weekSessions: weekEntries.length,
     };
+  }, [timeEntries]);
+
+  // Weekly chart data
+  const weeklyChart = useMemo(() => {
+    const start = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const date = addDaysFn(start, i);
+      const dateStr = format(date, "yyyy-MM-dd");
+      const dayEntries = (timeEntries || []).filter((e) => e.date === dateStr);
+      const totalMin = dayEntries.reduce((s, e) => s + (e.duration || 0), 0);
+      return {
+        day: format(date, "EEE"),
+        dateStr,
+        totalMin,
+        sessions: dayEntries.length,
+        isToday: dateStr === format(new Date(), "yyyy-MM-dd"),
+      };
+    });
+    const maxMin = Math.max(1, ...days.map((d) => d.totalMin));
+    return { days, maxMin };
   }, [timeEntries]);
 
   // SVG circle
@@ -209,8 +219,7 @@ export default function TimeTrackerPage() {
           </button>
 
           <div className="flex flex-col items-center gap-8">
-            <motion.div
-            >
+            <motion.div>
               <Badge className="bg-white/10 text-white/90 border-white/20 backdrop-blur-sm text-sm px-4 py-1.5">
                 {selectedPreset.label}
               </Badge>
@@ -296,9 +305,7 @@ export default function TimeTrackerPage() {
 
   return (
     <AppLayout>
-      <motion.div
-        className="space-y-6 pb-12"
-      >
+      <motion.div className="space-y-6 pb-12">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
             Time Tracker
@@ -343,6 +350,61 @@ export default function TimeTrackerPage() {
               </p>
             </div>
           ))}
+        </div>
+
+        {/* Weekly Analytics */}
+        <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+            <h2 className="text-sm font-medium text-[var(--color-text-secondary)]">
+              This Week
+            </h2>
+          </div>
+          <div className="flex items-end justify-between gap-2 h-32">
+            {weeklyChart.days.map((day) => {
+              const height =
+                day.totalMin > 0
+                  ? Math.max(8, (day.totalMin / weeklyChart.maxMin) * 100)
+                  : 4;
+              return (
+                <div
+                  key={day.day}
+                  className="flex-1 flex flex-col items-center gap-1.5"
+                >
+                  {day.totalMin > 0 && (
+                    <span className="text-[10px] text-[var(--color-text-tertiary)] tabular-nums">
+                      {day.totalMin >= 60
+                        ? `${Math.floor(day.totalMin / 60)}h${day.totalMin % 60 > 0 ? `${day.totalMin % 60}m` : ""}`
+                        : `${day.totalMin}m`}
+                    </span>
+                  )}
+                  <motion.div
+                    className={cn(
+                      "w-full max-w-[32px] rounded-md",
+                      day.isToday
+                        ? "bg-gradient-to-t from-purple-600 to-purple-400"
+                        : day.totalMin > 0
+                          ? "bg-gradient-to-t from-purple-600/40 to-purple-400/40"
+                          : "bg-[var(--color-bg-primary)]",
+                    )}
+                    initial={{ height: 0 }}
+                    animate={{ height: `${height}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  />
+                  <span
+                    className={cn(
+                      "text-[10px]",
+                      day.isToday
+                        ? "text-purple-400 font-semibold"
+                        : "text-[var(--color-text-tertiary)]",
+                    )}
+                  >
+                    {day.day}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Presets */}

@@ -461,10 +461,8 @@ export default function GoalsPage() {
                   <span
                     key={i}
                     className={cn(
-                      "w-2.5 h-2.5 rounded-full",
-                      filled
-                        ? "bg-gray-900 dark:bg-gray-100"
-                        : "bg-gray-200 dark:bg-gray-700",
+                      "w-2.5 h-2.5 rounded-full transition-colors",
+                      filled ? "bg-purple-500" : "bg-gray-200 dark:bg-gray-700",
                     )}
                   />
                 ))}
@@ -535,7 +533,12 @@ export default function GoalsPage() {
 
             {/* Overall bar */}
             <div className="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-6">
-              <motion.div className="h-full bg-gray-900 dark:bg-gray-100 rounded-full" />
+              <motion.div
+                className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${health.progress}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
             </div>
 
             {/* Quarter accordion */}
@@ -754,7 +757,12 @@ export default function GoalsPage() {
                   </span>
                 </div>
                 <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full" />
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${health.consistency}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                  />
                 </div>
               </div>
 
@@ -769,7 +777,12 @@ export default function GoalsPage() {
                   </span>
                 </div>
                 <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full" />
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${health.timeInvested}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                  />
                 </div>
               </div>
 
@@ -784,7 +797,12 @@ export default function GoalsPage() {
                   </span>
                 </div>
                 <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full" />
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${health.momentum}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                  />
                 </div>
               </div>
             </div>
@@ -944,9 +962,19 @@ export default function GoalsPage() {
                 );
               })
             ) : (
-              <motion.div className="text-center py-20">
-                <p className="text-sm text-[var(--color-text-tertiary)]">
-                  No goals yet. What do you want to achieve?
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-20"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-6 h-6 text-purple-500/60" />
+                </div>
+                <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+                  No goals yet
+                </p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
+                  Type your goal above and start making progress
                 </p>
               </motion.div>
             )}

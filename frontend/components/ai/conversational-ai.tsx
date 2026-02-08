@@ -26,8 +26,12 @@ import {
   MessageCircle,
   Bot,
   User,
+  Trash2,
+  Palette,
+  Brain,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
 interface ChatMessage {
@@ -97,15 +101,77 @@ const formatActionSummary = (action: {
       return `Deleted journal entry`;
     case "navigate":
       return `Navigating to ${data.path || "/"}`;
+    case "set_theme":
+      return `Switched theme to ${data.theme || "system"}`;
+    case "clear_tasks":
+      return "Cleared all tasks";
+    case "clear_habits":
+      return "Cleared all habits";
+    case "clear_goals":
+      return "Cleared all goals";
+    case "clear_all_data":
+      return "Cleared all app data";
     default:
       return type ? type.replace(/_/g, " ") : "Action completed";
   }
 };
 
+// ═══ AI MEMORY — persisted via app settings (MongoDB) ═══
+
+interface AIMemory {
+  userName?: string;
+  preferences: Record<string, string>;
+  facts: string[];
+  conversationCount: number;
+  lastTopic?: string;
+  lastInteraction?: string;
+}
+
+const DEFAULT_MEMORY: AIMemory = {
+  preferences: {},
+  facts: [],
+  conversationCount: 0,
+};
+
+function extractMemoryFacts(userMsg: string): Partial<AIMemory> {
+  const update: Partial<AIMemory> = {};
+  const nameMatch = userMsg.match(
+    /(?:my name is|i'?m|call me|i am)\s+([A-Z][a-z]+)/i,
+  );
+  if (nameMatch) update.userName = nameMatch[1];
+  const themeMatch = userMsg.match(
+    /(?:prefer|like|switch to|use)\s+(dark|light)\s*(?:mode|theme)?/i,
+  );
+  if (themeMatch) {
+    update.preferences = { theme: themeMatch[1].toLowerCase() };
+  }
+  const topics = [
+    "work",
+    "study",
+    "health",
+    "fitness",
+    "finance",
+    "goals",
+    "habits",
+    "journal",
+    "meditation",
+    "coding",
+    "reading",
+  ];
+  for (const topic of topics) {
+    if (userMsg.toLowerCase().includes(topic)) {
+      update.lastTopic = topic;
+      break;
+    }
+  }
+  return update;
+}
+
 const QUICK_ACTIONS = [
   { icon: Calendar, label: "Show Today", action: "show_today" },
   { icon: BarChart3, label: "Analyze Patterns", action: "analyze_patterns" },
   { icon: Lightbulb, label: "Give Suggestions", action: "suggestions" },
+  { icon: Brain, label: "Life Score", action: "life_score" },
 ];
 
 export function ConversationalAI() {
@@ -118,6 +184,7 @@ export function ConversationalAI() {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const { setTheme, theme: currentTheme } = useTheme();
 
   // Get ALL app context for full capabilities
   const {
@@ -129,6 +196,8 @@ export function ConversationalAI() {
     journalEntries,
     goals,
     studySessions,
+    settings,
+    updateSettings,
     // Task actions
     addTask,
     updateTask,
@@ -167,6 +236,19 @@ export function ConversationalAI() {
     getTodayStats,
     getGoalStats,
   } = useApp();
+
+  // AI Memory - loaded from settings (MongoDB), not localStorage
+  const [memory, setMemoryState] = useState<AIMemory>(
+    () => (settings?.aiMemory as AIMemory) || DEFAULT_MEMORY,
+  );
+
+  // Sync memory to settings (→ MongoDB) when it changes
+  const saveMemory = useCallback(
+    (mem: AIMemory) => {
+      updateSettings({ aiMemory: mem });
+    },
+    [updateSettings],
+  );
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -364,6 +446,11 @@ export function ConversationalAI() {
         "update_journal",
         "delete_journal",
         "navigate",
+        "set_theme",
+        "clear_tasks",
+        "clear_habits",
+        "clear_goals",
+        "clear_all_data",
       ],
     };
   }, [
@@ -399,11 +486,9 @@ export function ConversationalAI() {
     setIsLoading(true);
 
     try {
-      // Try the backend /api/ai/chat route (Groq with deep context)
+      // Try the /api/ai/chat route (Groq with deep context)
       let response: ConversationResponse;
       try {
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
         // Send compact summaries — not full arrays — to save tokens
         const today = new Date().toISOString().split("T")[0];
         const compactUserData = {
@@ -448,9 +533,18 @@ export function ConversationalAI() {
           lifeState: null,
           settings: {},
         };
-        const apiRes = await fetch(`${apiUrl}/api/ai/chat`, {
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("cortexia_token")
+            : null;
+        const apiRes = await fetch(`${API_URL}/api/ai/chat`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({
             message: text,
             conversationHistory: messages.slice(-4).map((m) => ({
@@ -461,6 +555,13 @@ export function ConversationalAI() {
                   : m.content,
             })),
             userData: compactUserData,
+            memory: {
+              userName: memory.userName,
+              facts: memory.facts.slice(-5),
+              lastTopic: memory.lastTopic,
+              conversationCount: memory.conversationCount,
+              preferredTheme: memory.preferences.theme,
+            },
           }),
         });
         if (apiRes.ok) {
@@ -484,6 +585,26 @@ export function ConversationalAI() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Extract and save memory from this conversation turn
+      const memUpdate = extractMemoryFacts(text);
+      setMemoryState((prev) => {
+        const updated: AIMemory = {
+          ...prev,
+          ...memUpdate,
+          preferences: {
+            ...prev.preferences,
+            ...(memUpdate.preferences || {}),
+          },
+          facts: [...prev.facts, ...(memUpdate.facts || [])].slice(-20),
+          conversationCount: prev.conversationCount + 1,
+          lastInteraction: new Date().toISOString(),
+        };
+        if (memUpdate.userName) updated.userName = memUpdate.userName;
+        if (memUpdate.lastTopic) updated.lastTopic = memUpdate.lastTopic;
+        saveMemory(updated);
+        return updated;
+      });
 
       // Execute any actions
       if (response.actions && response.actions.length > 0) {
@@ -793,6 +914,40 @@ export function ConversationalAI() {
         }
         break;
 
+      // === THEME CONTROL ===
+      case "set_theme":
+        const newTheme = (action.data.theme as string) || "dark";
+        setTheme(newTheme);
+        toast.success(`🎨 Theme switched to ${newTheme}`);
+        break;
+
+      // === DATA CLEARING ===
+      case "clear_tasks":
+        for (const t of tasks) deleteTask(t.id);
+        toast.success("🗑️ All tasks cleared");
+        break;
+
+      case "clear_habits":
+        for (const h of habits) deleteHabit(h.id);
+        toast.success("🗑️ All habits cleared");
+        break;
+
+      case "clear_goals":
+        for (const g of goals) deleteGoal(g.id);
+        toast.success("🗑️ All goals cleared");
+        break;
+
+      case "clear_all_data":
+        for (const t of tasks) deleteTask(t.id);
+        for (const h of habits) deleteHabit(h.id);
+        for (const g of goals) deleteGoal(g.id);
+        for (const tx of transactions) deleteTransaction(tx.id);
+        for (const te of timeEntries) deleteTimeEntry(te.id);
+        for (const s of studySessions) deleteStudySession(s.id);
+        for (const j of journalEntries) deleteJournalEntry(j.id);
+        toast.success("🗑️ All data cleared");
+        break;
+
       default:
         console.log("Unknown action type:", action.type);
     }
@@ -812,6 +967,11 @@ export function ConversationalAI() {
       case "suggestions":
         sendMessage(
           "What should I focus on right now to improve my life score?",
+        );
+        break;
+      case "life_score":
+        sendMessage(
+          "Give me a comprehensive life score analysis across all my domains — tasks, habits, goals, finances, wellbeing",
         );
         break;
     }
@@ -860,25 +1020,36 @@ export function ConversationalAI() {
   // Minimized floating button
   if (!isOpen || isMinimized) {
     return (
-      <motion.button
-        className={cn(
-          "fixed z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center",
-          "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-lg",
-          "hover:scale-105 transition-transform",
-          "bottom-4 right-4 sm:bottom-6 sm:right-6",
-        )}
-        onClick={() => {
-          setIsOpen(true);
-          setIsMinimized(false);
-        }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        exit={{ scale: 0 }}
-      >
-        <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
-      </motion.button>
+      <div className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6">
+        {/* Subtle pulse */}
+        <motion.div
+          className="absolute inset-0 rounded-full opacity-20"
+          style={{ background: "var(--color-accent-primary)" }}
+          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0, 0.2] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.button
+          className={cn(
+            "relative w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center",
+            "text-white shadow-lg transition-all",
+          )}
+          style={{
+            background: "var(--color-accent-primary)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          }}
+          onClick={() => {
+            setIsOpen(true);
+            setIsMinimized(false);
+          }}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          exit={{ scale: 0 }}
+        >
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
+        </motion.button>
+      </div>
     );
   }
 
@@ -900,15 +1071,37 @@ export function ConversationalAI() {
       transition={{ duration: 0.2 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b bg-gradient-to-r from-primary/10 to-transparent flex-shrink-0">
+      <div
+        className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b flex-shrink-0"
+        style={{ borderColor: "var(--color-border-primary)" }}
+      >
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+          <div
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center"
+            style={{ background: "var(--color-bg-tertiary)" }}
+          >
+            <Sparkles
+              className="w-4 h-4 sm:w-5 sm:h-5"
+              style={{ color: "var(--color-accent-primary)" }}
+            />
           </div>
           <div>
-            <h3 className="font-semibold text-sm sm:text-base">Cortexia AI</h3>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">
-              Your life assistant
+            <h3
+              className="font-semibold text-sm sm:text-base"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              Cortexia AI
+            </h3>
+            <p
+              className="text-[10px] sm:text-xs"
+              style={{ color: "var(--color-text-tertiary)" }}
+            >
+              {memory.userName
+                ? `Hey ${memory.userName}`
+                : "Your life assistant"}
+              {memory.conversationCount > 0
+                ? ` · ${memory.conversationCount} chats`
+                : ""}
             </p>
           </div>
         </div>
@@ -944,11 +1137,14 @@ export function ConversationalAI() {
                 <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
               </div>
               <h4 className="font-semibold mb-2 text-sm sm:text-base">
-                Hi! I'm Cortexia
+                {memory.userName
+                  ? `Hey ${memory.userName}! 👋`
+                  : "Hi! I'm Cortexia"}
               </h4>
               <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-[260px] sm:max-w-[280px] px-2">
-                Your AI life assistant. I can help you manage tasks, analyze
-                patterns, and optimize your productivity.
+                {memory.conversationCount > 0
+                  ? `Welcome back! We've had ${memory.conversationCount} conversations.${memory.lastTopic ? ` Last time we talked about ${memory.lastTopic}.` : ""} How can I help?`
+                  : "Your AI life assistant. I can manage tasks, analyze patterns, control themes, and optimize your productivity."}
               </p>
               <div className="flex flex-col gap-2 w-full max-w-[260px] sm:max-w-[280px]">
                 {QUICK_ACTIONS.map((action) => (
@@ -977,8 +1173,14 @@ export function ConversationalAI() {
                   animate={{ opacity: 1, y: 0 }}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/20 flex-shrink-0 flex items-center justify-center">
-                      <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                    <div
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0 flex items-center justify-center"
+                      style={{ background: "var(--color-bg-tertiary)" }}
+                    >
+                      <Sparkles
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                        style={{ color: "var(--color-accent-primary)" }}
+                      />
                     </div>
                   )}
                   <div
@@ -1048,14 +1250,33 @@ export function ConversationalAI() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                 >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/20 flex-shrink-0 flex items-center justify-center">
-                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                  <div
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0 flex items-center justify-center"
+                    style={{ background: "var(--color-bg-tertiary)" }}
+                  >
+                    <Sparkles
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                      style={{ color: "var(--color-accent-primary)" }}
+                    />
                   </div>
-                  <div className="bg-muted rounded-2xl px-3 sm:px-4 py-2 sm:py-3">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
-                      <span className="text-xs sm:text-sm text-muted-foreground">
-                        Thinking...
+                  <div className="bg-muted rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3">
+                    <div className="flex items-center gap-1.5">
+                      {[0, 1, 2].map((i) => (
+                        <motion.div
+                          key={i}
+                          className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
+                          style={{ background: "var(--color-accent-primary)" }}
+                          animate={{ y: [0, -6, 0], opacity: [0.4, 1, 0.4] }}
+                          transition={{
+                            duration: 0.8,
+                            repeat: Infinity,
+                            delay: i * 0.15,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      ))}
+                      <span className="text-xs sm:text-sm text-muted-foreground ml-1.5">
+                        Thinking
                       </span>
                     </div>
                   </div>

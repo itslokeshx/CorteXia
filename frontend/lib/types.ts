@@ -416,4 +416,15 @@ export interface UserSettings {
     categoryLimits: Record<string, number>;
   };
   userName?: string;
+  // Cloud-persisted data (no localStorage)
+  aiMemory?: {
+    userName?: string;
+    preferences: Record<string, string>;
+    facts: string[];
+    conversationCount: number;
+    lastTopic?: string;
+    lastInteraction?: string;
+  };
+  plannerBlocks?: Record<string, unknown>[];
+  timeBlocks?: Record<string, unknown>[];
 }

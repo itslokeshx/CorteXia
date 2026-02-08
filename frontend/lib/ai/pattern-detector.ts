@@ -2,7 +2,19 @@
 
 import { PATTERN_DETECTION_PROMPT } from "./prompts/system-prompts";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+function getAuthHeaders(): Record<string, string> {
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("cortexia_token")
+      : null;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
 
 interface Correlation {
   from: string;
@@ -73,15 +85,13 @@ class PatternDetector {
     );
 
     try {
-      const response = await fetch(`${API_URL}/api/ai/ask`, {
+      const response = await fetch(`${API_URL}/api/ai/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
-          question: prompt,
-          context: {
-            type: "pattern_detection",
-            dataSize: Object.keys(userData).length,
-          },
+          message: prompt,
+          conversationHistory: [],
+          userData: {},
         }),
       });
 

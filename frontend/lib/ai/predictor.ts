@@ -5,7 +5,19 @@ import {
   WEEKLY_SYNTHESIS_PROMPT,
 } from "./prompts/system-prompts";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+function getAuthHeaders(): Record<string, string> {
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("cortexia_token")
+      : null;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
 
 interface EnergyForecast {
   predictedEnergy: number;
@@ -62,12 +74,13 @@ class Predictor {
         .replace("{{historicalData}}", JSON.stringify(historicalData, null, 2))
         .replace("{{tomorrowSchedule}}", "[]"); // Would integrate with calendar
 
-      const response = await fetch(`${API_URL}/api/ai/ask`, {
+      const response = await fetch(`${API_URL}/api/ai/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
-          question: prompt,
-          context: { type: "energy_forecast" },
+          message: prompt,
+          conversationHistory: [],
+          userData: {},
         }),
       });
 
@@ -100,12 +113,13 @@ Return JSON:
   "explanation": "Based on improving trend..."
 }`;
 
-      const response = await fetch(`${API_URL}/api/ai/ask`, {
+      const response = await fetch(`${API_URL}/api/ai/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
-          question: prompt,
-          context: { type: "week_forecast" },
+          message: prompt,
+          conversationHistory: [],
+          userData: {},
         }),
       });
 

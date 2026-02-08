@@ -96,6 +96,8 @@ export default function TasksPage() {
     updateTask,
     deleteTask,
     goals,
+    settings,
+    updateSettings,
   } = useApp();
 
   const [view, setView] = useState<TabView>("today");
@@ -331,16 +333,13 @@ export default function TasksPage() {
   const handleBlockTask = useCallback(
     (task: Task) => {
       updateTask(task.id, { status: "blocked" });
-      // Sync to day planner: create a "blocked" block in localStorage
+      // Sync to day planner via settings context (MongoDB)
       try {
-        const saved = localStorage.getItem("cortexia-planner-blocks");
-        const blocks = saved ? JSON.parse(saved) : [];
+        const blocks = (settings?.plannerBlocks as unknown[]) || [];
         const blockDate = task.dueDate || format(new Date(), "yyyy-MM-dd");
-        // Remove any existing blocked entry for this task to avoid duplicates
-        const filtered = blocks.filter(
-          (b: { id: string }) => !b.id.startsWith(`blocked-${task.id}-`),
+        const filtered = (blocks as { id: string }[]).filter(
+          (b) => !b.id.startsWith(`blocked-${task.id}-`),
         );
-        // Parse task time or default to 9am-10am
         const startH = task.dueTime ? parseInt(task.dueTime.split(":")[0]) : 9;
         const startM = task.dueTime ? parseInt(task.dueTime.split(":")[1]) : 0;
         const duration = task.timeEstimate || 60;
@@ -360,17 +359,15 @@ export default function TasksPage() {
           completed: false,
         };
         filtered.push(newBlock);
-        localStorage.setItem(
-          "cortexia-planner-blocks",
-          JSON.stringify(filtered),
-        );
-        // Dispatch custom event so the planner picks up the change immediately
+        updateSettings({
+          plannerBlocks: filtered as unknown as Record<string, unknown>[],
+        });
         window.dispatchEvent(new Event("planner-blocks-updated"));
       } catch {
         /* ignore */
       }
     },
-    [updateTask],
+    [updateTask, settings, updateSettings],
   );
 
   const toggleTaskComplete = (taskId: string) => {

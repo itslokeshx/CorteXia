@@ -252,8 +252,6 @@ export default function AICoachPage() {
     setIsThinking(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
       // Send compact summaries to save tokens on free tier
       const todayStr = format(new Date(), "yyyy-MM-dd");
       const conversationHistory = updatedSession.messages
@@ -308,9 +306,18 @@ export default function AICoachPage() {
         settings: {},
       };
 
-      const apiRes = await fetch(`${apiUrl}/api/ai/chat`, {
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("cortexia_token")
+          : null;
+      const apiRes = await fetch(`${API_URL}/api/ai/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           message: userInput,
           conversationHistory,

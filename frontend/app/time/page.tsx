@@ -38,7 +38,7 @@ import {
   BarChart3,
   Flame,
 } from "lucide-react";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useApp } from "@/lib/context/app-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -449,6 +449,8 @@ export default function TimeBlockingPage() {
     deleteTimeEntry,
     getTodayStats,
     getWeeklyStats,
+    settings,
+    updateSettings,
   } = useApp();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -466,22 +468,24 @@ export default function TimeBlockingPage() {
   const todayStats = getTodayStats();
   const weeklyStats = getWeeklyStats();
 
-  // Load blocks from localStorage
+  // Load blocks from settings (MongoDB)
   useEffect(() => {
-    const saved = localStorage.getItem("cortexia-time-blocks");
-    if (saved) {
-      try {
-        setBlocks(JSON.parse(saved));
-      } catch {
-        // ignore
-      }
+    if (settings?.timeBlocks && Array.isArray(settings.timeBlocks)) {
+      setBlocks(settings.timeBlocks as unknown as TimeBlock[]);
     }
   }, []);
 
-  // Save blocks to localStorage
+  // Save blocks to settings (MongoDB) when they change
+  const isInitialMount = useRef(true);
   useEffect(() => {
-    localStorage.setItem("cortexia-time-blocks", JSON.stringify(blocks));
-  }, [blocks]);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    updateSettings({
+      timeBlocks: blocks as unknown as Record<string, unknown>[],
+    });
+  }, [blocks, updateSettings]);
 
   const handleAddBlock = useCallback(
     (hour: number, date?: string) => {
