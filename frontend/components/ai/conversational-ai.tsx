@@ -242,11 +242,6 @@ export function ConversationalAI() {
     () => (settings?.aiMemory as AIMemory) || DEFAULT_MEMORY,
   );
 
-  // Sync memory to settings (→ MongoDB) when it changes
-  useEffect(() => {
-    updateSettings({ aiMemory: memory });
-  }, [memory, updateSettings]);
-
   // Scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
@@ -599,6 +594,10 @@ export function ConversationalAI() {
         };
         if (memUpdate.userName) updated.userName = memUpdate.userName;
         if (memUpdate.lastTopic) updated.lastTopic = memUpdate.lastTopic;
+
+        // Save to settings (MongoDB) asynchronously
+        updateSettings({ aiMemory: updated });
+
         return updated;
       });
 
