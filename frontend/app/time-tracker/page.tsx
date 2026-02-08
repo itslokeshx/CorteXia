@@ -446,20 +446,29 @@ export default function TimeTrackerPage() {
             {/* Custom Session Card */}
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-4 p-5 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl text-left hover:shadow-md transition-all group relative overflow-hidden"
+              className="group relative overflow-hidden p-5 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl hover:shadow-lg transition-all"
             >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 dark:from-gray-600 dark:to-gray-800 flex items-center justify-center shadow-sm flex-shrink-0">
-                <Clock className="w-5 h-5 text-white" />
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 dark:from-gray-600 dark:to-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+
+                <div className="flex-1 min-w-0 flex flex-col justify-center h-12">
+                  <p className="font-medium text-[var(--color-text-primary)] leading-none mb-1.5">
+                    Custom Session
+                  </p>
+                  <p className="text-sm text-[var(--color-text-tertiary)] leading-none">
+                    Set your own time
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0 z-10">
-                <p className="font-medium text-[var(--color-text-primary)] mb-1">
-                  Custom
-                </p>
-                <div className="flex items-center gap-2">
+
+              <div className="mt-4 flex items-center gap-2">
+                <div className="relative flex-1">
                   <Input
                     type="number"
                     min="1"
-                    placeholder="Min"
+                    placeholder="Minutes"
                     value={customDuration}
                     onChange={(e) => setCustomDuration(e.target.value)}
                     onKeyDown={(e) => {
@@ -467,7 +476,7 @@ export default function TimeTrackerPage() {
                         const mins = parseInt(customDuration);
                         if (mins > 0) {
                           startSession({
-                            label: "Custom Session",
+                            label: "Custom Timer",
                             duration: mins,
                             icon: Clock,
                             color: "from-blue-500 to-indigo-600",
@@ -478,30 +487,32 @@ export default function TimeTrackerPage() {
                         }
                       }
                     }}
-                    className="h-7 w-16 text-xs px-2 bg-[var(--color-bg-primary)] border-[var(--color-border)]"
+                    className="h-9 w-full bg-[var(--color-bg-primary)] border-[var(--color-border)] focus:ring-2 focus:ring-blue-500/20 text-sm"
                   />
-                  <Button
-                    size="sm"
-                    className="h-7 w-7 p-0 rounded-lg"
-                    disabled={!customDuration || parseInt(customDuration) <= 0}
-                    onClick={() => {
-                      const mins = parseInt(customDuration);
-                      if (mins > 0) {
-                        startSession({
-                          label: "Custom Session",
-                          duration: mins,
-                          icon: Clock,
-                          color: "from-blue-500 to-indigo-600",
-                          category: "work",
-                          quality: "deep",
-                        });
-                        setCustomDuration("");
-                      }
-                    }}
-                  >
-                    <Play className="w-3 h-3" />
-                  </Button>
+
                 </div>
+
+                <Button
+                  size="icon"
+                  className="h-9 w-9 shrink-0 rounded-lg bg-[var(--color-text-primary)] text-[var(--color-bg-primary)] hover:opacity-90 transition-opacity"
+                  disabled={!customDuration || parseInt(customDuration) <= 0}
+                  onClick={() => {
+                    const mins = parseInt(customDuration);
+                    if (mins > 0) {
+                      startSession({
+                        label: "Custom Session",
+                        duration: mins,
+                        icon: Clock,
+                        color: "from-blue-500 to-indigo-600",
+                        category: "work",
+                        quality: "deep",
+                      });
+                      setCustomDuration("");
+                    }
+                  }}
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                </Button>
               </div>
             </motion.div>
           </div>
