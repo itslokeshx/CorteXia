@@ -37,31 +37,29 @@ export function GreetingHeader({ onAddTask }: { onAddTask?: () => void }) {
   const firstName = displayName.split(/\s+/)[0];
 
   return (
-    <header className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1">
-            <Icon className="w-5 h-5 text-[var(--color-text-tertiary)]" />
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--color-text-primary)]">
-              {text}, {firstName}
-            </h1>
-          </div>
-          <p className="text-sm text-[var(--color-text-tertiary)]">
-            {format(currentTime, "EEEE, MMMM d")} · {format(currentTime, "h:mm a")}
-          </p>
+    <header className="flex flex-row items-center justify-between gap-3 py-1 sm:py-2">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 mb-0.5 sm:mb-1">
+          <Icon className="w-5 h-5 sm:w-7 sm:h-7 text-[var(--accent-primary)] shrink-0" />
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-[var(--color-text-primary)] truncate">
+            {text}, {firstName}
+          </h1>
         </div>
-        {onAddTask && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onAddTask}
-            className="shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            Add task
-          </Button>
-        )}
+        <p className="text-xs sm:text-base text-[var(--color-text-secondary)] font-medium pl-0.5 sm:pl-1 truncate">
+          {format(currentTime, "EEEE, MMMM d")}
+        </p>
       </div>
+      {onAddTask && (
+        <Button
+          size="default"
+          className="shrink-0 rounded-full transition-all shadow-sm hover:shadow-md h-10 w-10 sm:w-auto p-0 sm:px-4 sm:py-2"
+          onClick={onAddTask}
+          aria-label="Quick Task"
+        >
+          <Plus className="w-5 h-5 sm:mr-2" />
+          <span className="hidden sm:inline">Quick Task</span>
+        </Button>
+      )}
     </header>
   );
 }

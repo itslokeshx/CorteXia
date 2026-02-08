@@ -33,7 +33,6 @@ import {
 import { WidgetGoalsOverview } from "@/components/dashboard/widget-goals-overview";
 import { WidgetWeeklyFocus } from "@/components/dashboard/widget-weekly-focus";
 import { WidgetJournalPrompt } from "@/components/dashboard/widget-journal-prompt";
-import { QuickActionsFab } from "@/components/dashboard/quick-actions-fab";
 import { DashboardQuickNav } from "@/components/dashboard/dashboard-quick-nav";
 import { DayProgress } from "@/components/dashboard/day-progress";
 import type { Task } from "@/lib/types";
@@ -159,10 +158,10 @@ export default function DashboardPage() {
   const onTrackPct =
     goalStats.total > 0
       ? Math.round(
-          (goals.filter((g) => g.status === "active" && g.progress >= 60).length /
-            Math.max(goalStats.inProgress, 1)) *
-            100,
-        )
+        (goals.filter((g) => g.status === "active" && g.progress >= 60).length /
+          Math.max(goalStats.inProgress, 1)) *
+        100,
+      )
       : 0;
 
   const quickStats = useMemo((): StatCardPayload => {
@@ -184,10 +183,10 @@ export default function DashboardPage() {
     const segments =
       totalG > 0
         ? {
-            green: Math.round((onTrack / totalG) * 100),
-            yellow: Math.round((atRisk / totalG) * 100),
-            red: Math.round((behind / totalG) * 100),
-          }
+          green: Math.round((onTrack / totalG) * 100),
+          yellow: Math.round((atRisk / totalG) * 100),
+          red: Math.round((behind / totalG) * 100),
+        }
         : undefined;
 
     return {
@@ -205,10 +204,10 @@ export default function DashboardPage() {
         onTrackPct:
           goalStats.inProgress > 0
             ? Math.round(
-                (goals.filter((g) => g.status === "active" && g.progress >= 60).length /
-                  goalStats.inProgress) *
-                  100,
-              )
+              (goals.filter((g) => g.status === "active" && g.progress >= 60).length /
+                goalStats.inProgress) *
+              100,
+            )
             : 0,
         segments,
       },
@@ -230,17 +229,17 @@ export default function DashboardPage() {
   const upcomingBlocks = useMemo(() => {
     const raw = settings?.plannerBlocks as
       | Array<{
-          id: string;
-          title: string;
-          date: string;
-          type: string;
-          startHour: number;
-          startMinute: number;
-          endHour: number;
-          endMinute: number;
-          notes?: string;
-          completed?: boolean;
-        }>
+        id: string;
+        title: string;
+        date: string;
+        type: string;
+        startHour: number;
+        startMinute: number;
+        endHour: number;
+        endMinute: number;
+        notes?: string;
+        completed?: boolean;
+      }>
       | undefined;
     if (!Array.isArray(raw)) return [];
     return buildUpcomingBlocksFromPlanner(raw, today);
@@ -327,20 +326,20 @@ export default function DashboardPage() {
         variants={container}
         initial="hidden"
         animate="show"
-        className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 pb-24 lg:pb-8"
+        className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 pb-8 pt-0 sm:pt-6"
       >
-        <motion.section variants={item} className="mb-6">
+        <motion.section variants={item} className="mb-4 sm:mb-10">
           <GreetingHeader onAddTask={() => setShowQuickTask(true)} />
         </motion.section>
 
-        <motion.section variants={item} className="mb-6">
+        <motion.section variants={item} className="mb-8">
           <QuickStatsRow stats={quickStats} />
         </motion.section>
 
         {/* Symmetric 2×3 grid: 3 left, 3 right */}
         <motion.section
           variants={item}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10"
           style={{ gridAutoRows: "minmax(280px, 1fr)" }}
         >
           <div className="min-h-[280px] h-full">
@@ -395,8 +394,6 @@ export default function DashboardPage() {
           <DayProgress />
         </motion.section>
       </motion.div>
-
-      <QuickActionsFab />
 
       <Dialog open={showQuickTask} onOpenChange={setShowQuickTask}>
         <DialogContent className="sm:max-w-md">
