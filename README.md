@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![CorteXia Banner](frontend/public/Cortexia-icon.jpeg)
+<img src="frontend/public/Cortexia-icon.jpeg" alt="CorteXia Icon" width="200" height="200" />
 
 **The Ultimate AI-Powered Life Operating System**
 
