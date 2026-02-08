@@ -80,3 +80,7 @@ async function start() {
 }
 
 start();
+
+// Start cron jobs
+import { startCronJobs } from "./services/cron";
+startCronJobs();
