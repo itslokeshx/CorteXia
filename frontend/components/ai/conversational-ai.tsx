@@ -106,6 +106,8 @@ const formatActionSummary = (action: {
       return "Cleared all goals";
     case "clear_all_data":
       return "Cleared all app data";
+    case "display_data":
+      return "Displayed requested data";
     default:
       return type ? type.replace(/_/g, " ") : "Action completed";
   }
@@ -197,9 +199,76 @@ const QUICK_ACTIONS = [
   { icon: Brain, label: "Life Score", action: "life_score" },
 ];
 
+const DataDisplay = ({ data }: { data: any }) => {
+  if (!data || !data.dataType) return null;
+
+  switch (data.dataType) {
+    case "tasks":
+      return (
+        <div className="mt-3 space-y-2">
+          {data.items?.map((item: any, i: number) => (
+            <div key={i} className="flex items-start gap-2 p-2 rounded bg-background/50 border text-xs">
+              <div className={`mt-0.5 w-2 h-2 rounded-full ${item.priority === 'high' ? 'bg-red-500' : item.priority === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'}`} />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{item.title}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {item.dueDate ? `Due ${item.dueDate}` : "No date"} · {item.status}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    case "habits":
+      return (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {data.items?.map((item: any, i: number) => (
+            <div key={i} className="p-2 rounded bg-background/50 border text-xs">
+              <p className="font-medium truncate">{item.name}</p>
+              <div className="flex items-center gap-1 mt-1">
+                <div className={`w-1.5 h-1.5 rounded-full ${item.completedToday ? 'bg-green-500' : 'bg-gray-300'}`} />
+                <span className="text-[10px] text-muted-foreground">{item.streak} day streak</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    case "goals":
+      return (
+        <div className="mt-3 space-y-2">
+          {data.items?.map((item: any, i: number) => (
+            <div key={i} className="p-2 rounded bg-background/50 border text-xs">
+              <div className="flex justify-between mb-1">
+                <span className="font-medium">{item.title}</span>
+                <span className="text-[10px]">{item.progress}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                <div className="h-full bg-primary" style={{ width: `${item.progress}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    case "analysis":
+      return (
+        <div className="mt-3 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-xs">
+          <h4 className="font-semibold text-indigo-600 dark:text-indigo-400 mb-1 flex items-center gap-1.5">
+            <Brain className="w-3 h-3" /> Analysis
+          </h4>
+          <p className="leading-relaxed opacity-90">{data.summary || data.items}</p>
+        </div>
+      );
+    default:
+      return (
+        <pre className="mt-3 p-2 rounded bg-background/50 border text-[10px] overflow-auto max-h-32">
+          {JSON.stringify(data, null, 2)}
+        </pre>
+      );
+  }
+};
+
 export function ConversationalAI() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -288,10 +357,10 @@ export function ConversationalAI() {
 
   // Focus input when opening
   useEffect(() => {
-    if (isOpen && !isMinimized) {
+    if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen, isMinimized]);
+  }, [isOpen]);
 
   // Build COMPREHENSIVE context for AI with full data access
   // Send message to AI
@@ -530,9 +599,9 @@ export function ConversationalAI() {
       action.data && typeof action.data === "object"
         ? action.data
         : (() => {
-            const { type: _, data: _d, ...rest } = action;
-            return rest;
-          })();
+          const { type: _, data: _d, ...rest } = action;
+          return rest;
+        })();
 
     try {
       switch (action.type) {
@@ -584,7 +653,7 @@ export function ConversationalAI() {
                 | "mindfulness"
                 | "social") || "productivity",
             frequency:
-              (d.frequency as "daily" | "weekly" | "monthly") || "daily",
+              (d.frequency as "daily" | "weekly" | "custom") || "daily",
             description: (d.description as string) || "",
             streak: 0,
             longestStreak: 0,
@@ -630,6 +699,7 @@ export function ConversationalAI() {
             progress: 0,
             status: "active",
             milestones: (d.milestones as any[]) || [],
+            level: (d.level as "quarterly" | "yearly" | "life") || "quarterly",
           });
           toast.success(`🎯 Goal created: ${d.title}`);
           break;
@@ -802,6 +872,12 @@ export function ConversationalAI() {
           break;
         }
 
+        // === DATA DISPLAY ===
+        case "display_data":
+          // No-op: data is already displayed in the message
+          toast.success("✨ Data refreshed");
+          break;
+
         // === DATA CLEARING ===
         case "clear_tasks":
           for (const t of tasks) deleteTask(t.id);
@@ -842,7 +918,7 @@ export function ConversationalAI() {
   const handleQuickAction = (action: string) => {
     switch (action) {
       case "show_today":
-        sendMessage("Show me my schedule and priorities for today");
+        sendMessage("Show me my schedule and priorities for today. Display the data here, do not navigate.");
         break;
       case "analyze_patterns":
         sendMessage(
@@ -903,7 +979,7 @@ export function ConversationalAI() {
   };
 
   // Minimized floating button
-  if (!isOpen || isMinimized) {
+  if (!isOpen) {
     return (
       <div className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6">
         {/* Subtle pulse */}
@@ -925,7 +1001,6 @@ export function ConversationalAI() {
           }}
           onClick={() => {
             setIsOpen(true);
-            setIsMinimized(false);
           }}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
@@ -992,14 +1067,7 @@ export function ConversationalAI() {
           </div>
         </div>
         <div className="flex items-center gap-0.5 sm:gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 sm:h-9 sm:w-9"
-            onClick={() => setIsMinimized(true)}
-          >
-            <Minus className="w-4 h-4" />
-          </Button>
+
           <Button
             variant="ghost"
             size="icon"
@@ -1120,6 +1188,14 @@ export function ConversationalAI() {
                         ))}
                       </div>
                     )}
+
+                    {/* Check for display_data in actions and render it */}
+                    {message.actions?.map((action, idx) => {
+                      if (action.type === 'display_data') {
+                        return <DataDisplay key={idx} data={action.data} />;
+                      }
+                      return null;
+                    })}
                   </div>
                   {message.role === "user" && (
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-secondary flex-shrink-0 flex items-center justify-center">

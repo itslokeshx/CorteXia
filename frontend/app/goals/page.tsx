@@ -137,11 +137,13 @@ export default function GoalsPage() {
   );
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [addingSubGoal, setAddingSubGoal] = useState<string | null>(null);
+
   const [newSubGoalText, setNewSubGoalText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Derived
   const activeGoals = useMemo(
-    () => goals.filter((g) => g.status !== "abandoned"),
+    () => goals.filter((g) => g.status !== "abandoned" && !g.parentGoalId),
     [goals],
   );
 
@@ -157,14 +159,14 @@ export default function GoalsPage() {
 
       const targetMonths = goal.targetDate
         ? Math.max(
-            1,
-            Math.ceil(
-              differenceInDays(
-                parseISO(goal.targetDate),
-                parseISO(goal.createdAt),
-              ) / 30,
-            ),
-          )
+          1,
+          Math.ceil(
+            differenceInDays(
+              parseISO(goal.targetDate),
+              parseISO(goal.createdAt),
+            ) / 30,
+          ),
+        )
         : 6;
       const quarters = generateQuarters(parseISO(goal.createdAt), targetMonths);
 
@@ -264,34 +266,39 @@ export default function GoalsPage() {
   );
 
   // ── Handlers ─────────────────────────────────────────────────────────────
-  const handleCreateGoal = () => {
-    if (!goalName.trim()) return;
-    const months =
-      timeframe === "custom"
-        ? customDate
-          ? Math.max(
+  const handleCreateGoal = async () => {
+    if (!goalName.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const months =
+        timeframe === "custom"
+          ? customDate
+            ? Math.max(
               1,
               Math.ceil(
                 differenceInDays(parseISO(customDate), new Date()) / 30,
               ),
             )
-          : 6
-        : parseInt(timeframe) || 6;
-    const targetDate = addMonths(new Date(), months).toISOString();
+            : 6
+          : parseInt(timeframe) || 6;
+      const targetDate = addMonths(new Date(), months).toISOString();
 
-    const newGoal = addGoal({
-      title: goalName.trim(),
-      description: "",
-      category: "personal" as Goal["category"],
-      priority: "medium" as Goal["priority"],
-      targetDate,
-      progress: 0,
-      status: "active",
-      level: months <= 3 ? "quarterly" : months <= 12 ? "yearly" : "life",
-      milestones: [],
-    });
-    setGoalName("");
-    setSelectedGoalId(newGoal.id);
+      const newGoal = await addGoal({
+        title: goalName.trim(),
+        description: "",
+        category: "personal" as Goal["category"],
+        priority: "medium" as Goal["priority"],
+        targetDate,
+        progress: 0,
+        status: "active",
+        level: months <= 3 ? "quarterly" : months <= 12 ? "yearly" : "life",
+        milestones: [],
+      });
+      setGoalName("");
+      setSelectedGoalId(newGoal.id);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const toggleSubGoal = useCallback(
@@ -323,12 +330,12 @@ export default function GoalsPage() {
         months: q.months.map((m) =>
           m.month === monthKey
             ? {
-                ...m,
-                subGoals: [
-                  ...m.subGoals,
-                  { id: newId, title: title.trim(), completed: false },
-                ],
-              }
+              ...m,
+              subGoals: [
+                ...m.subGoals,
+                { id: newId, title: title.trim(), completed: false },
+              ],
+            }
             : m,
         ),
       }));
@@ -874,11 +881,11 @@ export default function GoalsPage() {
 
               <Button
                 onClick={handleCreateGoal}
-                disabled={!goalName.trim()}
+                disabled={!goalName.trim() || isSubmitting}
                 className="ml-auto h-9 px-4 text-xs rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm"
               >
                 <Plus className="w-3.5 h-3.5 mr-1.5" />
-                Create Goal
+                {isSubmitting ? "Creating..." : "Create Goal"}
               </Button>
             </div>
           </div>

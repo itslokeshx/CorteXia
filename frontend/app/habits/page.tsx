@@ -97,6 +97,7 @@ export default function HabitsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedHabit, setSelectedHabit] = useState<string | null>(null);
   const [checkAnimating, setCheckAnimating] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newHabit, setNewHabit] = useState({
     name: "",
     description: "",
@@ -150,9 +151,9 @@ export default function HabitsPage() {
     const overallRate =
       habitData.length > 0
         ? Math.round(
-            habitData.reduce((sum, h) => sum + h.completionRate, 0) /
-              habitData.length,
-          )
+          habitData.reduce((sum, h) => sum + h.completionRate, 0) /
+          habitData.length,
+        )
         : 0;
     const atRisk = habitData.filter((h) => h.isAtRisk).length;
 
@@ -228,26 +229,31 @@ export default function HabitsPage() {
     return labels;
   }, []);
 
-  const handleCreateHabit = () => {
-    if (!newHabit.name.trim()) return;
-    addHabit({
-      name: newHabit.name,
-      description: newHabit.description,
-      frequency: newHabit.frequency as "daily" | "weekly" | "custom",
-      category: newHabit.category as Habit["category"],
-      color: newHabit.color,
-      streak: 0,
-      longestStreak: 0,
-      active: true,
-    });
-    setNewHabit({
-      name: "",
-      description: "",
-      frequency: "daily",
-      category: "health",
-      color: "#22c55e",
-    });
-    setCreateOpen(false);
+  const handleCreateHabit = async () => {
+    if (!newHabit.name.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await addHabit({
+        name: newHabit.name,
+        description: newHabit.description,
+        frequency: newHabit.frequency as "daily" | "weekly" | "custom",
+        category: newHabit.category as Habit["category"],
+        color: newHabit.color,
+        streak: 0,
+        longestStreak: 0,
+        active: true,
+      });
+      setNewHabit({
+        name: "",
+        description: "",
+        frequency: "daily",
+        category: "health",
+        color: "#22c55e",
+      });
+      setCreateOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleComplete = (habitId: string) => {
@@ -423,10 +429,10 @@ export default function HabitsPage() {
                 </Button>
                 <Button
                   onClick={handleCreateHabit}
-                  disabled={!newHabit.name.trim()}
+                  disabled={!newHabit.name.trim() || isSubmitting}
                   className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
                 >
-                  Create Habit
+                  {isSubmitting ? "Creating..." : "Create Habit"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -573,9 +579,9 @@ export default function HabitsPage() {
                         style={
                           habit.isCompleted
                             ? {
-                                backgroundColor: catColor,
-                                borderColor: catColor,
-                              }
+                              backgroundColor: catColor,
+                              borderColor: catColor,
+                            }
                             : { borderColor: `${catColor}50` }
                         }
                       >
@@ -600,7 +606,7 @@ export default function HabitsPage() {
                           className={cn(
                             "text-sm font-medium text-[var(--color-text-primary)] break-words",
                             habit.isCompleted &&
-                              "line-through text-[var(--color-text-tertiary)]",
+                            "line-through text-[var(--color-text-tertiary)]",
                           )}
                         >
                           {habit.name}
@@ -791,7 +797,7 @@ export default function HabitsPage() {
                                                     "cursor-pointer transition-all duration-150",
                                                     "hover:scale-[1.4] hover:outline hover:outline-2 hover:outline-purple-500/50 hover:outline-offset-1",
                                                     day.dateStr === "" &&
-                                                      "invisible",
+                                                    "invisible",
                                                   )}
                                                   style={{
                                                     width: 12,

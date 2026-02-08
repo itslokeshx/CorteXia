@@ -257,8 +257,9 @@ ACTIONS — when user asks to create/add/do something, put actions in the "actio
 • create_journal: {"type":"create_journal","data":{"content":"string","mood":7,"energy":6}}
 • navigate: {"type":"navigate","data":{"path":"/tasks"}}  — VALID PAGES: /tasks, /habits, /goals, /finance, /journal, /day-planner, /time-tracker, /study, /insights, /settings, /ai-coach, /timeline
 • set_theme: {"type":"set_theme","data":{"theme":"dark|light"}}
+• display_data: {"type":"display_data","data":{"dataType":"tasks|habits|goals|finance|analysis","items":[]}} — Use this to show lists inline.
 
-NOTE on navigate: When user asks about schedule, priorities for today, or daily plan → navigate to "/day-planner" (NOT /schedule). Use ONLY the valid pages listed above.
+NOTE on navigate: NEVER use "navigate" unless user explicitly asks to "go to" or "open" a page. If user asks "show me my day", "what's on my schedule", "list my tasks", etc. -> USE "display_data". Do NOT navigate.
 
 EXAMPLE — user says "create a task to buy milk":
 {"message":"Done! I've created a task to buy milk for you.","actions":[{"type":"create_task","data":{"title":"Buy milk","priority":"medium","domain":"personal"}}],"suggestions":[{"text":"Add more tasks","action":"create_task","reason":"Batch your errands"}]}
@@ -439,7 +440,7 @@ router.post("/", async (req: AuthRequest, res: Response) => {
           if (response.status === 429) continue;
           throw new Error(
             (error as any).error?.message ||
-              "Groq API error: " + response.status,
+            "Groq API error: " + response.status,
           );
         }
 

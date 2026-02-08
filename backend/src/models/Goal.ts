@@ -9,12 +9,12 @@ export interface IGoal extends Document {
   targetDate?: string;
   progress: number;
   status:
-    | "active"
-    | "completed"
-    | "paused"
-    | "abandoned"
-    | "at_risk"
-    | "failing";
+  | "active"
+  | "completed"
+  | "paused"
+  | "abandoned"
+  | "at_risk"
+  | "failing";
   milestones: Array<{
     id: string;
     title: string;
@@ -125,6 +125,7 @@ const GoalSchema = new Schema<IGoal>(
 
 GoalSchema.index({ userId: 1, status: 1 });
 GoalSchema.index({ userId: 1, deadline: 1 });
+GoalSchema.index({ userId: 1, title: 1, parentGoalId: 1 }, { unique: true });
 
 export default mongoose.models.Goal ||
   mongoose.model<IGoal>("Goal", GoalSchema);

@@ -118,18 +118,17 @@ export default function DashboardPage() {
 
   // Quick add
   const [showQuickTask, setShowQuickTask] = useState(false);
-  const [showQuickNote, setShowQuickNote] = useState(false);
   const [quickTaskTitle, setQuickTaskTitle] = useState("");
   const [quickTaskPriority, setQuickTaskPriority] = useState<
     "medium" | "high" | "critical"
   >("high");
-  const [quickNote, setQuickNote] = useState("");
+
 
   // Daily motto — stable per day
   const dailyMotto = useMemo(() => {
     const dayOfYear = Math.floor(
       (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) /
-        86400000,
+      86400000,
     );
     return MOTTOS[dayOfYear % MOTTOS.length];
   }, []);
@@ -257,29 +256,7 @@ export default function DashboardPage() {
     setShowQuickTask(false);
   };
 
-  const handleQuickNote = () => {
-    if (!quickNote.trim()) return;
-    const todayEntry = journalEntries.find((j) => j.date === today);
-    const timestamp = format(new Date(), "h:mm a");
-    if (todayEntry) {
-      const sep = todayEntry.content ? "\n\n" : "";
-      updateJournalEntry(todayEntry.id, {
-        content: `${todayEntry.content}${sep}📝 [${timestamp}] ${quickNote.trim()}`,
-      });
-    } else {
-      addJournalEntry({
-        date: today,
-        title: format(new Date(), "EEEE, MMMM d"),
-        content: `📝 [${timestamp}] ${quickNote.trim()}`,
-        mood: 6,
-        energy: 6,
-        focus: 6,
-        tags: ["quick-note"],
-      });
-    }
-    setQuickNote("");
-    setShowQuickNote(false);
-  };
+
 
   const toggleTask = (id: string) => {
     const t = tasks.find((x) => x.id === id);
@@ -346,14 +323,7 @@ export default function DashboardPage() {
               >
                 <Plus className="w-3.5 h-3.5" /> Task
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowQuickNote(true)}
-                className="gap-1.5 h-9 px-3.5 rounded-lg"
-              >
-                <Pen className="w-3.5 h-3.5" /> Note
-              </Button>
+
             </div>
           </div>
 
@@ -726,7 +696,7 @@ export default function DashboardPage() {
                 <p className="text-sm text-[var(--color-text-secondary)] line-clamp-3 leading-relaxed">
                   {recentJournal.content
                     ? recentJournal.content.slice(0, 180) +
-                      (recentJournal.content.length > 180 ? "…" : "")
+                    (recentJournal.content.length > 180 ? "…" : "")
                     : "No entry yet."}
                 </p>
                 {recentJournal.mood && (
@@ -754,7 +724,7 @@ export default function DashboardPage() {
               </Link>
             ) : (
               <button
-                onClick={() => setShowQuickNote(true)}
+                onClick={() => router.push("/journal")}
                 className="w-full p-6 rounded-xl border border-dashed border-[var(--color-border)] hover:border-[var(--color-text-tertiary)] bg-[var(--color-bg-primary)] text-center transition-colors"
               >
                 <BookOpen className="w-6 h-6 mx-auto text-[var(--color-text-tertiary)] mb-2" />
@@ -888,7 +858,7 @@ export default function DashboardPage() {
                 {Math.round(
                   ((currentTime.getHours() * 60 + currentTime.getMinutes()) /
                     1440) *
-                    100,
+                  100,
                 )}
                 % of day elapsed
               </span>
@@ -941,30 +911,7 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showQuickNote} onOpenChange={setShowQuickNote}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-base">Quick Note</DialogTitle>
-          </DialogHeader>
-          <div className="py-3">
-            <Textarea
-              placeholder="What's on your mind?"
-              value={quickNote}
-              onChange={(e) => setQuickNote(e.target.value)}
-              autoFocus
-              className="min-h-[100px] resize-none"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowQuickNote(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleQuickNote} disabled={!quickNote.trim()}>
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
     </AppLayout>
   );
 }

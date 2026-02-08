@@ -12,6 +12,8 @@ import { useAuth } from "@/lib/context/auth-context";
 import {
   fetchAllUserData,
   syncTask,
+  createTaskSync,
+  updateTaskSync,
   syncHabit,
   syncHabitCompletion,
   syncTransaction,
@@ -230,6 +232,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const hydratedRef = useRef(false);
   const userId = user?.id ?? null;
+  const syncTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
+
+  const debouncedUpdateTask = useCallback((task: Task) => {
+    if (task.id.startsWith("demo-")) return;
+
+    if (syncTimeouts.current[task.id]) {
+      clearTimeout(syncTimeouts.current[task.id]);
+    }
+
+    syncTimeouts.current[task.id] = setTimeout(() => {
+      updateTaskSync(task);
+      delete syncTimeouts.current[task.id];
+    }, 500);
+  }, []);
 
   // Helper to deduplicate arrays by id
   const deduplicateById = <T extends { id: string }>(arr: T[]): T[] => {
@@ -312,7 +328,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTasks((prev) => [newTask, ...prev]);
-    if (userId) syncTask(newTask);
+
+    if (userId) {
+      createTaskSync(newTask).then((savedTask) => {
+        if (savedTask) {
+          setTasks((prev) =>
+            prev.map((t) => (t.id === newTask.id ? { ...t, id: savedTask.id } : t))
+          );
+        }
+      });
+    }
     return newTask;
   };
 
@@ -320,7 +345,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTasks((prev) => {
       const updated = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
       const task = updated.find((t) => t.id === id);
-      if (task && userId) syncTask(task);
+      if (task && userId) debouncedUpdateTask(task);
       return updated;
     });
   };
@@ -335,14 +360,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const updated = prev.map((t) =>
         t.id === id
           ? {
-              ...t,
-              status: "completed" as const,
-              completedAt: new Date().toISOString(),
-            }
+            ...t,
+            status: "completed" as const,
+            completedAt: new Date().toISOString(),
+          }
           : t,
       );
       const task = updated.find((t) => t.id === id);
-      if (task && userId) syncTask(task);
+      if (task && userId) debouncedUpdateTask(task);
 
       // ── Cross-page sync: update linked goal progress ──
       if (task?.linkedGoalId) {
@@ -359,15 +384,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const gUpdated = gPrev.map((g) =>
             g.id === task.linkedGoalId
               ? {
-                  ...g,
-                  progress: Math.max(g.progress, newProgress),
-                  ...(newProgress >= 100
-                    ? {
-                        status: "completed" as const,
-                        completedAt: new Date().toISOString(),
-                      }
-                    : {}),
-                }
+                ...g,
+                progress: Math.max(g.progress, newProgress),
+                ...(newProgress >= 100
+                  ? {
+                    status: "completed" as const,
+                    completedAt: new Date().toISOString(),
+                  }
+                  : {}),
+              }
               : g,
           );
           const goal = gUpdated.find((g) => g.id === task.linkedGoalId);
@@ -412,7 +437,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           : t,
       );
       const task = updated.find((t) => t.id === id);
-      if (task && userId) syncTask(task);
+      if (task && userId) debouncedUpdateTask(task);
       return updated;
     });
   };
@@ -457,8 +482,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         const updatedCompletions = existing
           ? h.completions.map((c) =>
-              c.date === date ? { ...c, completed: newCompleted } : c,
-            )
+            c.date === date ? { ...c, completed: newCompleted } : c,
+          )
           : [...h.completions, { date, completed: true }];
 
         if (userId) {
@@ -644,9 +669,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           progress: Math.max(g.progress, milestoneProgress),
           ...(milestoneProgress >= 100
             ? {
-                status: "completed" as const,
-                completedAt: new Date().toISOString(),
-              }
+              status: "completed" as const,
+              completedAt: new Date().toISOString(),
+            }
             : {}),
         };
       });
@@ -735,19 +760,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const habitCompletionRate =
       habits.length > 0
         ? habits.reduce((sum, h) => {
-            const today = new Date().toISOString().split("T")[0];
-            const completed = h.completions.find((c) => c.date === today)
-              ?.completed
-              ? 1
-              : 0;
-            return sum + completed;
-          }, 0) / habits.length
+          const today = new Date().toISOString().split("T")[0];
+          const completed = h.completions.find((c) => c.date === today)
+            ?.completed
+            ? 1
+            : 0;
+          return sum + completed;
+        }, 0) / habits.length
         : 0;
 
     const avgMood =
       journalEntries.length > 0
         ? journalEntries.reduce((sum, j) => sum + j.mood, 0) /
-          journalEntries.length
+        journalEntries.length
         : 5;
 
     const newState: LifeState = {

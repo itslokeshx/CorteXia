@@ -30,7 +30,7 @@ const navItems = [
   { href: "/habits", label: "Habits", icon: Target },
   { href: "/goals", label: "Goals", icon: Flag },
   { href: "/day-planner", label: "Day Planner", icon: CalendarDays },
-  { href: "/time-tracker", label: "Time Tracker", icon: Timer },
+  { href: "/time-tracker", label: "Focus", icon: Timer },
   { href: "/finance", label: "Expenses", icon: Wallet },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/ai-coach", label: "AI Coach", icon: Brain },

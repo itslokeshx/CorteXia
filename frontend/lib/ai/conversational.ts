@@ -108,6 +108,7 @@ YOUR APP CAPABILITIES (use when relevant):
 - STUDY: log_study, delete_study_session
 - JOURNAL: create_journal, update_journal, delete_journal
 - NAVIGATION: navigate (to any page)
+- DISPLAY: display_data (to show lists/data inline)
 
 RESPONSE FORMAT (always return valid JSON):
 {
@@ -123,6 +124,7 @@ IMPORTANT:
 - Only include "actions" if the user explicitly asks to create/add/do something
 - Always include helpful "suggestions" that connect the topic to productivity/life management
 - Be concise but complete
+- For "show", "list", or "get" queries (e.g., "show my tasks"), fetch the data from context and format it nicely in the "message" field using Markdown. Use the 'display_data' action to signal this. DO NOT use 'navigate'.
 
 ACTION DATA SCHEMAS (only when user asks to create something):
 - create_task: { title, description?, domain?, priority?, dueDate?, tags? }
@@ -135,7 +137,8 @@ ACTION DATA SCHEMAS (only when user asks to create something):
 - create_journal: { title?, content, mood? (1-10), energy? (1-10), tags? }
 - complete_task: { taskId }
 - complete_habit: { habitId }
-- navigate: { path }`;
+- navigate: { path }
+- display_data: { type: "tasks" | "habits" | "goals" | "finance" | "other" }`;
 
 class ConversationalAI {
   async chat(
@@ -232,14 +235,14 @@ Return your response as pure JSON now:`;
       const title = titleMatch
         ? titleMatch[1].trim()
         : input
-            .replace(/create|add|new|make|remind|me|to|task|todo|a|an/gi, "")
-            .trim();
+          .replace(/create|add|new|make|remind|me|to|task|todo|a|an/gi, "")
+          .trim();
 
       if (title) {
         const priority =
           lowerInput.includes("urgent") ||
-          lowerInput.includes("important") ||
-          lowerInput.includes("critical")
+            lowerInput.includes("important") ||
+            lowerInput.includes("critical")
             ? "high"
             : lowerInput.includes("low priority")
               ? "low"
@@ -255,7 +258,7 @@ Return your response as pure JSON now:`;
             domain,
             description:
               lowerInput.includes("description") ||
-              lowerInput.includes("details")
+                lowerInput.includes("details")
                 ? input.split(/description|details/i)[1]?.trim()
                 : undefined,
           },
@@ -359,8 +362,8 @@ Return your response as pure JSON now:`;
       const title = titleMatch
         ? titleMatch[1].trim()
         : input
-            .replace(/create|add|new|set|goal|target|objective|a|an/gi, "")
-            .trim();
+          .replace(/create|add|new|set|goal|target|objective|a|an/gi, "")
+          .trim();
 
       if (title) {
         const category = this.inferGoalCategory(lowerInput);
@@ -387,8 +390,8 @@ Return your response as pure JSON now:`;
       const name = nameMatch
         ? nameMatch[1].trim()
         : input
-            .replace(/create|add|new|start|track|habit|routine|a|an/gi, "")
-            .trim();
+          .replace(/create|add|new|start|track|habit|routine|a|an/gi, "")
+          .trim();
 
       if (name) {
         const frequency = lowerInput.includes("weekly")

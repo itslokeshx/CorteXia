@@ -90,6 +90,7 @@ const HabitSchema = new Schema<IHabit>(
 );
 
 HabitSchema.index({ userId: 1, active: 1 });
+HabitSchema.index({ userId: 1, name: 1 }, { unique: true });
 
 export default mongoose.models.Habit ||
   mongoose.model<IHabit>("Habit", HabitSchema);

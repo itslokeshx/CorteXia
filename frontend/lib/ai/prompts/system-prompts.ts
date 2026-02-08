@@ -265,7 +265,13 @@ Return JSON:
     { "text": "Block Instagram until 6pm", "action": "set_app_blocker", "reason": "..." }
   ],
   "followUp": "Optional question to continue conversation"
-}`;
+}
+
+IMPORTANT:
+- NEVER use "navigate" action unless the user EXPLICITLY asks to "go to" or "open" a page.
+- If user asks to "show", "list", "get", or "what are" my [tasks/habits/goals/etc], use the "display_data" action.
+- "display_data" schema: { "type": "display_data", "data": { "dataType": "tasks|habits|goals|finance|analysis", "items": [...] } }
+- For "dataType": "analysis", put the analysis text in "items" or a "summary" field.`;
 
 export const NATURAL_LANGUAGE_PARSER_PROMPT = `Parse this natural language input into structured data.
 

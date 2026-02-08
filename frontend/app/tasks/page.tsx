@@ -110,6 +110,7 @@ export default function TasksPage() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [addingSubtask, setAddingSubtask] = useState<string | null>(null);
   const [newSubtaskText, setNewSubtaskText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
@@ -279,57 +280,67 @@ export default function TasksPage() {
     setFormDurM(30);
   };
 
-  const handleCreate = () => {
-    if (!formTitle.trim()) return;
-    const dur = formDurH * 60 + formDurM;
-    const taskDate = scheduleToDate(formSchedule);
-    addTask({
-      title: formTitle.trim(),
-      description: formDescription.trim() || undefined,
-      domain: "personal",
-      priority: formPriority,
-      status: "todo",
-      dueDate: taskDate,
-      dueTime: formTimeBlock ? formStartTime : undefined,
-      scheduledFor: formSchedule,
-      timeEstimate: dur > 0 ? dur : undefined,
-      linkedGoalId: formGoalId || undefined,
-    });
-    // Auto-sync to day planner if time block is set
-    if (formTimeBlock) {
-      syncTaskToPlanner(formTitle.trim(), taskDate, formStartTime, formEndTime);
+  const handleCreate = async () => {
+    if (!formTitle.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const dur = formDurH * 60 + formDurM;
+      const taskDate = scheduleToDate(formSchedule);
+      await addTask({
+        title: formTitle.trim(),
+        description: formDescription.trim() || undefined,
+        domain: "personal",
+        priority: formPriority,
+        status: "todo",
+        dueDate: taskDate,
+        dueTime: formTimeBlock ? formStartTime : undefined,
+        scheduledFor: formSchedule,
+        timeEstimate: dur > 0 ? dur : undefined,
+        linkedGoalId: formGoalId || undefined,
+      });
+      // Auto-sync to day planner if time block is set
+      if (formTimeBlock) {
+        syncTaskToPlanner(formTitle.trim(), taskDate, formStartTime, formEndTime);
+      }
+      resetForm();
+      setShowModal(false);
+    } finally {
+      setIsSubmitting(false);
     }
-    resetForm();
-    setShowModal(false);
   };
 
-  const handleSaveEdit = () => {
-    if (!editingTaskId || !formTitle.trim()) return;
-    const dur = formDurH * 60 + formDurM;
-    const taskDate = scheduleToDate(formSchedule);
-    updateTask(editingTaskId, {
-      title: formTitle.trim(),
-      description: formDescription.trim() || undefined,
-      priority: formPriority,
-      dueDate: taskDate,
-      dueTime: formTimeBlock ? formStartTime : undefined,
-      scheduledFor: formSchedule,
-      timeEstimate: dur > 0 ? dur : undefined,
-      linkedGoalId: formGoalId || undefined,
-    });
-    // Auto-sync to day planner if time block is set
-    if (formTimeBlock) {
-      syncTaskToPlanner(
-        formTitle.trim(),
-        taskDate,
-        formStartTime,
-        formEndTime,
-        editingTaskId,
-      );
+  const handleSaveEdit = async () => {
+    if (!editingTaskId || !formTitle.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const dur = formDurH * 60 + formDurM;
+      const taskDate = scheduleToDate(formSchedule);
+      updateTask(editingTaskId, {
+        title: formTitle.trim(),
+        description: formDescription.trim() || undefined,
+        priority: formPriority,
+        dueDate: taskDate,
+        dueTime: formTimeBlock ? formStartTime : undefined,
+        scheduledFor: formSchedule,
+        timeEstimate: dur > 0 ? dur : undefined,
+        linkedGoalId: formGoalId || undefined,
+      });
+      // Auto-sync to day planner if time block is set
+      if (formTimeBlock) {
+        syncTaskToPlanner(
+          formTitle.trim(),
+          taskDate,
+          formStartTime,
+          formEndTime,
+          editingTaskId,
+        );
+      }
+      resetForm();
+      setEditingTaskId(null);
+      setShowModal(false);
+    } finally {
+      setIsSubmitting(false);
     }
-    resetForm();
-    setEditingTaskId(null);
-    setShowModal(false);
   };
 
   const openEdit = (task: Task) => {
@@ -370,10 +381,10 @@ export default function TasksPage() {
       const subs = task.subtasks.map((s) =>
         s.id === subtaskId
           ? {
-              ...s,
-              completed: !s.completed,
-              completedAt: !s.completed ? new Date().toISOString() : undefined,
-            }
+            ...s,
+            completed: !s.completed,
+            completedAt: !s.completed ? new Date().toISOString() : undefined,
+          }
           : s,
       );
       updateTask(taskId, { subtasks: subs });
@@ -719,87 +730,117 @@ export default function TasksPage() {
               />
             </div>
 
-            <div>
-              <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">
-                Schedule
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {(
-                  [
-                    ["today", "Today"],
-                    ["tomorrow", "Tomorrow"],
-                    ["week", "Week"],
-                    ["month", "Month"],
-                    ["year", "Year"],
-                  ] as const
-                ).map(([val, label]) => (
-                  <button
-                    key={val}
-                    onClick={() => setFormSchedule(val)}
-                    className={cn(
-                      "px-3 py-1.5 text-[12px] font-medium rounded-lg border transition-all",
-                      formSchedule === val
-                        ? "border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
-                        : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800",
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">
-                Priority
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {(["low", "medium", "high", "critical"] as const).map((p) => {
-                  const c = priorityConfig[p];
-                  return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">
+                  Schedule
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {(
+                    [
+                      ["today", "Today"],
+                      ["tomorrow", "Tomorrow"],
+                      ["week", "Week"],
+                      ["month", "Month"],
+                      ["year", "Year"],
+                    ] as const
+                  ).map(([val, label]) => (
                     <button
-                      key={p}
-                      onClick={() => setFormPriority(p)}
+                      key={val}
+                      onClick={() => setFormSchedule(val)}
                       className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-lg border transition-all",
-                        formPriority === p
-                          ? `${c.bg} ${c.text} ${c.border}`
+                        "px-3 py-1.5 text-[12px] font-medium rounded-lg border transition-all",
+                        formSchedule === val
+                          ? "border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
                           : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800",
                       )}
                     >
-                      <span className={cn("w-1.5 h-1.5 rounded-full", c.dot)} />
-                      {c.label}
+                      {label}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">
+                  Priority
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {(["low", "medium", "high", "critical"] as const).map((p) => {
+                    const c = priorityConfig[p];
+                    return (
+                      <button
+                        key={p}
+                        onClick={() => setFormPriority(p)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-lg border transition-all",
+                          formPriority === p
+                            ? `${c.bg} ${c.text} ${c.border}`
+                            : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800",
+                        )}
+                      >
+                        <span className={cn("w-1.5 h-1.5 rounded-full", c.dot)} />
+                        {c.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-                Goal
-              </label>
-              <Select
-                value={formGoalId || "none"}
-                onValueChange={(v) => setFormGoalId(v === "none" ? "" : v)}
-              >
-                <SelectTrigger className="h-10 text-[13px] rounded-lg">
-                  <SelectValue placeholder="Link to goal (optional)" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  <SelectItem value="none">None</SelectItem>
-                  {goals
-                    .filter(
-                      (g) =>
-                        g.status !== "completed" && g.status !== "abandoned",
-                    )
-                    .map((g) => (
-                      <SelectItem key={g.id} value={g.id}>
-                        {g.title}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                  Goal
+                </label>
+                <Select
+                  value={formGoalId || "none"}
+                  onValueChange={(v) => setFormGoalId(v === "none" ? "" : v)}
+                >
+                  <SelectTrigger className="h-10 text-[13px] rounded-lg">
+                    <SelectValue placeholder="Link to goal (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value="none">None</SelectItem>
+                    {goals
+                      .filter(
+                        (g) =>
+                          g.status !== "completed" && g.status !== "abandoned",
+                      )
+                      .map((g) => (
+                        <SelectItem key={g.id} value={g.id}>
+                          {g.title}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                  Duration
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={12}
+                    value={formDurH}
+                    onChange={(e) => setFormDurH(parseInt(e.target.value) || 0)}
+                    className="w-16 h-9 text-center text-[13px]"
+                  />
+                  <span className="text-[12px] text-gray-500">h</span>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={formDurM}
+                    onChange={(e) => setFormDurM(parseInt(e.target.value) || 0)}
+                    className="w-16 h-9 text-center text-[13px]"
+                  />
+                  <span className="text-[12px] text-gray-500">m</span>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -838,32 +879,6 @@ export default function TasksPage() {
                 )}
               </AnimatePresence>
             </div>
-
-            <div>
-              <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-                Duration
-              </label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={0}
-                  max={12}
-                  value={formDurH}
-                  onChange={(e) => setFormDurH(parseInt(e.target.value) || 0)}
-                  className="w-16 h-9 text-center text-[13px]"
-                />
-                <span className="text-[12px] text-gray-500">h</span>
-                <Input
-                  type="number"
-                  min={0}
-                  max={59}
-                  value={formDurM}
-                  onChange={(e) => setFormDurM(parseInt(e.target.value) || 0)}
-                  className="w-16 h-9 text-center text-[13px]"
-                />
-                <span className="text-[12px] text-gray-500">m</span>
-              </div>
-            </div>
           </div>
 
           <DialogFooter className="h-14 sm:h-16 px-4 sm:px-5 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
@@ -880,7 +895,7 @@ export default function TasksPage() {
             </Button>
             <Button
               onClick={editingTaskId ? handleSaveEdit : handleCreate}
-              disabled={!formTitle.trim()}
+              disabled={!formTitle.trim() || isSubmitting}
               className="h-9 px-5 text-[13px] rounded-lg bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm disabled:opacity-50 flex-1 sm:flex-initial"
             >
               {editingTaskId ? "Save" : "Create"}

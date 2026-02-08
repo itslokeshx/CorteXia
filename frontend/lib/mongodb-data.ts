@@ -65,23 +65,42 @@ export async function fetchAllUserData(): Promise<MongoUserData> {
 // ═══════════════════════════════════════════════════════════════
 
 // Tasks
-export async function syncTask(task: Task): Promise<void> {
+// Tasks
+export async function createTaskSync(task: Task): Promise<Task | null> {
   try {
-    if (task.id.startsWith("demo-") || task.id.includes("-")) {
-      await fetch(`${API_URL}/api/tasks`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(task),
-      });
-    } else {
-      await fetch(`${API_URL}/api/tasks`, {
-        method: "PATCH",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(task),
-      });
+    const res = await fetch(`${API_URL}/api/tasks`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(task),
+    });
+    if (res.ok) {
+      return await res.json();
     }
   } catch (err) {
-    console.error("syncTask error:", err);
+    console.error("createTaskSync error:", err);
+  }
+  return null;
+}
+
+export async function updateTaskSync(task: Task): Promise<void> {
+  try {
+    // Force PATCH regardless of ID format (assuming caller handles ID mapping or backend handles it)
+    await fetch(`${API_URL}/api/tasks`, {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(task),
+    });
+  } catch (err) {
+    console.error("updateTaskSync error:", err);
+  }
+}
+
+// Deprecated: wrapper for backward compatibility if needed, but we will update usage
+export async function syncTask(task: Task): Promise<void> {
+  if (task.id.startsWith("demo-") || task.id.includes("-")) {
+    await createTaskSync(task);
+  } else {
+    await updateTaskSync(task);
   }
 }
 

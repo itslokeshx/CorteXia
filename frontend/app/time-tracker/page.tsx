@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 const PRESETS = [
   {
@@ -72,6 +73,7 @@ export default function TimeTrackerPage() {
   const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [customDuration, setCustomDuration] = useState("");
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -308,7 +310,7 @@ export default function TimeTrackerPage() {
       <motion.div className="space-y-6 pb-12">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
-            Time Tracker
+            Focus
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
             Deep focus sessions to maximize your flow
@@ -440,8 +442,72 @@ export default function TimeTrackerPage() {
                 <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity" />
               </motion.button>
             ))}
+
+            {/* Custom Session Card */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="flex items-center gap-4 p-5 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl text-left hover:shadow-md transition-all group relative overflow-hidden"
+            >
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 dark:from-gray-600 dark:to-gray-800 flex items-center justify-center shadow-sm flex-shrink-0">
+                <Clock className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0 z-10">
+                <p className="font-medium text-[var(--color-text-primary)] mb-1">
+                  Custom
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min="1"
+                    placeholder="Min"
+                    value={customDuration}
+                    onChange={(e) => setCustomDuration(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && customDuration) {
+                        const mins = parseInt(customDuration);
+                        if (mins > 0) {
+                          startSession({
+                            label: "Custom Session",
+                            duration: mins,
+                            icon: Clock,
+                            color: "from-blue-500 to-indigo-600",
+                            category: "work",
+                            quality: "deep",
+                          });
+                          setCustomDuration("");
+                        }
+                      }
+                    }}
+                    className="h-7 w-16 text-xs px-2 bg-[var(--color-bg-primary)] border-[var(--color-border)]"
+                  />
+                  <Button
+                    size="sm"
+                    className="h-7 w-7 p-0 rounded-lg"
+                    disabled={!customDuration || parseInt(customDuration) <= 0}
+                    onClick={() => {
+                      const mins = parseInt(customDuration);
+                      if (mins > 0) {
+                        startSession({
+                          label: "Custom Session",
+                          duration: mins,
+                          icon: Clock,
+                          color: "from-blue-500 to-indigo-600",
+                          category: "work",
+                          quality: "deep",
+                        });
+                        setCustomDuration("");
+                      }
+                    }}
+                  >
+                    <Play className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
+
+
 
         {/* Recent Sessions */}
         <div>
@@ -485,6 +551,6 @@ export default function TimeTrackerPage() {
           </div>
         </div>
       </motion.div>
-    </AppLayout>
+    </AppLayout >
   );
 }

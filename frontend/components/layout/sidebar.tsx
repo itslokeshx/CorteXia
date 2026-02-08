@@ -26,7 +26,7 @@ const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/habits", label: "Habits", icon: Target },
-  { href: "/time", label: "Time", icon: Clock },
+  { href: "/time-tracker", label: "Focus", icon: Clock },
   { href: "/timeline", label: "Timeline", icon: CalendarRange },
   { href: "/finance", label: "Money", icon: DollarSign },
   { href: "/study", label: "Study", icon: BookOpen },
@@ -59,7 +59,7 @@ export function Sidebar() {
                 "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
                 "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]",
                 isActive &&
-                  "text-[var(--color-accent-primary)] bg-[var(--color-bg-secondary)] font-medium",
+                "text-[var(--color-accent-primary)] bg-[var(--color-bg-secondary)] font-medium",
               )}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
@@ -95,7 +95,7 @@ export function Sidebar() {
             "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200",
             "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]",
             pathname === "/settings" &&
-              "text-[var(--color-accent-primary)] bg-[var(--color-bg-secondary)] font-medium",
+            "text-[var(--color-accent-primary)] bg-[var(--color-bg-secondary)] font-medium",
           )}
         >
           <Settings className="w-4 h-4 flex-shrink-0" />
