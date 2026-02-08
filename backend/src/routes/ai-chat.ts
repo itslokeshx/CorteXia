@@ -255,8 +255,10 @@ ACTIONS — when user asks to create/add/do something, put actions in the "actio
 • log_time: {"type":"log_time","data":{"task":"string","duration":30,"category":"string"}}
 • log_study: {"type":"log_study","data":{"subject":"string","duration":45,"topic":"string"}}
 • create_journal: {"type":"create_journal","data":{"content":"string","mood":7,"energy":6}}
-• navigate: {"type":"navigate","data":{"path":"/tasks"}}
+• navigate: {"type":"navigate","data":{"path":"/tasks"}}  — VALID PAGES: /tasks, /habits, /goals, /finance, /journal, /day-planner, /time-tracker, /study, /insights, /settings, /ai-coach, /timeline
 • set_theme: {"type":"set_theme","data":{"theme":"dark|light"}}
+
+NOTE on navigate: When user asks about schedule, priorities for today, or daily plan → navigate to "/day-planner" (NOT /schedule). Use ONLY the valid pages listed above.
 
 EXAMPLE — user says "create a task to buy milk":
 {"message":"Done! I've created a task to buy milk for you.","actions":[{"type":"create_task","data":{"title":"Buy milk","priority":"medium","domain":"personal"}}],"suggestions":[{"text":"Add more tasks","action":"create_task","reason":"Batch your errands"}]}

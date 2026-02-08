@@ -13,7 +13,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CorteXia - Your Life, Understood",
+  title: "CorteXia",
   description:
     "Your Life, Understood. Powered by AI. A unified personal life operating system integrating tasks, time tracking, habit management, finance tracking, and AI-powered insights.",
   generator: "v0.app",

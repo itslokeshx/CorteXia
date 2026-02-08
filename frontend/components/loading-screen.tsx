@@ -30,10 +30,10 @@ export function LoadingScreen({
   const [msgIndex, setMsgIndex] = useState(0);
   const [internalProgress, setInternalProgress] = useState(0);
 
-  // Smooth 5-second 0-100% progress
+  // Smooth 2-second 0-100% progress
   useEffect(() => {
     const startTime = Date.now();
-    const duration = 5000; // 5 seconds
+    const duration = 2000; // 2 seconds
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;

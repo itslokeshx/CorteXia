@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
   useRef,
+  useCallback,
 } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import {
@@ -899,13 +900,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // SETTINGS
   // ═══════════════════════════════════════════════════════════
 
-  const updateSettings = (updates: Partial<UserSettings>) => {
-    setSettings((prev) => {
-      const updated = { ...prev, ...updates };
-      if (userId) syncSettings(updated as Record<string, any>);
-      return updated;
-    });
-  };
+  const updateSettings = useCallback(
+    (updates: Partial<UserSettings>) => {
+      setSettings((prev) => {
+        const updated = { ...prev, ...updates };
+        if (userId) syncSettings(updated as Record<string, any>);
+        return updated;
+      });
+    },
+    [userId],
+  );
 
   // ═══════════════════════════════════════════════════════════
   // UTILITY FUNCTIONS
