@@ -208,7 +208,7 @@ export default function AuthPage() {
           <div
             className="rounded-2xl border backdrop-blur-xl p-8 sm:p-10 text-center"
             style={{
-              borderColor: "var(--color-border-primary)",
+              borderColor: "var(--color-border)",
               background: "var(--color-bg-secondary)",
             }}
           >
@@ -268,7 +268,7 @@ export default function AuthPage() {
               disabled={isGoogleLoading || !googleReady}
               className="w-full flex items-center justify-center gap-3 rounded-xl border px-5 py-3.5 text-sm font-medium transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mb-6"
               style={{
-                borderColor: "var(--color-border-primary)",
+                borderColor: "var(--color-border)",
                 background: "var(--color-bg-tertiary)",
                 color: "var(--color-text-primary)",
               }}
@@ -302,7 +302,7 @@ export default function AuthPage() {
             <div className="flex items-center gap-3 mb-6">
               <div
                 className="flex-1 h-px"
-                style={{ background: "var(--color-border-primary)" }}
+                style={{ background: "var(--color-border)" }}
               />
               <span
                 className="text-[11px] uppercase tracking-wider"
@@ -312,7 +312,7 @@ export default function AuthPage() {
               </span>
               <div
                 className="flex-1 h-px"
-                style={{ background: "var(--color-border-primary)" }}
+                style={{ background: "var(--color-border)" }}
               />
             </div>
 
@@ -374,7 +374,7 @@ export default function AuthPage() {
                 className="w-full"
                 style={{
                   background: "var(--color-accent-primary)",
-                  color: "white",
+                  color: "var(--color-bg-primary)",
                 }}
               >
                 {isSubmitting ? (

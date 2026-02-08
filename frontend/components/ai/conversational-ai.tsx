@@ -595,8 +595,8 @@ export function ConversationalAI() {
         if (memUpdate.userName) updated.userName = memUpdate.userName;
         if (memUpdate.lastTopic) updated.lastTopic = memUpdate.lastTopic;
 
-        // Save to settings (MongoDB) asynchronously
-        updateSettings({ aiMemory: updated });
+        // Defer save to avoid calling parent setState during render
+        queueMicrotask(() => updateSettings({ aiMemory: updated }));
 
         return updated;
       });
@@ -1026,10 +1026,11 @@ export function ConversationalAI() {
         <motion.button
           className={cn(
             "relative w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center",
-            "text-white shadow-lg transition-all",
+            "shadow-lg transition-all",
           )}
           style={{
             background: "var(--color-accent-primary)",
+            color: "var(--color-bg-primary)",
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           }}
           onClick={() => {
