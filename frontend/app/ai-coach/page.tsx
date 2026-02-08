@@ -247,76 +247,99 @@ export default function AICoachPage() {
       messages: [...currentSession.messages, userMessage],
     };
     setCurrentSession(updatedSession);
+    const userInput = input.trim();
     setInput("");
     setIsThinking(true);
 
-    await new Promise((resolve) =>
-      setTimeout(resolve, 1000 + Math.random() * 1000),
-    );
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-    const userContent = input.toLowerCase();
-    let responseContent = "";
+      const conversationHistory = updatedSession.messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
 
-    if (
-      userContent.includes("stressed") ||
-      userContent.includes("anxious") ||
-      userContent.includes("overwhelmed")
-    ) {
-      responseContent = `I hear you. Let's break this down:\n\n• You have ${userState.tasks.pending} pending tasks\n• ${userState.habits.atRisk} habits at risk\n\nHere's what I suggest:\n1. Take 3 deep breaths right now\n2. Identify the ONE most important task\n3. Block 30 minutes to focus just on that\n\nWould you like a breathing exercise or help prioritizing?`;
-    } else if (
-      userContent.includes("tired") ||
-      userContent.includes("exhausted")
-    ) {
-      responseContent = `Rest is productive too. Your body is telling you something important.\n\nConsider:\n• A 15-minute power nap\n• A short walk\n• Something enjoyable without guilt\n\nRecovery is part of peak performance. What sounds good right now?`;
-    } else if (
-      userContent.includes("happy") ||
-      userContent.includes("great") ||
-      userContent.includes("good")
-    ) {
-      responseContent = `That's wonderful! 🌟 Positive moments are worth savoring. What made today special? Let's identify what contributed so we can create more of it.`;
-    } else if (
-      userContent.includes("help") &&
-      userContent.includes("priorit")
-    ) {
-      const overdueTasks = tasks.filter(
-        (t) =>
-          t.dueDate &&
-          t.dueDate < format(new Date(), "yyyy-MM-dd") &&
-          t.status !== "completed",
+      const apiRes = await fetch(`${apiUrl}/api/ai/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userInput,
+          conversationHistory: conversationHistory.slice(-10),
+          userData: {
+            tasks,
+            habits,
+            transactions,
+            timeEntries,
+            goals,
+            journalEntries,
+            studySessions: [],
+            lifeState: null,
+            settings: {},
+          },
+        }),
+      });
+
+      let responseContent: string;
+
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        responseContent =
+          data.message || "I couldn't generate a response. Please try again.";
+      } else {
+        // Fallback to a basic local response if the API fails
+        responseContent = generateLocalCoachResponse(userInput, userState);
+      }
+
+      const aiMessage: CoachMessage = {
+        id: `cm-${Date.now()}`,
+        role: "assistant",
+        content: responseContent,
+        timestamp: new Date().toISOString(),
+      };
+
+      const finalSession = {
+        ...updatedSession,
+        messages: [...updatedSession.messages, aiMessage],
+      };
+      setCurrentSession(finalSession);
+      setSessions((prev) =>
+        prev.map((s) => (s.id === finalSession.id ? finalSession : s)),
       );
-      responseContent = `Let's sort your priorities:\n\n**Urgent:**\n${
-        overdueTasks
-          .slice(0, 3)
-          .map((t) => `• ${t.title}`)
-          .join("\n") || "• No overdue tasks! 🎉"
-      }\n\n**Important:**\n${
-        tasks
-          .filter((t) => t.priority === "high" && t.status !== "completed")
-          .slice(0, 3)
-          .map((t) => `• ${t.title}`)
-          .join("\n") || "• No high-priority tasks"
-      }\n\nWant me to help time-block these?`;
-    } else {
-      responseContent = `Thanks for sharing. Here's where you stand:\n\n• Mood: ${getMoodEmoji(userState.mood.value)} ${userState.mood.value}/10\n• Tasks: ${userState.tasks.pending} pending\n• Streaks: ${userState.habits.streaksActive} active\n\nHow can I help? We could:\n1. Talk through what's on your mind\n2. Create an action plan\n3. Do a mindfulness exercise`;
+    } catch (error) {
+      console.error("AI Coach chat error:", error);
+      // Offline / network-error fallback
+      const responseContent = generateLocalCoachResponse(userInput, userState);
+
+      const aiMessage: CoachMessage = {
+        id: `cm-${Date.now()}`,
+        role: "assistant",
+        content: responseContent,
+        timestamp: new Date().toISOString(),
+      };
+
+      const finalSession = {
+        ...updatedSession,
+        messages: [...updatedSession.messages, aiMessage],
+      };
+      setCurrentSession(finalSession);
+      setSessions((prev) =>
+        prev.map((s) => (s.id === finalSession.id ? finalSession : s)),
+      );
+    } finally {
+      setIsThinking(false);
     }
-
-    const aiMessage: CoachMessage = {
-      id: `cm-${Date.now()}`,
-      role: "assistant",
-      content: responseContent,
-      timestamp: new Date().toISOString(),
-    };
-
-    const finalSession = {
-      ...updatedSession,
-      messages: [...updatedSession.messages, aiMessage],
-    };
-    setCurrentSession(finalSession);
-    setSessions((prev) =>
-      prev.map((s) => (s.id === finalSession.id ? finalSession : s)),
-    );
-    setIsThinking(false);
-  }, [input, currentSession, isThinking, userState, tasks]);
+  }, [
+    input,
+    currentSession,
+    isThinking,
+    userState,
+    tasks,
+    habits,
+    goals,
+    transactions,
+    timeEntries,
+    journalEntries,
+  ]);
 
   // ── Render ──────────────────────────────────────────────────────────
   return (
@@ -488,6 +511,33 @@ export default function AICoachPage() {
       />
     </AppLayout>
   );
+}
+
+// ── Local fallback when API is unreachable ─────────────────────────────
+function generateLocalCoachResponse(
+  userInput: string,
+  userState: UserState,
+): string {
+  const lower = userInput.toLowerCase();
+
+  if (
+    lower.includes("stressed") ||
+    lower.includes("anxious") ||
+    lower.includes("overwhelmed")
+  ) {
+    return `I hear you. Let's break this down:\n\n• You have ${userState.tasks.pending} pending tasks\n• ${userState.habits.atRisk} habits at risk\n\nHere's what I suggest:\n1. Take 3 deep breaths right now\n2. Identify the ONE most important task\n3. Block 30 minutes to focus just on that\n\nWould you like a breathing exercise or help prioritizing?`;
+  }
+  if (lower.includes("tired") || lower.includes("exhausted")) {
+    return `Rest is productive too. Your body is telling you something important.\n\nConsider:\n• A 15-minute power nap\n• A short walk\n• Something enjoyable without guilt\n\nRecovery is part of peak performance. What sounds good right now?`;
+  }
+  if (
+    lower.includes("happy") ||
+    lower.includes("great") ||
+    lower.includes("good")
+  ) {
+    return `That's wonderful! 🌟 Positive moments are worth savoring. What made today special?`;
+  }
+  return `Thanks for sharing. Here's where you stand:\n\n• Mood: ${getMoodEmoji(userState.mood.value)} ${userState.mood.value}/10\n• Tasks: ${userState.tasks.pending} pending\n• Streaks: ${userState.habits.streaksActive} active\n\nHow can I help? We could:\n1. Talk through what's on your mind\n2. Create an action plan\n3. Do a mindfulness exercise`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════

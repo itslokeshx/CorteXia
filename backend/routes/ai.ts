@@ -110,6 +110,8 @@ function parseAIResponse(content: string): {
 } {
   try {
     let cleaned = content.trim();
+
+    // Strip markdown code fences
     if (cleaned.startsWith("```json")) {
       cleaned = cleaned.slice(7);
     }
@@ -121,11 +123,76 @@ function parseAIResponse(content: string): {
     }
     cleaned = cleaned.trim();
 
-    const parsed = JSON.parse(cleaned);
+    // 1) Try parsing the entire response as JSON
+    try {
+      const parsed = JSON.parse(cleaned);
+      return {
+        message: parsed.message || content,
+        actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+        suggestions: Array.isArray(parsed.suggestions)
+          ? parsed.suggestions
+          : [],
+      };
+    } catch {
+      // not pure JSON — fall through
+    }
+
+    // 2) The model sometimes returns plain text followed by a JSON block.
+    //    Find the first top-level '{' and try to extract a JSON object from it.
+    const jsonStart = cleaned.indexOf("{");
+    if (jsonStart !== -1) {
+      // Walk forward to find the matching closing '}'
+      let depth = 0;
+      let jsonEnd = -1;
+      for (let i = jsonStart; i < cleaned.length; i++) {
+        if (cleaned[i] === "{") depth++;
+        else if (cleaned[i] === "}") {
+          depth--;
+          if (depth === 0) {
+            jsonEnd = i;
+            break;
+          }
+        }
+      }
+
+      if (jsonEnd !== -1) {
+        const jsonStr = cleaned.substring(jsonStart, jsonEnd + 1);
+        try {
+          const parsed = JSON.parse(jsonStr);
+          // Use the message field from JSON; it's the canonical response
+          return {
+            message:
+              parsed.message ||
+              cleaned.substring(0, jsonStart).trim() ||
+              content,
+            actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+            suggestions: Array.isArray(parsed.suggestions)
+              ? parsed.suggestions
+              : [],
+          };
+        } catch {
+          // JSON block wasn't valid, use the text before it
+        }
+      }
+
+      // There's a '{' but we couldn't parse valid JSON from it —
+      // strip everything from the first '{' onward so raw JSON
+      // fragments don't leak into the chat message.
+      const textBeforeJson = cleaned.substring(0, jsonStart).trim();
+      if (textBeforeJson.length > 0) {
+        return {
+          message: textBeforeJson,
+          actions: [],
+          suggestions: [],
+        };
+      }
+    }
+
+    // 3) No JSON at all — return the raw text
     return {
-      message: parsed.message || content,
-      actions: Array.isArray(parsed.actions) ? parsed.actions : [],
-      suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+      message: cleaned,
+      actions: [],
+      suggestions: [],
     };
   } catch {
     return {
