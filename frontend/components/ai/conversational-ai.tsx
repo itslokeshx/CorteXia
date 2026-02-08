@@ -243,12 +243,9 @@ export function ConversationalAI() {
   );
 
   // Sync memory to settings (→ MongoDB) when it changes
-  const saveMemory = useCallback(
-    (mem: AIMemory) => {
-      updateSettings({ aiMemory: mem });
-    },
-    [updateSettings],
-  );
+  useEffect(() => {
+    updateSettings({ aiMemory: memory });
+  }, [memory, updateSettings]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -602,7 +599,6 @@ export function ConversationalAI() {
         };
         if (memUpdate.userName) updated.userName = memUpdate.userName;
         if (memUpdate.lastTopic) updated.lastTopic = memUpdate.lastTopic;
-        saveMemory(updated);
         return updated;
       });
 
