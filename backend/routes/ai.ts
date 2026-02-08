@@ -3,13 +3,85 @@ import { parseQuickAddInput, askAI } from "../services/ai-service";
 import { groqClient } from "../services/groq-client";
 import {
   buildUserContext,
-  buildAISystemPrompt,
+  buildCompactSystemPrompt,
 } from "../services/deep-context";
 
 const aiRouter = new Hono();
 
 // ═══════════════════════════════════════════════════════════════
-// POST /api/ai/chat — Deep context AI chat (main endpoint)
+// TOKEN BUDGET TRACKER — keeps daily totals per key
+// ═══════════════════════════════════════════════════════════════
+interface DailyUsage {
+  date: string;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  requestCount: number;
+}
+
+const dailyUsage: DailyUsage = {
+  date: new Date().toISOString().split("T")[0],
+  promptTokens: 0,
+  completionTokens: 0,
+  totalTokens: 0,
+  requestCount: 0,
+};
+
+// Free-tier daily budget (~14,400 tokens/day with 5 keys ≈ 72k tokens)
+// Be conservative: aim for 50k/day to avoid hitting walls
+const DAILY_TOKEN_BUDGET = 50_000;
+
+function trackUsage(usage: {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}) {
+  const today = new Date().toISOString().split("T")[0];
+  if (dailyUsage.date !== today) {
+    // Reset for new day
+    dailyUsage.date = today;
+    dailyUsage.promptTokens = 0;
+    dailyUsage.completionTokens = 0;
+    dailyUsage.totalTokens = 0;
+    dailyUsage.requestCount = 0;
+  }
+  dailyUsage.promptTokens += usage.promptTokens;
+  dailyUsage.completionTokens += usage.completionTokens;
+  dailyUsage.totalTokens += usage.totalTokens;
+  dailyUsage.requestCount += 1;
+}
+
+function isOverBudget(): boolean {
+  const today = new Date().toISOString().split("T")[0];
+  if (dailyUsage.date !== today) return false;
+  return dailyUsage.totalTokens >= DAILY_TOKEN_BUDGET;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INTENT DETECTION — decides how many tokens to spend
+// ═══════════════════════════════════════════════════════════════
+type MessageIntent =
+  | "greeting"
+  | "simple_question"
+  | "action_request"
+  | "deep_conversation";
+
+const ACTION_KEYWORDS =
+  /\b(add|create|new|make|log|record|delete|remove|complete|finish|mark done|track|set|start|spent|paid|bought|earned)\b/i;
+const GREETING_KEYWORDS =
+  /^(hi|hello|hey|good morning|good afternoon|good evening|yo|sup|what'?s up)\b/i;
+
+function detectIntent(message: string): MessageIntent {
+  const m = message.trim();
+  if (GREETING_KEYWORDS.test(m) && m.split(/\s+/).length <= 6)
+    return "greeting";
+  if (ACTION_KEYWORDS.test(m)) return "action_request";
+  if (m.split(/\s+/).length <= 12) return "simple_question";
+  return "deep_conversation";
+}
+
+// ═══════════════════════════════════════════════════════════════
+// POST /api/ai/chat — Token-efficient deep context AI chat
 // ═══════════════════════════════════════════════════════════════
 aiRouter.post("/chat", async (c) => {
   try {
@@ -18,6 +90,20 @@ aiRouter.post("/chat", async (c) => {
 
     if (!message) {
       return c.json({ error: "Message is required" }, 400);
+    }
+
+    // Budget gate — if over daily budget, use local fallback
+    if (isOverBudget()) {
+      return c.json({
+        message: generateLocalResponse(message),
+        actions: [],
+        suggestions: [],
+        source: "budget-fallback",
+        tokenBudget: {
+          used: dailyUsage.totalTokens,
+          limit: DAILY_TOKEN_BUDGET,
+        },
+      });
     }
 
     // Check if Groq is configured
@@ -30,30 +116,59 @@ aiRouter.post("/chat", async (c) => {
       });
     }
 
-    // Build deep context from user data
+    // Detect intent to calibrate token spend
+    const intent = detectIntent(message);
+
+    // Build compact system prompt (only includes action schema when needed)
     let systemPrompt: string;
     if (userData) {
       const userContext = buildUserContext(userData);
-      systemPrompt = buildAISystemPrompt(userContext);
+      systemPrompt = buildCompactSystemPrompt(userContext, {
+        includeActions: intent === "action_request",
+      });
     } else {
-      systemPrompt = getMinimalSystemPrompt();
+      systemPrompt = getMinimalSystemPrompt(intent === "action_request");
     }
+
+    // Trim conversation history based on intent
+    const historyLimit =
+      intent === "greeting" ? 1 : intent === "simple_question" ? 3 : 5;
+    const trimmedHistory = conversationHistory
+      .slice(-historyLimit)
+      .map((msg: any) => ({
+        role: msg.role as "user" | "assistant",
+        // Truncate old assistant messages to save tokens
+        content:
+          msg.role === "assistant" && msg.content.length > 200
+            ? msg.content.substring(0, 200) + "…"
+            : msg.content,
+      }));
 
     // Build message array for Groq
     const messages = [
       { role: "system" as const, content: systemPrompt },
-      ...conversationHistory.slice(-10).map((msg: any) => ({
-        role: msg.role as "user" | "assistant",
-        content: msg.content,
-      })),
+      ...trimmedHistory,
       { role: "user" as const, content: message },
     ];
+
+    // Calibrate maxTokens based on intent
+    const maxTokens =
+      intent === "greeting"
+        ? 150
+        : intent === "simple_question"
+          ? 400
+          : intent === "action_request"
+            ? 600
+            : 800;
 
     // Call Groq with automatic key rotation
     const result = await groqClient.chat(messages, {
       temperature: 0.7,
-      maxTokens: 4096,
+      maxTokens,
     });
+
+    // Track usage
+    trackUsage(result.usage);
 
     // Parse the AI response
     const parsed = parseAIResponse(result.content);
@@ -62,6 +177,12 @@ aiRouter.post("/chat", async (c) => {
       ...parsed,
       usage: result.usage,
       keyUsed: result.keyUsed,
+      tokenBudget: {
+        used: dailyUsage.totalTokens,
+        limit: DAILY_TOKEN_BUDGET,
+        remaining: DAILY_TOKEN_BUDGET - dailyUsage.totalTokens,
+        requests: dailyUsage.requestCount,
+      },
     });
   } catch (error: any) {
     console.error("AI Chat API Error:", error);
@@ -91,11 +212,16 @@ aiRouter.post("/chat", async (c) => {
   }
 });
 
-// GET /api/ai/chat/status — Key status (debug/admin)
+// GET /api/ai/chat/status — Key status + token budget (debug/admin)
 aiRouter.get("/chat/status", async (c) => {
   return c.json({
     status: groqClient.getStatus(),
     model: "llama-3.3-70b-versatile",
+    tokenBudget: {
+      ...dailyUsage,
+      limit: DAILY_TOKEN_BUDGET,
+      remaining: Math.max(0, DAILY_TOKEN_BUDGET - dailyUsage.totalTokens),
+    },
   });
 });
 
@@ -203,21 +329,13 @@ function parseAIResponse(content: string): {
   }
 }
 
-function getMinimalSystemPrompt(): string {
-  return `You are Cortexia, a highly intelligent AI life assistant. You can answer ANY question the user asks — science, history, coding, advice, trivia, etc.
-
-You also help manage the user's life through the CorteXia app (tasks, habits, goals, journal, finance).
-
-Be warm, concise, and helpful. Answer directly without being preachy.
-
-RESPONSE FORMAT (always return valid JSON):
-{
-  "message": "Your complete natural language response",
-  "actions": [],
-  "suggestions": [{ "text": "suggestion", "action": "action_type", "reason": "why" }]
-}
-
-Available actions: create_task, create_habit, create_goal, add_expense, add_income, log_time, log_study, create_journal, complete_task, complete_habit, navigate`;
+function getMinimalSystemPrompt(includeActions = false): string {
+  let prompt = `You are Cortexia, a concise AI life assistant. Answer any question directly. Be warm and brief (2-4 sentences).`;
+  if (includeActions) {
+    prompt += `\nWhen user asks to create/modify items, append JSON: {"actions":[{"type":"<action>","data":{...}}]}
+Actions: create_task(title), create_habit(name), create_goal(title), add_expense(amount,category?), add_income(amount), log_time(task,duration), create_journal(content), complete_task(taskId), complete_habit(habitId)`;
+  }
+  return prompt;
 }
 
 function generateLocalResponse(message: string): string {

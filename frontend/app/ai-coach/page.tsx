@@ -254,28 +254,67 @@ export default function AICoachPage() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-      const conversationHistory = updatedSession.messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
+      // Send compact summaries to save tokens on free tier
+      const todayStr = format(new Date(), "yyyy-MM-dd");
+      const conversationHistory = updatedSession.messages
+        .slice(-4)
+        .map((m) => ({
+          role: m.role,
+          content:
+            m.role === "assistant" && m.content.length > 200
+              ? m.content.substring(0, 200)
+              : m.content,
+        }));
+
+      const compactUserData = {
+        tasks: tasks.map((t) => ({
+          id: t.id,
+          title: t.title,
+          status: t.status,
+          priority: t.priority,
+          dueDate: t.dueDate,
+        })),
+        habits: habits
+          .filter((h) => h.active)
+          .map((h) => ({
+            id: h.id,
+            name: h.name,
+            streak: h.streak,
+            completedToday: h.completions?.some(
+              (c) => c.date === todayStr && c.completed,
+            ),
+          })),
+        goals: goals
+          .filter((g) => g.status === "active")
+          .map((g) => ({
+            id: g.id,
+            title: g.title,
+            progress: g.progress,
+          })),
+        transactions: transactions.slice(0, 10).map((t) => ({
+          type: t.type,
+          amount: t.amount,
+          category: t.category,
+          date: t.date,
+        })),
+        timeEntries: [],
+        studySessions: [],
+        journalEntries: journalEntries.slice(0, 3).map((j) => ({
+          date: j.date,
+          mood: j.mood,
+          energy: j.energy,
+        })),
+        lifeState: null,
+        settings: {},
+      };
 
       const apiRes = await fetch(`${apiUrl}/api/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userInput,
-          conversationHistory: conversationHistory.slice(-10),
-          userData: {
-            tasks,
-            habits,
-            transactions,
-            timeEntries,
-            goals,
-            journalEntries,
-            studySessions: [],
-            lifeState: null,
-            settings: {},
-          },
+          conversationHistory,
+          userData: compactUserData,
         }),
       });
 

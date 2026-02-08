@@ -874,3 +874,88 @@ RESPONSE FORMAT: Return valid JSON:
   "suggestions": [{ "text": "suggestion", "action": "action_type", "reason": "why" }]
 }`;
 }
+
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * COMPACT SYSTEM PROMPT — optimised for free-tier token budgets
+ *
+ * ~350-500 tokens instead of ~1500-2000.
+ * - Strips decorative separators
+ * - Only includes non-zero / non-empty data lines
+ * - Drops the full action schema unless the user's message
+ *   looks like it needs one (caller controls via `includeActions`)
+ * - Asks for plain text by default; structured JSON only for actions
+ * ═══════════════════════════════════════════════════════════════
+ */
+export function buildCompactSystemPrompt(
+  ctx: UserContext,
+  opts: { includeActions?: boolean } = {},
+): string {
+  const lines: string[] = [];
+
+  // Identity — one line
+  lines.push(
+    `You are Cortexia, an AI life assistant. Be warm, concise. Answer any question directly.`,
+  );
+  lines.push(
+    `User: ${ctx.profile.name} | ${ctx.profile.dayOfWeek} ${ctx.profile.currentTime}`,
+  );
+
+  // ── Snapshot lines (only non-zero / interesting data) ──────────
+  const t = ctx.taskSnapshot;
+  const taskBits: string[] = [];
+  if (t.dueToday > 0) taskBits.push(`${t.dueToday} due today`);
+  if (t.overdue > 0) taskBits.push(`${t.overdue} overdue`);
+  if (t.highPriority > 0) taskBits.push(`${t.highPriority} high-pri`);
+  if (t.pending > 0) taskBits.push(`${t.pending} pending`);
+  if (taskBits.length > 0) lines.push(`Tasks: ${taskBits.join(", ")}`);
+
+  const h = ctx.habitSnapshot;
+  if (h.total > 0) {
+    let habitLine = `Habits: ${h.completedToday}/${h.total} done today, ${h.completionRateThisWeek}% this week`;
+    if (h.streaksAtRisk.length > 0)
+      habitLine += ` | AT RISK: ${h.streaksAtRisk.map((s) => `${s.name}(${s.streak}d)`).join(", ")}`;
+    lines.push(habitLine);
+  }
+
+  const g = ctx.goalSnapshot;
+  if (g.active > 0) {
+    lines.push(
+      `Goals: ${g.active} active${g.atRisk > 0 ? `, ${g.atRisk} at risk` : ""}`,
+    );
+  }
+
+  const f = ctx.financeSnapshot;
+  if (f.monthIncome > 0 || f.monthExpenses > 0) {
+    lines.push(
+      `Finance: $${f.monthIncome.toFixed(0)} in / $${f.monthExpenses.toFixed(0)} out / balance $${f.balance.toFixed(0)}`,
+    );
+  }
+
+  const j = ctx.journalSnapshot;
+  if (j.recentMood !== null) {
+    lines.push(`Mood: ${j.recentMood}/10 (${j.moodTrend})`);
+  }
+
+  // ── Urgent patterns only ───────────────────────────────────────
+  const urgent = ctx.patterns.filter((p) => p.urgency === "high");
+  if (urgent.length > 0) {
+    lines.push(`⚠ ${urgent.map((p) => p.message).join("; ")}`);
+  }
+
+  // ── Response rules ─────────────────────────────────────────────
+  lines.push(
+    `Reply in plain text. Be brief (2-4 sentences for simple questions). Reference user data naturally when relevant.`,
+  );
+
+  // ── Actions schema — only when needed ──────────────────────────
+  if (opts.includeActions) {
+    lines.push(
+      `When user asks to create/modify items, append a JSON block:
+{"actions":[{"type":"<action>","data":{...}}],"suggestions":[{"text":"...","action":"..."}]}
+Actions: create_task(title,description?,domain?,priority?,dueDate?), create_habit(name,category?,frequency?), create_goal(title,category?,targetDate?), add_expense(amount,category?,description?), add_income(amount,description?), log_time(task,duration,category?), log_study(subject,duration), create_journal(content,mood?,energy?), complete_task(taskId), complete_habit(habitId), navigate(path)`,
+    );
+  }
+
+  return lines.join("\n");
+}

@@ -404,26 +404,63 @@ export function ConversationalAI() {
       try {
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        // Send compact summaries — not full arrays — to save tokens
+        const today = new Date().toISOString().split("T")[0];
+        const compactUserData = {
+          tasks: tasks.map((t) => ({
+            id: t.id,
+            title: t.title,
+            status: t.status,
+            priority: t.priority,
+            dueDate: t.dueDate,
+            domain: t.domain,
+          })),
+          habits: habits
+            .filter((h) => h.active)
+            .map((h) => ({
+              id: h.id,
+              name: h.name,
+              streak: h.streak,
+              completedToday: h.completions?.some(
+                (c) => c.date === today && c.completed,
+              ),
+            })),
+          goals: goals
+            .filter((g) => g.status === "active")
+            .map((g) => ({
+              id: g.id,
+              title: g.title,
+              progress: g.progress,
+            })),
+          transactions: transactions.slice(0, 10).map((t) => ({
+            type: t.type,
+            amount: t.amount,
+            category: t.category,
+            date: t.date,
+          })),
+          timeEntries: [],
+          studySessions: [],
+          journalEntries: journalEntries.slice(0, 3).map((j) => ({
+            date: j.date,
+            mood: j.mood,
+            energy: j.energy,
+          })),
+          lifeState: null,
+          settings: {},
+        };
         const apiRes = await fetch(`${apiUrl}/api/ai/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: text,
-            conversationHistory: messages.slice(-10).map((m) => ({
+            conversationHistory: messages.slice(-4).map((m) => ({
               role: m.role,
-              content: m.content,
+              content:
+                m.role === "assistant" && m.content.length > 200
+                  ? m.content.substring(0, 200)
+                  : m.content,
             })),
-            userData: {
-              tasks,
-              habits,
-              transactions,
-              timeEntries,
-              goals,
-              studySessions,
-              journalEntries,
-              lifeState: null,
-              settings: {},
-            },
+            userData: compactUserData,
           }),
         });
         if (apiRes.ok) {
