@@ -168,14 +168,15 @@ export default function DayPlannerPage() {
   // ─── Persistence (via MongoDB settings) ────────────────────────────────
 
   // Load planner blocks from settings (re-runs when settings hydrate from MongoDB)
-  const plannerHydratedRef = useRef(false);
+  const isLoadingFromSettings = useRef(false);
   useEffect(() => {
     if (settings?.plannerBlocks && Array.isArray(settings.plannerBlocks)) {
-      // Always sync from settings on initial hydration + when settings change
-      if (!plannerHydratedRef.current) {
-        plannerHydratedRef.current = true;
-        setTimeBlocks(settings.plannerBlocks as unknown as PlannerBlock[]);
-      }
+      isLoadingFromSettings.current = true;
+      setTimeBlocks(settings.plannerBlocks as unknown as PlannerBlock[]);
+      // Allow the save effect to skip this state update
+      requestAnimationFrame(() => {
+        isLoadingFromSettings.current = false;
+      });
     }
     const timer = setTimeout(() => {
       isInitialMount.current = false;
@@ -183,9 +184,9 @@ export default function DayPlannerPage() {
     return () => clearTimeout(timer);
   }, [settings?.plannerBlocks]);
 
-  // Save planner blocks to MongoDB when they change
+  // Save planner blocks to MongoDB when they change (skip if loading from settings)
   useEffect(() => {
-    if (isInitialMount.current) return;
+    if (isInitialMount.current || isLoadingFromSettings.current) return;
     updateSettings({
       plannerBlocks: timeBlocks as unknown as Record<string, unknown>[],
     });
