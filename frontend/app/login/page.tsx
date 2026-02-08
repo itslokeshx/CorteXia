@@ -40,6 +40,7 @@ declare global {
         id: {
           initialize: (config: any) => void;
           renderButton: (element: HTMLElement, config: any) => void;
+          prompt: (callback?: (notification: any) => void) => void;
         };
       };
     };
@@ -60,6 +61,7 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [googleReady, setGoogleReady] = useState(false);
 
@@ -74,14 +76,14 @@ export default function AuthPage() {
   const handleGoogleResponse = useCallback(
     async (response: any) => {
       setError("");
-      setIsSubmitting(true);
+      setIsGoogleLoading(true);
       try {
         await signInWithGoogle(response.credential);
         router.push("/");
       } catch (err: any) {
         setError(err.message || "Google sign in failed");
       } finally {
-        setIsSubmitting(false);
+        setIsGoogleLoading(false);
       }
     },
     [signInWithGoogle, router],
@@ -99,16 +101,31 @@ export default function AuthPage() {
       callback: handleGoogleResponse,
     });
 
-    const buttonDiv = document.getElementById("google-signin-btn");
-    if (buttonDiv) {
-      window.google.accounts.id.renderButton(buttonDiv, {
-        theme: "outline",
+    // Render hidden Google button so we can trigger it programmatically
+    const hiddenDiv = document.getElementById("google-hidden-btn");
+    if (hiddenDiv) {
+      window.google.accounts.id.renderButton(hiddenDiv, {
+        type: "icon",
         size: "large",
-        width: "100%",
-        text: "continue_with",
       });
     }
   }, [googleReady, handleGoogleResponse]);
+
+  // Custom Google button click handler
+  const handleGoogleClick = useCallback(() => {
+    // Click the hidden Google-rendered button to trigger the popup
+    const hiddenBtn = document.querySelector(
+      "#google-hidden-btn iframe",
+    ) as HTMLElement;
+    if (hiddenBtn) {
+      hiddenBtn.click();
+      return;
+    }
+    // Fallback: trigger One Tap prompt
+    if (window.google) {
+      window.google.accounts.id.prompt();
+    }
+  }, []);
 
   const handleCredentialAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -244,24 +261,42 @@ export default function AuthPage() {
               All in one intelligent system.
             </p>
 
-            {/* Google Sign-In Button (rendered by Google SDK) */}
-            <div id="google-signin-btn" className="flex justify-center mb-6" />
-
-            {/* Fallback Google button if SDK not loaded */}
-            {!googleReady && (
-              <button
-                disabled
-                className="w-full flex items-center justify-center gap-3 rounded-xl border px-5 py-3.5 text-sm font-medium opacity-50 mb-6"
-                style={{
-                  borderColor: "var(--color-border-primary)",
-                  background: "var(--color-bg-tertiary)",
-                  color: "var(--color-text-primary)",
-                }}
-              >
+            {/* Custom Google Sign-In Button */}
+            <button
+              type="button"
+              onClick={handleGoogleClick}
+              disabled={isGoogleLoading || !googleReady}
+              className="w-full flex items-center justify-center gap-3 rounded-xl border px-5 py-3.5 text-sm font-medium transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+              style={{
+                borderColor: "var(--color-border-primary)",
+                background: "var(--color-bg-tertiary)",
+                color: "var(--color-text-primary)",
+              }}
+            >
+              {isGoogleLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
                 <GoogleIcon className="w-5 h-5" />
-                Loading Google Sign-In...
-              </button>
-            )}
+              )}
+              {isGoogleLoading
+                ? "Signing in..."
+                : isSignUp
+                  ? "Sign up with Google"
+                  : "Continue with Google"}
+            </button>
+
+            {/* Hidden Google SDK button for triggering popup */}
+            <div
+              id="google-hidden-btn"
+              style={{
+                position: "absolute",
+                width: 0,
+                height: 0,
+                overflow: "hidden",
+                opacity: 0,
+                pointerEvents: "none",
+              }}
+            />
 
             {/* Divider */}
             <div className="flex items-center gap-3 mb-6">
