@@ -68,12 +68,10 @@ export function WidgetTodayTasks({
   tasks,
   completedToday,
   onToggle,
-  onQuickAdd,
 }: {
   tasks: Task[];
   completedToday: Task[];
   onToggle: (id: string) => void;
-  onQuickAdd: () => void;
 }) {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
@@ -101,14 +99,6 @@ export function WidgetTodayTasks({
             <p className="text-sm text-[var(--text-tertiary)] mt-1">
               Take a breath and recharge!
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onQuickAdd}
-              className="mt-4 rounded-lg"
-            >
-              + Add your first task
-            </Button>
           </div>
         ) : (
           displayList.map((task) => {

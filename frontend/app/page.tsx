@@ -8,20 +8,7 @@ import Link from "next/link";
 import { format, startOfWeek, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { GreetingHeader } from "@/components/dashboard/greeting-header";
 import { QuickStatsRow, type StatCardPayload } from "@/components/dashboard/quick-stats-row";
 import { WidgetTodayTasks } from "@/components/dashboard/widget-today-tasks";
@@ -69,11 +56,7 @@ export default function DashboardPage() {
   } = useApp();
 
   const [mounted, setMounted] = useState(false);
-  const [showQuickTask, setShowQuickTask] = useState(false);
-  const [quickTaskTitle, setQuickTaskTitle] = useState("");
-  const [quickTaskPriority, setQuickTaskPriority] = useState<
-    "medium" | "high" | "critical"
-  >("high");
+
 
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -282,19 +265,7 @@ export default function DashboardPage() {
     [tasks, today],
   );
 
-  const handleQuickTask = () => {
-    if (!quickTaskTitle.trim()) return;
-    addTask({
-      title: quickTaskTitle.trim(),
-      domain: "personal",
-      priority: quickTaskPriority,
-      status: "todo",
-      dueDate: today,
-      scheduledFor: "today",
-    });
-    setQuickTaskTitle("");
-    setShowQuickTask(false);
-  };
+
 
   const toggleTask = (id: string) => {
     const t = tasks.find((x) => x.id === id);
@@ -329,7 +300,7 @@ export default function DashboardPage() {
         className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 pb-8 pt-0 sm:pt-6"
       >
         <motion.section variants={item} className="mb-4 sm:mb-10">
-          <GreetingHeader onAddTask={() => setShowQuickTask(true)} />
+          <GreetingHeader />
         </motion.section>
 
         <motion.section variants={item} className="mb-8">
@@ -347,7 +318,6 @@ export default function DashboardPage() {
               tasks={todayTasks.filter((t) => t.status !== "completed") as Task[]}
               completedToday={completedToday}
               onToggle={toggleTask}
-              onQuickAdd={() => setShowQuickTask(true)}
             />
           </div>
           <div className="min-h-[280px] h-full">
@@ -394,46 +364,6 @@ export default function DashboardPage() {
           <DayProgress />
         </motion.section>
       </motion.div>
-
-      <Dialog open={showQuickTask} onOpenChange={setShowQuickTask}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-base">Add Task</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 py-3">
-            <Input
-              placeholder="What needs to be done?"
-              value={quickTaskTitle}
-              onChange={(e) => setQuickTaskTitle(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleQuickTask()}
-              autoFocus
-            />
-            <Select
-              value={quickTaskPriority}
-              onValueChange={(v: "medium" | "high" | "critical") =>
-                setQuickTaskPriority(v)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowQuickTask(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleQuickTask} disabled={!quickTaskTitle.trim()}>
-              Add
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 }

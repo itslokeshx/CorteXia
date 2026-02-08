@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { format } from "date-fns";
-import { Sun, Sunrise, Sunset, Moon, Plus } from "lucide-react";
+import { Sun, Sunrise, Sunset, Moon } from "lucide-react";
 import { useAuth } from "@/lib/context/auth-context";
 import { Button } from "@/components/ui/button";
 import type { LucideIcon } from "lucide-react";
@@ -16,7 +16,7 @@ function getGreeting(hour: number): { icon: LucideIcon; text: string } {
   return { icon: Moon, text: "You’re still here" }; // Fallback/Specific 12AM-5AM overlap handling if needed, but the above covers it.
 }
 
-export function GreetingHeader({ onAddTask }: { onAddTask?: () => void }) {
+export function GreetingHeader() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { profile, user } = useAuth();
 
@@ -49,17 +49,6 @@ export function GreetingHeader({ onAddTask }: { onAddTask?: () => void }) {
           {format(currentTime, "EEEE, MMMM d")}
         </p>
       </div>
-      {onAddTask && (
-        <Button
-          size="default"
-          className="shrink-0 rounded-full transition-all shadow-sm hover:shadow-md h-10 w-10 sm:w-auto p-0 sm:px-4 sm:py-2"
-          onClick={onAddTask}
-          aria-label="Quick Task"
-        >
-          <Plus className="w-5 h-5 sm:mr-2" />
-          <span className="hidden sm:inline">Quick Task</span>
-        </Button>
-      )}
     </header>
   );
 }
