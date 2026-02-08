@@ -1,4 +1,3 @@
-</div>
 # 🧠 CorteXia - Your Second Brain
 
 <div align="center">
@@ -16,6 +15,29 @@
 [Live Demo](#) • [Documentation](#) • [Report Bug](#) • [Request Feature](#)
 
 </div>
+
+---
+
+## 📖 Table of Contents
+
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Environment Setup](#environment-setup)
+  - [MongoDB Setup](#mongodb-setup)
+  - [Google OAuth Setup](#google-oauth-setup)
+- [Project Structure](#-project-structure)
+- [Features Deep Dive](#-features-deep-dive)
+- [API Documentation](#-api-documentation)
+- [Database Schema](#-database-schema)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
 
 ## 🌟 Overview
 
@@ -41,7 +63,7 @@
 - **Proactive Interventions** - Warns about burnout, streak breaks, at-risk goals
 - **Multi-Action Execution** - Performs multiple actions from a single command
 - **Theme Control** - "Switch to dark mode" changes theme instantly
-- **API Fallback** - Never runs out of AI capacity with Automatic API rotation
+- **Intelligent API Rotation** - Never runs out of AI capacity with automatic fallback
 
 ### ✅ Smart Task Management
 - **AI-Powered Creation** - Analyzes input and suggests priority, time, and goal linking
@@ -60,7 +82,7 @@
 - **Streak Protection** - Warnings before you break important streaks
 
 ### 🚩 Hierarchical Goal System
-- **Year → Quarter → Month → Week** - Break big goals into actionable steps
+- **Multi-Level Structure** - Year → Quarter → Month → Week breakdown
 - **Progress Tracking** - Visual progress bars at every level
 - **AI Roadmap Generation** - Automatically create milestones and action items
 - **Status Monitoring** - On Track, At Risk, Behind, Completed
@@ -73,7 +95,7 @@
 - **Category Colors** - Work, Focus, Meeting, Break, Personal, Habit
 - **Task Integration** - Time blocks linked to tasks and habits
 - **Copy Schedule** - Duplicate yesterday's blocks to today/tomorrow
-- **Current Time Indicator** - Red line shows exactly where you are
+- **Current Time Indicator** - Real-time tracking of your position in the day
 
 ### ⏱️ Pomodoro Timer with Analytics
 - **Focus Sessions** - 25-minute deep work intervals
@@ -88,7 +110,7 @@
 - **Budget Monitoring** - Monthly budget with visual progress
 - **Goal Linking** - Track expenses related to savings goals
 - **Impact Analysis** - See how purchases affect goal timelines
-- **Category Breakdown** - Pie charts and reports by spending category
+- **Category Breakdown** - Charts and reports by spending category
 - **Receipt Storage** - Upload and link receipt images
 
 ### ✍️ Journal with AI Reflection
@@ -105,7 +127,7 @@
 - **Responsive Design** - Perfect on desktop, tablet, and mobile
 - **Dark Mode** - Eye-friendly theme with full coverage
 - **Loading Experience** - Meaningful loading screen with particle animations
-- **Micro-interactions** - Confetti celebrations, hover effects, transitions
+- **Micro-interactions** - Confetti celebrations, hover effects, smooth transitions
 
 ---
 
@@ -126,21 +148,166 @@
 - **Database**: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (Cloud)
 - **ODM**: [Mongoose](https://mongoosejs.com/)
 - **Authentication**: [NextAuth.js](https://next-auth.js.org/)
-- **API Routes**: Next.js API Routes
+- **API Routes**: Next.js API Routes (Server-side)
 - **Password Hashing**: [bcryptjs](https://www.npmjs.com/package/bcryptjs)
 
-### AI & Analytics
-- **AI Provider**: Advanced LLM Integration
-- **Model**: Optimized Large Language Model
-- **Fallback System**: Automatic key rotation
+### AI & Intelligence
+- **AI Integration**: Advanced Large Language Model
+- **Fallback System**: Multi-key automatic rotation
 - **Caching**: 5-minute TTL response cache
-- **Rate Limiting**: Smart distribution across keys
+- **Rate Limiting**: Smart distribution and load balancing
+- **Context Building**: Real-time user data aggregation
 
-### DevOps
+### DevOps & Tools
 - **Hosting**: [Vercel](https://vercel.com/)
 - **Version Control**: Git + GitHub
-- **Package Manager**: npm
+- **Package Manager**: npm / yarn
 - **Code Quality**: ESLint + Prettier
+- **Type Checking**: TypeScript strict mode
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Before you begin, ensure you have:
+
+- **Node.js** 18.x or higher ([Download](https://nodejs.org/))
+- **npm** or **yarn** package manager
+- **MongoDB Atlas** account ([Sign up free](https://www.mongodb.com/cloud/atlas))
+- **Google Cloud Console** account (for OAuth)
+- **AI API** access (your preferred LLM provider)
+
+### Installation
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/yourusername/cortexia.git
+cd cortexia
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+# or
+yarn install
+```
+
+3. **Copy environment template**
+
+```bash
+cp .env.example .env.local
+```
+
+4. **Configure environment variables** (see [Environment Setup](#environment-setup))
+
+5. **Run development server**
+
+```bash
+npm run dev
+# or
+yarn dev
+```
+
+6. **Open your browser**
+
+Navigate to `http://localhost:3000`
+
+---
+
+### Environment Setup
+
+Create a `.env.local` file in the root directory:
+
+```bash
+# MongoDB Atlas
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/cortexia?retryWrites=true&w=majority
+
+# NextAuth.js (generate with: openssl rand -base64 32)
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=http://localhost:3000
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# AI API Keys (multiple for fallback)
+AI_API_KEY_1=your_first_key
+AI_API_KEY_2=your_second_key
+AI_API_KEY_3=your_third_key
+AI_API_KEY_4=your_fourth_key
+```
+
+---
+
+### MongoDB Setup
+
+1. **Create MongoDB Atlas Account**
+   - Visit [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
+   - Sign up for a free account
+
+2. **Create a Cluster**
+   - Choose **FREE M0 tier**
+   - Select cloud provider (AWS recommended)
+   - Choose region closest to your users
+   - Name: `cortexia-cluster`
+
+3. **Create Database User**
+   - Navigate to **Database Access**
+   - Add new database user
+   - Authentication: **Password**
+   - Set username and strong password
+   - Privileges: **Atlas Admin**
+
+4. **Configure Network Access**
+   - Go to **Network Access**
+   - Add IP Address
+   - Allow access from anywhere: `0.0.0.0/0`
+   - ⚠️ For production, restrict to specific IPs
+
+5. **Get Connection String**
+   - Click **Connect** on your cluster
+   - Choose "Connect your application"
+   - Driver: **Node.js** version 5.5+
+   - Copy connection string
+   - Replace `<password>` with your password
+   - Add database name: `/cortexia`
+
+---
+
+### Google OAuth Setup
+
+1. **Access Google Cloud Console**
+   - Go to [console.cloud.google.com](https://console.cloud.google.com/)
+
+2. **Create New Project**
+   - Click "Select a project" → "New Project"
+   - Name: "CorteXia"
+   - Click "Create"
+
+3. **Enable Google+ API**
+   - Navigate to "APIs & Services" → "Library"
+   - Search for "Google+ API"
+   - Click "Enable"
+
+4. **Create OAuth Credentials**
+   - Go to "Credentials"
+   - Click "Create Credentials" → "OAuth 2.0 Client ID"
+   - Application type: **Web application**
+   - Name: "CorteXia Web Client"
+   - Authorized redirect URIs:
+     - `http://localhost:3000/api/auth/callback/google`
+     - `https://yourdomain.com/api/auth/callback/google`
+   - Click "Create"
+
+5. **Save Credentials**
+   - Copy **Client ID** and **Client Secret**
+   - Add to your `.env.local` file
+
+---
 
 ## 📁 Project Structure
 
@@ -148,45 +315,44 @@
 cortexia/
 ├── app/                          # Next.js 14 App Router
 │   ├── api/                      # API Routes
-│   │   ├── auth/                 # Authentication endpoints
+│   │   ├── auth/                 # Authentication
 │   │   │   ├── [...nextauth]/   # NextAuth handler
 │   │   │   └── signup/          # Email signup
 │   │   ├── tasks/               # Task CRUD
 │   │   ├── habits/              # Habit CRUD
 │   │   ├── goals/               # Goal CRUD
-│   │   ├── time-blocks/         # Calendar CRUD
+│   │   ├── time-blocks/         # Time block CRUD
 │   │   ├── expenses/            # Expense CRUD
 │   │   ├── journal/             # Journal CRUD
 │   │   └── ai/                  # AI endpoints
 │   │       └── chat/            # AI chat handler
 │   ├── auth/                    # Auth pages
-│   │   └── page.tsx             # Login/Signup UI
-│   ├── dashboard/               # Main app pages
-│   │   ├── tasks/
-│   │   ├── habits/
-│   │   ├── goals/
-│   │   ├── planner/
-│   │   ├── pomodoro/
-│   │   ├── expenses/
-│   │   ├── journal/
-│   │   └── settings/
+│   ├── dashboard/               # Protected pages
+│   │   ├── tasks/               # Task management
+│   │   ├── habits/              # Habit tracking
+│   │   ├── goals/               # Goal setting
+│   │   ├── planner/             # Day planner
+│   │   ├── pomodoro/            # Time tracker
+│   │   ├── expenses/            # Expense tracking
+│   │   ├── journal/             # Journaling
+│   │   └── settings/            # User settings
 │   ├── layout.tsx               # Root layout
 │   └── page.tsx                 # Landing page
 ├── components/                   # React components
 │   ├── ui/                      # shadcn/ui components
-│   ├── LoadingScreen.tsx        # Beautiful loader
+│   ├── LoadingScreen.tsx        # Loading experience
 │   ├── AIFloatingChat.tsx       # AI chatbot
 │   ├── Sidebar.tsx              # Navigation
 │   └── ...
-├── lib/                         # Utility functions
-│   ├── mongodb.ts               # MongoDB connection
+├── lib/                         # Utilities
+│   ├── mongodb.ts               # Database connection
 │   ├── ai/                      # AI system
-│   │   ├── ai-client.ts         # API client with fallback
-│   │   ├── buildUserContext.ts  # Context builder
-│   │   ├── systemPrompt.ts      # AI prompts
-│   │   └── actionExecutor.ts    # Action handler
-│   └── utils.ts                 # Helper functions
-├── models/                      # Mongoose models
+│   │   ├── client.ts            # API client
+│   │   ├── context.ts           # Context builder
+│   │   ├── prompts.ts           # System prompts
+│   │   └── executor.ts          # Action executor
+│   └── utils.ts                 # Helpers
+├── models/                      # Mongoose schemas
 │   ├── User.ts
 │   ├── Task.ts
 │   ├── Habit.ts
@@ -198,12 +364,11 @@ cortexia/
 │   ├── AIConversation.ts
 │   ├── UserMemory.ts
 │   └── TimeLog.ts
-├── hooks/                       # Custom React hooks
-│   ├── useAuth.ts               # Authentication
-│   ├── useTasks.ts              # Task queries
+├── hooks/                       # Custom hooks
+│   ├── useAuth.ts
+│   ├── useTasks.ts
 │   └── ...
-├── public/                      # Static assets
-│   └── images/
+├── public/                      # Static files
 ├── .env.local                   # Environment variables
 ├── .gitignore
 ├── next.config.js
@@ -219,91 +384,145 @@ cortexia/
 
 ### Omnipotent AI System
 
-The AI assistant is the heart of CorteXia, capable of:
+The AI is the core intelligence that powers CorteXia:
 
-**1. Understanding Natural Language**
+**Natural Language Understanding**
 ```
-User: "Create a high-priority task to finish the ML assignment by Friday at 2pm"
-AI: ✅ Created task + 📅 Scheduled time block + ⏰ Set reminder for 1:30pm
+User: "Create a high-priority task to finish ML assignment by Friday 2pm"
+AI: ✅ Task created
+    📅 Time block scheduled (Friday 2-4pm)
+    ⏰ Reminder set (Friday 1:30pm)
 ```
 
-**2. Memory & Context**
+**Memory & Context**
 ```
 User: "My name is Sarah"
-AI: Saves to UserMemory collection, uses "Sarah" in all future conversations
+AI: [Saves to database] "Got it, Sarah! I'll remember that."
+
+Later conversation:
+AI: "Hey Sarah, you have 3 tasks due today..."
 ```
 
-**3. Multi-Action Execution**
+**Multi-Action Execution**
 ```json
 {
-  "message": "I've scheduled your weekly review and set 3 reminders!",
+  "message": "I've organized your week!",
   "actions": [
     { "type": "create_task", "data": {...} },
     { "type": "schedule_time_block", "data": {...} },
-    { "type": "set_reminder", "data": {...} }
+    { "type": "set_reminder", "data": {...} },
+    { "type": "update_goal", "data": {...} }
   ]
 }
 ```
 
-**4. System Control**
+**System Control**
 ```
 User: "Switch to dark mode"
-AI: Updates theme in database → Frontend instantly reflects change
-```
+AI: [Updates user preferences] Theme changed ✨
 
-**5. Proactive Intelligence**
-- Warns when habits are at risk
-- Detects burnout patterns
-- Suggests optimal work times
-- Identifies procrastination
+User: "Delete all my completed tasks"
+AI: [Soft deletes from database] Done! Removed 47 completed tasks.
+```
 
 ### Cross-Page Synchronization
 
-Everything is connected:
-
-**Task → Time Block**
-- Create task with due time → Automatic time block created
+**Task → Time Block Integration**
+- Create task with time → Auto-generates time block
+- Update task time → Time block moves
 - Complete task → Time block marked done
 - Delete task → Time block removed
 
-**Habit → Time Block**
-- Schedule recurring habit → Creates repeating time blocks
-- Complete habit → Updates streak and marks block
+**Habit → Streak System**
+- Mark habit complete → Streak +1
+- Miss habit → Streak resets
+- AI detects patterns → Suggests optimal times
+- Break streak → Warning notification
 
-**Goal → Task → Habit**
-- Create goal with milestones
-- AI generates tasks for each milestone
-- Link habits that support the goal
-- Track all progress in one place
+**Goal → Task → Habit Chain**
+- Create year goal → AI generates quarterly milestones
+- Each milestone → Converted to monthly tasks
+- Tasks → Link to supporting habits
+- Progress → Aggregated across all levels
 
 ---
 
 ## 🔌 API Documentation
 
-### Authentication
+### Authentication Endpoints
 
 **POST** `/api/auth/signup`
 ```json
 Request:
 {
   "email": "user@example.com",
-  "password": "securepassword",
+  "password": "securePassword123",
   "name": "John Doe"
 }
 
-Response:
+Response (201):
 {
   "message": "User created successfully",
   "userId": "507f1f77bcf86cd799439011"
 }
 ```
 
-### Tasks
+**POST** `/api/auth/signin` (via NextAuth)
+```json
+Credentials:
+{
+  "email": "user@example.com",
+  "password": "securePassword123"
+}
 
-**GET** `/api/tasks` - Get all user tasks  
-**POST** `/api/tasks` - Create new task  
-**PATCH** `/api/tasks` - Update task  
-**DELETE** `/api/tasks?id={taskId}` - Delete task (soft delete)
+Google OAuth:
+{
+  "provider": "google"
+}
+```
+
+### Task Management
+
+**GET** `/api/tasks`
+- Returns all user tasks (non-deleted)
+- Sorted by creation date (newest first)
+- Includes goal and parent task references
+
+**POST** `/api/tasks`
+```json
+Request:
+{
+  "title": "Finish project report",
+  "description": "Complete Q4 report",
+  "priority": "high",
+  "dueDate": "2026-02-15",
+  "dueTime": "14:00",
+  "goalId": "507f1f77bcf86cd799439011"
+}
+
+Response (201):
+{
+  "task": {
+    "_id": "...",
+    "title": "Finish project report",
+    ...
+  }
+}
+```
+
+**PATCH** `/api/tasks`
+```json
+Request:
+{
+  "id": "507f1f77bcf86cd799439011",
+  "completed": true,
+  "completedAt": "2026-02-08T14:30:00Z"
+}
+```
+
+**DELETE** `/api/tasks?id={taskId}`
+- Soft delete (sets deletedAt timestamp)
+- Preserves data for potential recovery
 
 ### AI Chat
 
@@ -311,18 +530,22 @@ Response:
 ```json
 Request:
 {
-  "message": "Create a task to review code tomorrow",
+  "message": "Create a task to review PR tomorrow at 10am",
   "userId": "507f1f77bcf86cd799439011",
-  "conversationId": "uuid-here"
+  "conversationId": "uuid-v4-here"
 }
 
 Response:
 {
-  "message": "I've created the task for tomorrow!",
+  "message": "I've created the task and scheduled it!",
   "actions": [
     {
       "success": true,
-      "message": "Created task: 'Review code'"
+      "message": "Created task: 'Review PR'"
+    },
+    {
+      "success": true,
+      "message": "Scheduled: Tomorrow 10-11am"
     }
   ]
 }
@@ -332,89 +555,261 @@ Response:
 
 ## 💾 Database Schema
 
-### User Collection
+### Collections Overview
+
+**12 MongoDB Collections:**
+1. `users` - User accounts and preferences
+2. `tasks` - Task management
+3. `habits` - Habit definitions
+4. `habitcompletions` - Daily habit tracking
+5. `goals` - Goal hierarchy
+6. `timeblocks` - Calendar events
+7. `expenses` - Financial tracking
+8. `journalentries` - Daily journals
+9. `aiconversations` - Chat history
+10. `usermemories` - AI memory storage
+11. `timelogs` - Pomodoro sessions
+
+### Key Schemas
+
+**User Collection**
 ```typescript
 {
   _id: ObjectId,
-  email: string,
+  email: string (unique, indexed),
   name: string,
-  password: string (hashed),
+  password: string (bcrypt hashed),
   provider: 'credentials' | 'google',
   theme: 'light' | 'dark' | 'auto',
   timezone: string,
-  notificationPreferences: {},
+  notificationPreferences: {
+    email: boolean,
+    push: boolean,
+    dailySummary: boolean,
+    goalReminders: boolean,
+    habitStreaks: boolean
+  },
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
-### Task Collection
+**Task Collection**
 ```typescript
 {
   _id: ObjectId,
-  userId: ObjectId (ref: User),
-  title: string,
+  userId: ObjectId (ref: 'User', indexed),
+  title: string (required),
   description: string,
   priority: 'low' | 'medium' | 'high' | 'critical',
   status: 'pending' | 'in_progress' | 'completed',
   dueDate: Date,
-  dueTime: string,
-  goalId: ObjectId (ref: Goal),
+  dueTime: string (HH:mm format),
+  estimatedMinutes: number,
+  goalId: ObjectId (ref: 'Goal'),
+  parentTaskId: ObjectId (ref: 'Task'),
   completed: boolean,
+  completedAt: Date,
   tags: string[],
+  deletedAt: Date (soft delete),
+  createdAt: Date,
+  updatedAt: Date
+}
+
+Indexes:
+- userId + dueDate (compound)
+- userId + status (compound)
+- goalId
+```
+
+**Habit Collection**
+```typescript
+{
+  _id: ObjectId,
+  userId: ObjectId (ref: 'User'),
+  name: string (required),
+  frequency: 'daily' | 'weekly' | 'custom',
+  frequencyConfig: {
+    monday: boolean,
+    tuesday: boolean,
+    ...
+  },
+  currentStreak: number (default: 0),
+  longestStreak: number (default: 0),
+  totalCompletions: number (default: 0),
+  color: string (hex),
+  icon: string,
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
-*See `/models` directory for complete schemas*
-
+*Complete schemas available in `/models` directory*
 
 ---
 
 ## 🚢 Deployment
 
-### Deploy to Vercel
+### Deploying to Vercel
 
-1. **Push to GitHub**
+1. **Prepare Repository**
 ```bash
 git add .
-git commit -m "Ready for deployment"
+git commit -m "Production ready"
 git push origin main
 ```
 
 2. **Import to Vercel**
-   - Go to [vercel.com](https://vercel.com)
-   - Click "Import Project"
+   - Visit [vercel.com/new](https://vercel.com/new)
+   - Click "Import Git Repository"
    - Select your GitHub repository
+   - Configure project settings
 
-3. **Configure Environment Variables**
+3. **Environment Variables**
    - Add all variables from `.env.local`
-   - Update `NEXTAUTH_URL` to your domain
+   - Update `NEXTAUTH_URL` to your production domain
+   - Ensure MongoDB URI allows Vercel IPs
 
 4. **Deploy**
    - Click "Deploy"
-   - Vercel will build and deploy automatically
+   - Wait for build completion (~2-3 minutes)
+   - Visit your live URL
 
 ### Production Checklist
-- [ ] Environment variables set
-- [ ] MongoDB Atlas network access restricted
-- [ ] Google OAuth redirect URIs updated
-- [ ] Error monitoring configured
-- [ ] Analytics integrated
-- [ ] Security headers configured
+
+**Security**
+- [ ] Environment variables configured
+- [ ] MongoDB network access restricted
+- [ ] Google OAuth production URLs added
+- [ ] CORS policies configured
 - [ ] Rate limiting enabled
+- [ ] HTTPS enforced
+
+**Performance**
+- [ ] Image optimization enabled
+- [ ] API route caching configured
+- [ ] Database indexes created
+- [ ] CDN configured
+- [ ] Compression enabled
+
+**Monitoring**
+- [ ] Error tracking (Sentry/LogRocket)
+- [ ] Analytics (Vercel Analytics)
+- [ ] Uptime monitoring
+- [ ] Performance monitoring
+- [ ] Database monitoring
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from the community!
+
+### How to Contribute
+
+1. **Fork the repository**
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Make your changes**
+   - Follow code style guidelines
+   - Add tests if applicable
+   - Update documentation
+4. **Commit your changes**
+   ```bash
+   git commit -m "Add amazing feature"
+   ```
+5. **Push to your branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+6. **Open a Pull Request**
+   - Describe your changes
+   - Reference any related issues
+   - Request review
+
+### Development Guidelines
+
+- **Code Style**: Follow existing patterns
+- **TypeScript**: Use strict mode, avoid `any`
+- **Components**: Keep them small and focused
+- **Commits**: Write clear, descriptive messages
+- **Tests**: Add tests for new features
+- **Documentation**: Update README when needed
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**.
+
+```
+MIT License
+
+Copyright (c) 2026 CorteXia
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+```
+
+See [LICENSE](LICENSE) file for full details.
+
+---
+
+## 🙏 Acknowledgments
+
+**Technologies & Libraries**
+- [Next.js](https://nextjs.org/) - The React framework for production
+- [MongoDB Atlas](https://www.mongodb.com/) - Cloud database platform
+- [NextAuth.js](https://next-auth.js.org/) - Authentication for Next.js
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Framer Motion](https://www.framer.com/motion/) - Animation library
+- [shadcn/ui](https://ui.shadcn.com/) - Beautifully designed components
+- [Vercel](https://vercel.com/) - Deployment and hosting platform
+
+**Inspiration**
+- Linear - For design inspiration and keyboard shortcuts
+- Notion - For flexible data structures
+- GitHub - For contribution graph visualization
+- Arc Browser - For spatial intelligence
+
+---
+
+## 📧 Support & Contact
+
+**Need Help?**
+- 📖 [Documentation](#)
+- 💬 [Discord Community](#)
+- 🐛 [Report Issues](https://github.com/yourusername/cortexia/issues)
+- ✨ [Request Features](https://github.com/yourusername/cortexia/issues/new)
+
+**Connect With Us**
+- 🌐 Website: [cortexia.app](#)
+- 🐦 Twitter: [@cortexia](#)
+- 📧 Email: hello@cortexia.app
 
 ---
 
 <div align="center">
 
-**Built with 💜 by developers, for developers**
+### Built with 💜 by developers, for productivity enthusiasts
+
+**[⬆ Back to Top](#-cortexia---your-second-brain)**
+
+---
+
+**Star ⭐ this repo if you find it helpful!**
 
 </div>
