@@ -196,7 +196,7 @@ export default function SettingsPage() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="space-y-6 pb-24 max-w-2xl mx-auto w-full"
+        className="space-y-6 pb-24 max-w-2xl mx-auto w-full px-4 sm:px-6 lg:px-8"
       >
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
@@ -210,7 +210,7 @@ export default function SettingsPage() {
         {/* Account */}
         <Card className="border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-semibold">
                   {(profile?.full_name || user?.email || "U")
@@ -237,7 +237,7 @@ export default function SettingsPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleSignOut}
-                className="text-xs h-8 gap-1.5 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-red-500 hover:border-red-500/30"
+                className="w-full sm:w-auto text-xs h-8 gap-1.5 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-red-500 hover:border-red-500/30"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Sign Out
@@ -249,7 +249,7 @@ export default function SettingsPage() {
         {/* Theme */}
         <Card className="border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
               <div>
                 <Label className="text-sm font-medium text-[var(--color-text-primary)]">
                   Theme
@@ -258,7 +258,7 @@ export default function SettingsPage() {
                   Choose your preferred appearance
                 </p>
               </div>
-              <div className="flex gap-1 p-1 bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border)]">
+              <div className="w-full sm:w-auto grid grid-cols-3 sm:flex gap-1 p-1 bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border)]">
                 {[
                   { value: "light" as const, icon: Sun, label: "Light" },
                   { value: "dark" as const, icon: Moon, label: "Dark" },
@@ -268,7 +268,7 @@ export default function SettingsPage() {
                     key={opt.value}
                     onClick={() => handleThemeChange(opt.value)}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      "flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
                       theme === opt.value
                         ? "bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] shadow-sm"
                         : "text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]",
@@ -286,7 +286,7 @@ export default function SettingsPage() {
         {/* Notifications */}
         <Card className="border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
           <CardContent className="p-4 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
                 <Label className="text-sm font-medium text-[var(--color-text-primary)]">
                   Notifications
@@ -311,7 +311,7 @@ export default function SettingsPage() {
             {notificationSettings.enabled && (
               <>
                 <div className="h-px bg-[var(--color-border)]" />
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <Label className="text-sm text-[var(--color-text-secondary)]">
                     Task reminders
                   </Label>
@@ -327,7 +327,7 @@ export default function SettingsPage() {
                     }
                   />
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <Label className="text-sm text-[var(--color-text-secondary)]">
                     Habit reminders
                   </Label>
@@ -382,17 +382,17 @@ export default function SettingsPage() {
 
             <div className="h-px bg-[var(--color-border)]" />
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleExportData}
-                className="text-xs h-8 border-[var(--color-border)]"
+                className="w-full sm:w-auto text-xs h-8 border-[var(--color-border)]"
               >
                 <Download className="w-3.5 h-3.5 mr-1.5" />
                 Export JSON
               </Button>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <input
                   type="file"
                   accept=".json"
@@ -402,7 +402,7 @@ export default function SettingsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs h-8 border-[var(--color-border)]"
+                  className="w-full sm:w-auto text-xs h-8 border-[var(--color-border)]"
                 >
                   <Upload className="w-3.5 h-3.5 mr-1.5" />
                   Import
@@ -434,7 +434,7 @@ export default function SettingsPage() {
               variant="outline"
               size="sm"
               onClick={() => setDeleteDialogOpen(true)}
-              className="text-xs h-8 text-red-500 hover:text-red-600 border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10"
+              className="w-full sm:w-auto text-xs h-8 text-red-500 hover:text-red-600 border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10"
             >
               <Trash2 className="w-3.5 h-3.5 mr-1.5" />
               Delete All Data
@@ -503,7 +503,7 @@ export default function SettingsPage() {
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="Type DELETE here"
-                className="font-mono text-sm"
+                className="font-mono text-sm w-full"
                 autoFocus
               />
             </div>
