@@ -191,9 +191,9 @@ export function CollapsibleSidebar() {
                 alt="CorteXia"
                 width={32}
                 height={32}
-                className="w-full h-full object-cover transition-opacity duration-200 group-hover/logo:opacity-0"
+                className="w-full h-full object-cover transition-opacity duration-200 group-hover:opacity-0"
               />
-              <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200 pointer-events-none">
+              <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                 <ChevronRight className="w-4 h-4 text-gray-700 dark:text-gray-300" />
               </span>
             </button>
