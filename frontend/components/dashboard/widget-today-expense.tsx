@@ -113,26 +113,30 @@ export function WidgetTodayExpense({
                     </>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-center py-6">
-                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
-                            <DollarSign className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                        <div className="w-12 h-12 rounded-xl bg-[var(--color-bg-primary)] flex items-center justify-center mb-3">
+                            <DollarSign className="w-6 h-6 text-[var(--color-text-tertiary)]" />
                         </div>
-                        <p className="text-xs text-[var(--color-text-tertiary)]">
+                        <p className="text-sm text-[var(--color-text-secondary)] mb-4">
                             No expenses today
                         </p>
-                        <p className="text-[10px] text-[var(--color-text-tertiary)] mt-1">
-                            Great job saving!
-                        </p>
+                        <Link href="/finance">
+                            <button className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-bg-primary)] transition-colors">
+                                Add Expense
+                            </button>
+                        </Link>
                     </div>
                 )}
             </div>
 
             {/* Footer - Quick Add */}
-            <Link
-                href="/finance"
-                className="mt-3 pt-3 border-t border-[var(--color-border)] text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors text-center"
-            >
-                + Add expense
-            </Link>
+            {categoryBreakdown.length > 0 && (
+                <Link
+                    href="/finance"
+                    className="mt-3 pt-3 border-t border-[var(--color-border)] text-sm text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors text-center block"
+                >
+                    + Add expense
+                </Link>
+            )}
         </motion.div>
     );
 }

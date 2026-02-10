@@ -92,13 +92,20 @@ export function WidgetTodayTasks({
       <div className="dashboard-card-body scrollbar-thin">
         {displayList.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-            <span className="text-4xl mb-3">🧘</span>
-            <p className="text-base text-[var(--text-secondary)]">
-              No tasks for today
+            <div className="w-12 h-12 rounded-xl bg-[var(--bg-tertiary)] flex items-center justify-center mb-3">
+              <span className="text-2xl">📝</span>
+            </div>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">
+              No tasks scheduled for today
             </p>
-            <p className="text-sm text-[var(--text-tertiary)] mt-1">
-              Take a breath and recharge!
-            </p>
+            <Link href="/tasks">
+              <Button
+                variant="outline"
+                className="border-[var(--border-primary)] hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-colors"
+              >
+                Create Task
+              </Button>
+            </Link>
           </div>
         ) : (
           displayList.map((task) => {
