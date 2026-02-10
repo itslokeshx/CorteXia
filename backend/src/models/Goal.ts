@@ -125,7 +125,16 @@ const GoalSchema = new Schema<IGoal>(
 
 GoalSchema.index({ userId: 1, status: 1 });
 GoalSchema.index({ userId: 1, deadline: 1 });
-GoalSchema.index({ userId: 1, title: 1, parentGoalId: 1 }, { unique: true });
+// Sparse index to allow multiple goals with same title if they have different parentGoalIds
+// Only enforce uniqueness for top-level goals (parentGoalId is null or undefined)
+GoalSchema.index(
+  { userId: 1, title: 1 },
+  {
+    unique: true,
+    sparse: true,
+    partialFilterExpression: { parentGoalId: { $exists: false } }
+  }
+);
 
 export default mongoose.models.Goal ||
   mongoose.model<IGoal>("Goal", GoalSchema);

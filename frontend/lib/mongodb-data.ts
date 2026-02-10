@@ -233,23 +233,40 @@ export async function deleteTimeEntrySync(entryId: string): Promise<void> {
 }
 
 // Goals
-export async function syncGoal(goal: Goal): Promise<void> {
+export async function createGoalSync(goal: Goal): Promise<Goal | null> {
   try {
-    if (goal.id.startsWith("demo-") || goal.id.includes("-")) {
-      await fetch(`${API_URL}/api/goals`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(goal),
-      });
-    } else {
-      await fetch(`${API_URL}/api/goals`, {
-        method: "PATCH",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(goal),
-      });
+    const res = await fetch(`${API_URL}/api/goals`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(goal),
+    });
+    if (res.ok) {
+      return await res.json();
     }
   } catch (err) {
-    console.error("syncGoal error:", err);
+    console.error("createGoalSync error:", err);
+  }
+  return null;
+}
+
+export async function updateGoalSync(goal: Goal): Promise<void> {
+  try {
+    await fetch(`${API_URL}/api/goals`, {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(goal),
+    });
+  } catch (err) {
+    console.error("updateGoalSync error:", err);
+  }
+}
+
+// Deprecated: wrapper for backward compatibility
+export async function syncGoal(goal: Goal): Promise<void> {
+  if (goal.id.startsWith("demo-") || goal.id.includes("-")) {
+    await createGoalSync(goal);
+  } else {
+    await updateGoalSync(goal);
   }
 }
 

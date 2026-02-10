@@ -17,8 +17,7 @@ import {
   WidgetNextUp,
   buildUpcomingBlocksFromPlanner,
 } from "@/components/dashboard/widget-next-up";
-import { WidgetGoalsOverview } from "@/components/dashboard/widget-goals-overview";
-import { WidgetWeeklyFocus } from "@/components/dashboard/widget-weekly-focus";
+import { WidgetTodayExpense } from "@/components/dashboard/widget-today-expense";
 import { WidgetJournalPrompt } from "@/components/dashboard/widget-journal-prompt";
 import { DashboardQuickNav } from "@/components/dashboard/dashboard-quick-nav";
 import { DayProgress } from "@/components/dashboard/day-progress";
@@ -41,18 +40,15 @@ export default function DashboardPage() {
   const {
     tasks,
     habits,
-    goals,
     journalEntries,
-    timeEntries,
+    transactions,
     settings,
-    insights,
     addTask,
     completeTask,
     uncompleteTask,
     completeHabit,
     getHabitStreak,
     getTodayStats,
-    getGoalStats,
   } = useApp();
 
   const [mounted, setMounted] = useState(false);
@@ -127,25 +123,6 @@ export default function DashboardPage() {
       );
   }, [habits, today, getHabitStreak]);
 
-  const activeGoals = useMemo(() => {
-    return goals
-      .filter((g) => g.status === "active")
-      .sort((a, b) => {
-        const risk = (g: { progress: number }) =>
-          g.progress >= 60 ? 0 : g.progress >= 40 ? 1 : 2;
-        return risk(a) - risk(b);
-      });
-  }, [goals]);
-
-  const goalStats = useMemo(() => getGoalStats(), [getGoalStats, goals]);
-  const onTrackPct =
-    goalStats.total > 0
-      ? Math.round(
-        (goals.filter((g) => g.status === "active" && g.progress >= 60).length /
-          Math.max(goalStats.inProgress, 1)) *
-        100,
-      )
-      : 0;
 
   const quickStats = useMemo((): StatCardPayload => {
     const timeStats = getTodayStats();
@@ -155,22 +132,6 @@ export default function DashboardPage() {
     const taskPct = total > 0 ? Math.round((done / total) * 100) : 0;
     const habitsDone = todayHabits.filter((h) => h.completed).length;
     const bestHabitStreak = Math.max(0, ...todayHabits.map((h) => h.streak));
-    const onTrack = goals.filter((g) => g.status === "active" && g.progress >= 60).length;
-    const atRisk = goals.filter(
-      (g) => g.status === "active" && g.progress >= 40 && g.progress < 60,
-    ).length;
-    const behind = goals.filter(
-      (g) => g.status === "active" && g.progress < 40,
-    ).length;
-    const totalG = onTrack + atRisk + behind;
-    const segments =
-      totalG > 0
-        ? {
-          green: Math.round((onTrack / totalG) * 100),
-          yellow: Math.round((atRisk / totalG) * 100),
-          red: Math.round((behind / totalG) * 100),
-        }
-        : undefined;
 
     return {
       tasks: {
@@ -183,16 +144,9 @@ export default function DashboardPage() {
         bestStreak: bestHabitStreak,
       },
       goals: {
-        inProgress: goalStats.inProgress,
-        onTrackPct:
-          goalStats.inProgress > 0
-            ? Math.round(
-              (goals.filter((g) => g.status === "active" && g.progress >= 60).length /
-                goalStats.inProgress) *
-              100,
-            )
-            : 0,
-        segments,
+        inProgress: 0,
+        onTrackPct: 0,
+        segments: undefined,
       },
       focus: {
         minutes: timeStats.totalMinutes,
@@ -204,8 +158,6 @@ export default function DashboardPage() {
     todayTasks,
     completedToday,
     todayHabits,
-    goals,
-    goalStats,
     getTodayStats,
   ]);
 
@@ -228,17 +180,6 @@ export default function DashboardPage() {
     return buildUpcomingBlocksFromPlanner(raw, today);
   }, [settings?.plannerBlocks, today]);
 
-  const weekStart = startOfWeek(new Date(), {
-    weekStartsOn: settings?.preferences?.startOfWeek === "sunday" ? 0 : 1,
-  });
-  const weekDates = Array.from({ length: 7 }, (_, i) =>
-    format(addDays(weekStart, i), "yyyy-MM-dd"),
-  );
-  const weeklyTimeEntries = useMemo(
-    () =>
-      timeEntries.filter((e) => e.date && weekDates.includes(e.date)),
-    [timeEntries, weekDates],
-  );
 
   const todayJournal = useMemo(
     () => journalEntries.find((e) => e.date === today) ?? null,
@@ -307,7 +248,7 @@ export default function DashboardPage() {
           <QuickStatsRow stats={quickStats} />
         </motion.section>
 
-        {/* Symmetric 2×3 grid: 3 left, 3 right */}
+        {/* Symmetric 2×2 grid: 4 widgets total */}
         <motion.section
           variants={item}
           className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10"
@@ -321,28 +262,18 @@ export default function DashboardPage() {
             />
           </div>
           <div className="min-h-[280px] h-full">
-            <WidgetGoalsOverview
-              goals={activeGoals}
-              onTrackPct={onTrackPct}
-            />
-          </div>
-
-          <div className="min-h-[280px] h-full">
             <WidgetTodayHabits
               habits={todayHabits}
               onToggle={(id) => completeHabit(id, today)}
               today={today}
             />
           </div>
-          <div className="min-h-[280px] h-full">
-            <WidgetWeeklyFocus
-              timeEntries={weeklyTimeEntries}
-              startOfWeekSetting={settings?.preferences?.startOfWeek}
-            />
-          </div>
 
           <div className="min-h-[280px] h-full">
-            <WidgetNextUp blocks={upcomingBlocks} />
+            <WidgetTodayExpense
+              transactions={transactions}
+              today={today}
+            />
           </div>
           <div className="min-h-[280px] h-full">
             <WidgetJournalPrompt

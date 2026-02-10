@@ -26,6 +26,8 @@ import {
   deleteHabitSync,
   deleteTransactionSync,
   deleteTimeEntrySync,
+  createGoalSync,
+  updateGoalSync,
   deleteGoalSync,
   deleteStudySessionSync,
   deleteJournalEntrySync,
@@ -628,7 +630,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setGoals((prev) => [newGoal, ...prev]);
-    if (userId) syncGoal(newGoal);
+
+    if (userId) {
+      createGoalSync(newGoal).then((savedGoal: Goal | null) => {
+        if (savedGoal) {
+          setGoals((prev) =>
+            prev.map((g) => (g.id === newGoal.id ? { ...g, id: savedGoal.id } : g))
+          );
+        }
+      });
+    }
     return newGoal;
   };
 
@@ -636,7 +647,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setGoals((prev) => {
       const updated = prev.map((g) => (g.id === id ? { ...g, ...updates } : g));
       const goal = updated.find((g) => g.id === id);
-      if (goal && userId) syncGoal(goal);
+      if (goal && userId) updateGoalSync(goal);
       return updated;
     });
   };

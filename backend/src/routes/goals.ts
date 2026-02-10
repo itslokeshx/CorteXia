@@ -48,10 +48,18 @@ router.post("/", async (req: AuthRequest, res: Response) => {
   try {
     await connectDB();
 
+    console.log("[GOAL POST] Creating goal:", {
+      title: req.body.title,
+      milestonesCount: req.body.milestones?.length || 0,
+      userId: req.userId
+    });
+
     const goal = await Goal.create({
       userId: req.userId,
       ...req.body,
     });
+
+    console.log("[GOAL POST] Goal created successfully:", goal._id.toString());
 
     const g = goal.toObject();
     res.status(201).json({
@@ -81,6 +89,13 @@ router.patch("/", async (req: AuthRequest, res: Response) => {
     const { id, ...updates } = req.body;
     await connectDB();
 
+    console.log("[GOAL PATCH] Updating goal:", {
+      id,
+      title: updates.title,
+      milestonesCount: updates.milestones?.length || 0,
+      userId: req.userId
+    });
+
     const goal = (await Goal.findOneAndUpdate(
       { _id: id, userId: req.userId },
       { $set: updates },
@@ -91,6 +106,8 @@ router.patch("/", async (req: AuthRequest, res: Response) => {
       res.status(404).json({ error: "Goal not found" });
       return;
     }
+
+    console.log("[GOAL PATCH] Goal updated successfully:", goal._id.toString());
 
     res.json({
       id: goal._id.toString(),

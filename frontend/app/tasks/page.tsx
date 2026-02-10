@@ -9,9 +9,13 @@ import { cn } from "@/lib/utils";
 import {
   format,
   parseISO,
+  parse,
   addDays,
+  startOfWeek,
   endOfWeek,
+  startOfMonth,
   endOfMonth,
+  startOfYear,
   endOfYear,
 } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -79,7 +83,7 @@ const priorityConfig = {
   },
 };
 
-type TabView = "today" | "tomorrow" | "week" | "month" | "year";
+type TabView = "all" | "today" | "tomorrow" | "week" | "month";
 type SortBy = "priority" | "dueDate" | "title" | "created";
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -100,7 +104,7 @@ export default function TasksPage() {
     updateSettings,
   } = useApp();
 
-  const [view, setView] = useState<TabView>("today");
+  const [view, setView] = useState<TabView>("all");
   const [sortBy, setSortBy] = useState<SortBy>("priority");
   const [filterPriority, setFilterPriority] = useState("all");
   const [expandedSections, setExpandedSections] = useState<
@@ -116,7 +120,7 @@ export default function TasksPage() {
   const [formDescription, setFormDescription] = useState("");
   const [formPriority, setFormPriority] = useState<Task["priority"]>("medium");
   const [formSchedule, setFormSchedule] = useState<
-    "today" | "tomorrow" | "week" | "month" | "year"
+    "today" | "tomorrow" | "week" | "month"
   >("today");
   const [formGoalId, setFormGoalId] = useState("");
   const [formTimeBlock, setFormTimeBlock] = useState(false);
@@ -144,8 +148,6 @@ export default function TasksPage() {
         return format(addDays(new Date(), 3), "yyyy-MM-dd");
       case "month":
         return format(addDays(new Date(), 14), "yyyy-MM-dd");
-      case "year":
-        return format(addDays(new Date(), 90), "yyyy-MM-dd");
       default:
         return today;
     }
@@ -198,6 +200,9 @@ export default function TasksPage() {
   const filteredTasks = useMemo(() => {
     let filtered = [...tasks];
     switch (view) {
+      case "all":
+        // Show all tasks regardless of date
+        break;
       case "today":
         filtered = filtered.filter(
           (t) =>
@@ -216,11 +221,6 @@ export default function TasksPage() {
       case "month":
         filtered = filtered.filter(
           (t) => t.dueDate && t.dueDate >= today && t.dueDate <= monthEnd,
-        );
-        break;
-      case "year":
-        filtered = filtered.filter(
-          (t) => t.dueDate && t.dueDate >= today && t.dueDate <= yearEnd,
         );
         break;
     }
@@ -347,7 +347,9 @@ export default function TasksPage() {
     setFormTitle(task.title);
     setFormDescription(task.description || "");
     setFormPriority(task.priority);
-    setFormSchedule(task.scheduledFor || "today");
+    const schedule = task.scheduledFor || "today";
+    // Filter out legacy "year" value
+    setFormSchedule(schedule === "year" ? "month" : schedule);
     setFormGoalId(task.linkedGoalId || "");
     setFormDurH(Math.floor((task.timeEstimate || 0) / 60));
     setFormDurM((task.timeEstimate || 0) % 60);
@@ -459,15 +461,20 @@ export default function TasksPage() {
     setExpandedSections((p) => ({ ...p, [key]: !p[key] }));
 
   const fmtDue = (task: Task) => {
-    if (!task.dueDate) return null;
-    const isOverdue = task.status !== "completed" && task.dueDate < today;
-    const time = task.dueTime
-      ? format(parseISO(`2000-01-01T${task.dueTime}`), "h:mm a")
-      : null;
-    let label: string;
+    if (!task.dueDate) return { label: "No date", isOverdue: false, isToday: false };
+
+    const time = task.dueTime ? format(parse(task.dueTime, "HH:mm", new Date()), "h:mm a") : null;
+    const isOverdue = task.dueDate < today && task.status !== "completed";
+    let label = "";
     if (task.dueDate === today) label = time || "Today";
     else if (task.dueDate === tomorrow) label = "Tomorrow";
-    else label = format(parseISO(task.dueDate), "MMM d");
+    else {
+      try {
+        label = format(parseISO(task.dueDate), "MMM d");
+      } catch {
+        label = "Invalid date";
+      }
+    }
     return { label, isOverdue, isToday: task.dueDate === today };
   };
 
@@ -483,11 +490,11 @@ export default function TasksPage() {
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1">
               {(
                 [
+                  ["all", "All"],
                   ["today", "Today"],
                   ["tomorrow", "Tomorrow"],
                   ["week", "Week"],
                   ["month", "Month"],
-                  ["year", "Year"],
                 ] as const
               ).map(([val, label]) => (
                 <button
@@ -742,7 +749,6 @@ export default function TasksPage() {
                       ["tomorrow", "Tomorrow"],
                       ["week", "Week"],
                       ["month", "Month"],
-                      ["year", "Year"],
                     ] as const
                   ).map(([val, label]) => (
                     <button

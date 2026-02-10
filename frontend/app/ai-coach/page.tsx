@@ -54,6 +54,13 @@ export default function AICoachPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentSession?.messages]);
 
+  // Auto-start a session on page load
+  useEffect(() => {
+    if (!currentSession && sessions.length === 0) {
+      startNewSession("general");
+    }
+  }, []);
+
   // ── User state ──────────────────────────────────────────────────────
   const userState: UserState = useMemo(() => {
     const today = new Date();
@@ -67,17 +74,17 @@ export default function AICoachPage() {
     const avgMood =
       recentJournals.length > 0
         ? recentJournals.reduce((sum, j) => sum + j.mood, 0) /
-          recentJournals.length
+        recentJournals.length
         : 5;
     const avgEnergy =
       recentJournals.length > 0
         ? recentJournals.reduce((sum, j) => sum + j.energy, 0) /
-          recentJournals.length
+        recentJournals.length
         : 5;
     const avgStress =
       recentJournals.length > 0
         ? recentJournals.reduce((sum, j) => sum + (j.stress || 5), 0) /
-          recentJournals.length
+        recentJournals.length
         : 5;
 
     const firstHalf = recentJournals.slice(
@@ -255,12 +262,12 @@ export default function AICoachPage() {
       // Send compact summaries to save tokens on free tier
       const todayStr = format(new Date(), "yyyy-MM-dd");
       const conversationHistory = updatedSession.messages
-        .slice(-4)
+        .slice(-12) // Increased from 4 to 12 for better context
         .map((m) => ({
           role: m.role,
           content:
-            m.role === "assistant" && m.content.length > 200
-              ? m.content.substring(0, 200)
+            m.role === "assistant" && m.content.length > 300
+              ? m.content.substring(0, 300)
               : m.content,
         }));
 
@@ -407,7 +414,11 @@ export default function AICoachPage() {
             </div>
           </div>
           <Button
-            onClick={() => startNewSession("general")}
+            onClick={() => {
+              setCurrentSession(null);
+              setInput("");
+              startNewSession("general");
+            }}
             size="sm"
             className="gap-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
           >
@@ -419,108 +430,62 @@ export default function AICoachPage() {
         <div className="flex-1 flex flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden min-h-0">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-            {!currentSession ? (
-              <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
-                  <Sparkles className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-                  How are you today?
-                </h3>
-                <p className="text-sm text-[var(--color-text-tertiary)] mb-8 max-w-sm">
-                  I&apos;m here to listen, support, and help you navigate your
-                  day.
-                </p>
-
-                {/* Quick actions */}
-                <div className="flex flex-wrap justify-center gap-2 max-w-md">
-                  {QUICK_ACTIONS.map((action) => (
-                    <button
-                      key={action.label}
-                      onClick={() => {
-                        if (action.type === "exercise") {
-                          setIsBreathingExercise(true);
-                        } else {
-                          startNewSession(action.type);
-                        }
-                      }}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all text-sm"
-                    >
-                      <span className="text-base">{action.emoji}</span>
-                      <span className="text-[var(--color-text-primary)] font-medium text-xs">
-                        {action.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => startNewSession("check-in")}
-                  className="mt-6 px-6 py-2.5 rounded-xl bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+            {currentSession?.messages.map((message) => (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={cn(
+                  "flex",
+                  message.role === "user" ? "justify-end" : "justify-start",
+                )}
+              >
+                <div
+                  className={cn(
+                    "max-w-[85%] sm:max-w-[75%] px-4 py-3 rounded-2xl",
+                    message.role === "user"
+                      ? "rounded-br-md bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
+                      : "rounded-bl-md bg-gray-100 dark:bg-gray-800 text-[var(--color-text-primary)]",
+                  )}
                 >
-                  Start Check-in
-                </button>
-              </div>
-            ) : (
-              <>
-                {currentSession.messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
+                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                    {message.content}
+                  </p>
+                  <p
                     className={cn(
-                      "flex",
-                      message.role === "user" ? "justify-end" : "justify-start",
+                      "text-[10px] mt-1.5",
+                      message.role === "user"
+                        ? "text-gray-400 dark:text-gray-600"
+                        : "text-[var(--color-text-tertiary)]",
                     )}
                   >
-                    <div
-                      className={cn(
-                        "max-w-[85%] sm:max-w-[75%] px-4 py-3 rounded-2xl",
-                        message.role === "user"
-                          ? "rounded-br-md bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
-                          : "rounded-bl-md bg-gray-100 dark:bg-gray-800 text-[var(--color-text-primary)]",
-                      )}
-                    >
-                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                        {message.content}
-                      </p>
-                      <p
-                        className={cn(
-                          "text-[10px] mt-1.5",
-                          message.role === "user"
-                            ? "text-gray-400 dark:text-gray-600"
-                            : "text-[var(--color-text-tertiary)]",
-                        )}
-                      >
-                        {format(new Date(message.timestamp), "h:mm a")}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
+                    {format(new Date(message.timestamp), "h:mm a")}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
 
-                {isThinking && (
-                  <div className="flex items-center gap-2 text-[var(--color-text-tertiary)]">
-                    <motion.div className="flex gap-1">
-                      {[0, 1, 2].map((i) => (
-                        <motion.div
-                          key={i}
-                          className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full"
-                          animate={{ y: [0, -6, 0] }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 0.6,
-                            delay: i * 0.2,
-                          }}
-                        />
-                      ))}
-                    </motion.div>
-                    <span className="text-xs">Thinking...</span>
-                  </div>
-                )}
-
-                <div ref={messagesEndRef} />
-              </>
+            {isThinking && (
+              <div className="flex items-center gap-2 text-[var(--color-text-tertiary)]">
+                <motion.div className="flex gap-1">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full"
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 0.6,
+                        delay: i * 0.2,
+                      }}
+                    />
+                  ))}
+                </motion.div>
+                <span className="text-xs">Thinking...</span>
+              </div>
             )}
+
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input */}
