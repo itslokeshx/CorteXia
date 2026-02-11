@@ -55,11 +55,16 @@ export default function AICoachPage() {
     addTask,
     addHabit,
     addGoal,
+    settings,
+    updateSettings,
   } = useApp();
 
-  // Get user's preferred name
+  // Get user's preferred name - prioritize AI memory, then profile, then email
   const userName =
-    profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Friend";
+    (settings?.aiMemory as any)?.userName ||
+    profile?.full_name?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "Friend";
 
   const [sessions, setSessions] = useState<CoachSession[]>([]);
   const [currentSession, setCurrentSession] = useState<CoachSession | null>(
@@ -384,7 +389,7 @@ export default function AICoachPage() {
       setCurrentSession(session);
       setSessions((prev) => [...prev, session]);
     },
-    [userState, aiAssessment],
+    [userState, aiAssessment, userName],
   );
 
   // ─── Voice Input (Web Speech API) ───────────────────────────────────
@@ -497,8 +502,10 @@ export default function AICoachPage() {
         })),
         timeEntries: [],
         studySessions: [],
-        journalEntries: journalEntries.slice(0, 3).map((j) => ({
+        journalEntries: journalEntries.slice(0, 10).map((j) => ({
           date: j.date,
+          title: j.title,
+          content: j.content,
           mood: j.mood,
           energy: j.energy,
         })),
@@ -545,6 +552,15 @@ export default function AICoachPage() {
         // Execute any actions returned by the AI
         if (responseActions.length > 0) {
           executeAiActions(responseActions);
+        }
+
+        // Update memory if AI learned something new
+        if (data.updatedMemory) {
+          console.log("[Jarvis Page] Updating memory:", data.updatedMemory);
+          updateSettings({
+            ...settings,
+            aiMemory: data.updatedMemory,
+          });
         }
       } else {
         // Fallback to a basic local response if the API fails
