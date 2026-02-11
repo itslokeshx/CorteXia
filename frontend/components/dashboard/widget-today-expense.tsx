@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { DollarSign, TrendingDown, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types";
 
 interface WidgetTodayExpenseProps {
@@ -119,10 +120,15 @@ export function WidgetTodayExpense({
                         <p className="text-sm text-[var(--color-text-secondary)] mb-4">
                             No expenses today
                         </p>
-                        <Link href="/finance">
-                            <button className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-bg-primary)] transition-colors">
-                                Add Expense
-                            </button>
+                        <Link
+                            href="/finance"
+                            className={cn(
+                                "inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold transition-all",
+                                "bg-[var(--accent-primary)] text-white dark:bg-[var(--accent-primary)] dark:text-black",
+                                "hover:opacity-90 hover:scale-[1.02]",
+                            )}
+                        >
+                            Add Expense
                         </Link>
                     </div>
                 )}

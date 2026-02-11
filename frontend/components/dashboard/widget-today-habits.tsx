@@ -55,14 +55,16 @@ export function WidgetTodayHabits({
             <p className="text-sm text-[var(--text-tertiary)] mt-1">
               Start building consistency!
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => (window.location.href = "/habits")}
-              className="mt-4 rounded-lg"
+            <Link
+              href="/habits"
+              className={cn(
+                "inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold transition-all",
+                "bg-[var(--accent-primary)] text-white dark:bg-[var(--accent-primary)] dark:text-black",
+                "hover:opacity-90 hover:scale-[1.02]",
+              )}
             >
               + Create your first habit
-            </Button>
+            </Link>
           </div>
         ) : (
           displayList.map((habit) => (

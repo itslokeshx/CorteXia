@@ -98,13 +98,15 @@ export function WidgetTodayTasks({
             <p className="text-sm text-[var(--text-secondary)] mb-4">
               No tasks scheduled for today
             </p>
-            <Link href="/tasks">
-              <Button
-                variant="outline"
-                className="border-[var(--border-primary)] hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-colors"
-              >
-                Create Task
-              </Button>
+            <Link
+              href="/tasks"
+              className={cn(
+                "inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold transition-all",
+                "bg-[var(--accent-primary)] text-white dark:bg-[var(--accent-primary)] dark:text-black",
+                "hover:opacity-90 hover:scale-[1.02]",
+              )}
+            >
+              Create Task
             </Link>
           </div>
         ) : (
