@@ -231,7 +231,7 @@ export function OmnipotentChatbot() {
               : "Good evening";
         response = `${g}! 👋 You have **${ctx.tasks.todayPending} tasks** and **${ctx.habits.pendingToday} habits** pending today. How can I help?`;
       } else if (INTENTS.HELP.test(userMessage)) {
-        response = `Here's what I can do:\n\n📋 **Tasks** — "Add task: [title]", "Show my tasks", "Complete task [name]"\n💪 **Habits** — "Create habit: [name]", "Show habits"\n🎯 **Goals** — "Set goal: [title]", "Goal progress"\n💰 **Finance** — "Spent $50 on food", "What did I spend?"\n📊 **Analysis** — "How am I doing?", "Summary"\n\nJust type naturally! ✨`;
+        response = `I am Jarvis, your intelligent life architect. Here's what I can do:\n\n📋 **Tasks** — "Add task: [title]", "Show my tasks", "Complete task [name]"\n💪 **Habits** — "Create habit: [name]", "Show habits"\n🎯 **Goals** — "Set goal: [title]", "Goal progress"\n💰 **Finance** — "Spent $50 on food", "What did I spend?"\n📊 **Analysis** — "How am I doing?", "Summary"\n\nJust type naturally! ✨`;
       } else if (INTENTS.CREATE_TASK.test(userMessage)) {
         const data = parseTaskFromText(userMessage);
         const t = addTask({
@@ -331,7 +331,7 @@ export function OmnipotentChatbot() {
           completeTask(task.id);
           response = `✅ Completed: **${task.title}**! Great work! 🎉`;
         } else {
-          response = `Couldn't find a pending task matching "${search}". Try "Show my tasks" to see what's pending.`;
+          response = `You are Jarvis — an elite, hyper-intelligent, and proactive AI life architect. You have full access to the user's data and should use it to provide precise, high-leverage insights.Couldn't find a pending task matching "${search}". Try "Show my tasks" to see what's pending.`;
         }
       } else if (INTENTS.COMPLETE_HABIT.test(userMessage)) {
         const search = userMessage
@@ -445,10 +445,10 @@ export function OmnipotentChatbot() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                    CorteXia AI
+                    Jarvis
                   </p>
                   <p className="text-[10px] text-[var(--color-text-tertiary)]">
-                    Your intelligent assistant
+                    Your intelligent life architect
                   </p>
                 </div>
               </div>
@@ -509,11 +509,10 @@ export function OmnipotentChatbot() {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                      msg.role === "user"
-                        ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-br-md"
-                        : "bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-bl-md"
-                    }`}
+                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === "user"
+                      ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-br-md"
+                      : "bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-bl-md"
+                      }`}
                   >
                     <div
                       className="whitespace-pre-wrap text-[13px]"

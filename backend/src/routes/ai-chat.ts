@@ -1,8 +1,31 @@
 import { Router, Response } from "express";
 import { AuthRequest, authMiddleware } from "../middleware/auth";
+import ChatSession from "../models/ChatSession";
 
 const router = Router();
 router.use(authMiddleware);
+
+// Get chat history
+router.get("/history", async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    // Find the latest session for the user
+    let session = await ChatSession.findOne({ userId }).sort({ updatedAt: -1 });
+
+    // If no session exists, create one
+    if (!session) {
+      session = await ChatSession.create({
+        userId,
+        messages: []
+      });
+    }
+
+    res.json(session);
+  } catch (error) {
+    console.error("[AI] History error:", error);
+    res.status(500).json({ error: "Failed to fetch history" });
+  }
+});
 
 const GROQ_API_KEYS = [
   process.env.GROQ_API_KEY_1,
@@ -348,11 +371,27 @@ function parseAIResponse(raw: string): {
 router.post("/", async (req: AuthRequest, res: Response) => {
   try {
     const { message, conversationHistory, userData, memory } = req.body;
+    const userId = req.userId;
 
     if (!message) {
       res.status(400).json({ error: "Message is required" });
       return;
     }
+
+    // 1. Save User Message to DB
+    let session = await ChatSession.findOne({ userId }).sort({ updatedAt: -1 });
+    if (!session) {
+      session = await ChatSession.create({ userId, messages: [] });
+    }
+
+    const userMsgId = Date.now().toString();
+    session.messages.push({
+      id: userMsgId,
+      role: "user",
+      content: message,
+      timestamp: new Date(),
+    });
+    await session.save();
 
     // Server-side memory extraction — catches name/facts even if
     // frontend memory state hasn't hydrated yet
@@ -383,9 +422,16 @@ router.post("/", async (req: AuthRequest, res: Response) => {
       { role: "system", content: systemPrompt },
     ];
 
-    // Add conversation history — wrap assistant messages in JSON context
-    if (conversationHistory?.length) {
-      for (const msg of conversationHistory) {
+    // Add conversation history — USE DB SESSION HISTORY (last 20 messages)
+    const recentHistory = session.messages.slice(-20); // Get last 20 messages including the one we just added
+    // Filter out the *very* last user message we just added to avoid duplication if we use `session.messages` logic locally
+    // Actually, `session.messages` has everything. Groq expects: history + current message.
+    // So we iterate `recentHistory` but stopping BEFORE the last one (which is current `message`).
+
+    const historyToUse = recentHistory.slice(0, -1); // Exclude current message
+
+    if (historyToUse.length) {
+      for (const msg of historyToUse) {
         if (msg.role === "user") {
           groqMessages.push({ role: "user", content: msg.content });
         } else {
@@ -459,6 +505,16 @@ router.post("/", async (req: AuthRequest, res: Response) => {
           "| suggestions:",
           parsed.suggestions.length,
         );
+
+        // 2. Save AI Response to DB
+        const aiMsgId = (Date.now() + 1).toString();
+        session.messages.push({
+          id: aiMsgId,
+          role: "assistant",
+          content: parsed.message, // Store the clean text message
+          timestamp: new Date()
+        });
+        await session.save();
 
         // Include memory updates extracted server-side so frontend can merge
         const result: any = {

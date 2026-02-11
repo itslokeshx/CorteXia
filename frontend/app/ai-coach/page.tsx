@@ -157,11 +157,44 @@ export default function AICoachPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentSession?.messages]);
 
-  // Auto-start a session on page load
+  // Fetch chat history on mount
   useEffect(() => {
-    if (!currentSession && sessions.length === 0) {
-      startNewSession("general");
-    }
+    const fetchHistory = async () => {
+      try {
+        const token = localStorage.getItem("cortexia_token");
+        if (!token) return;
+
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_URL}/api/ai/chat/history`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+          const sessionData = await res.json();
+          if (sessionData && sessionData.messages) {
+            // Transform to CoachSession format
+            const historySession: CoachSession = {
+              id: sessionData._id || "history",
+              startedAt: sessionData.createdAt || new Date().toISOString(),
+              messages: sessionData.messages,
+              sessionType: "general",
+            };
+            setCurrentSession(historySession);
+            setSessions([historySession]);
+          } else {
+            startNewSession("general");
+          }
+        } else {
+          startNewSession("general");
+        }
+      } catch (error) {
+        console.error("Failed to fetch chat history:", error);
+        startNewSession("general");
+      }
+    };
+
+    fetchHistory();
   }, []);
 
   // ── User state ──────────────────────────────────────────────────────
@@ -567,10 +600,10 @@ export default function AICoachPage() {
             </div>
             <div>
               <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                AI Coach
+                Jarvis
               </h1>
               <p className="text-xs text-[var(--color-text-tertiary)]">
-                Your personal companion
+                Your intelligent life architect
               </p>
             </div>
           </div>

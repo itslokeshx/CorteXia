@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { href: "/finance", label: "Finance", icon: Wallet, color: "#22c55e" },
   { href: "/goals", label: "Goal", icon: Flag, color: "#ec4899" },
   { href: "/time-tracker", label: "Focus", icon: Timer, color: "#f59e0b" },
-  { href: "/ai-coach", label: "AI Coach", icon: Brain, color: "#8b5cf6" },
+  { href: "/ai-coach", label: "Jarvis", icon: Brain, color: "#8b5cf6" },
   { href: "/journal", label: "Journal", icon: BookOpen, color: "#06b6d4" },
 ] as const;
 

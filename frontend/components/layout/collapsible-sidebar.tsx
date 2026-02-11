@@ -19,6 +19,7 @@ import {
   ChevronRight,
   X,
   Menu,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
@@ -35,7 +36,7 @@ const navItems = [
   { href: "/time-tracker", label: "Focus", icon: Timer },
   { href: "/finance", label: "Expenses", icon: Wallet },
   { href: "/journal", label: "Journal", icon: BookOpen },
-  { href: "/ai-coach", label: "AI Coach", icon: Brain },
+  { href: "/ai-coach", label: "Jarvis", icon: Bot, color: "text-violet-500" }, // Changed AI Coach to Jarvis with Bot icon and color
 ];
 
 const bottomItems = [{ href: "/settings", label: "Settings", icon: Settings }];

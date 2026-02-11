@@ -265,7 +265,7 @@ export function AILifeCoach() {
     const avgMood =
       recentJournals.length > 0
         ? recentJournals.reduce((s, j) => s + (j.mood || 5), 0) /
-          recentJournals.length
+        recentJournals.length
         : 5;
 
     if (avgMood >= 7) {
@@ -364,11 +364,11 @@ export function AILifeCoach() {
         question.includes("overdue")
       ) {
         const overdueTasks = tasks.filter(
-          (t) => !t.completed && t.dueDate && new Date(t.dueDate) < new Date(),
+          (t) => t.status !== "completed" && t.dueDate && new Date(t.dueDate) < new Date(),
         );
         const todayTasks = tasks.filter((t) => t.dueDate === today);
         const completedToday = tasks.filter(
-          (t) => t.completed && t.completedAt?.startsWith(today),
+          (t) => t.status === "completed" && t.completedAt?.startsWith(today),
         ).length;
 
         if (overdueTasks.length > 0) {
@@ -376,7 +376,7 @@ export function AILifeCoach() {
         } else if (todayTasks.length > 0) {
           response = `📋 You have ${todayTasks.length} task${todayTasks.length > 1 ? "s" : ""} due today. You've completed ${completedToday} so far. ${completedToday > 0 ? "Great progress!" : "Let's get started!"} Focus on your highest priority items first.`;
         } else {
-          response = `📋 Your task management looks good! No overdue items. You have ${tasks.filter((t) => !t.completed).length} active tasks. Consider reviewing and prioritizing them for the week ahead.`;
+          response = `📋 Your task management looks good! No overdue items. You have ${tasks.filter((t) => t.status !== "completed").length} active tasks. Consider reviewing and prioritizing them for the week ahead.`;
         }
       }
       // Habit-related questions
@@ -385,12 +385,12 @@ export function AILifeCoach() {
         question.includes("streak") ||
         question.includes("routine")
       ) {
-        const activeHabits = habits.filter((h) => h.isActive);
+        const activeHabits = habits.filter((h) => h.active);
         const completedHabitsToday = habits.filter((h) =>
-          h.completedDates?.includes(today),
+          h.completions?.some((c) => c.date === today && c.completed),
         ).length;
         const topStreak = Math.max(
-          ...habits.map((h) => h.currentStreak || 0),
+          ...habits.map((h) => h.streak || 0),
           0,
         );
 
@@ -403,17 +403,17 @@ export function AILifeCoach() {
         question.includes("achieve")
       ) {
         const activeGoals = goals.filter(
-          (g) => g.status === "active" || g.status === "in-progress",
+          (g) => g.status === "active",
         );
         const avgProgress =
           activeGoals.length > 0
             ? Math.round(
-                activeGoals.reduce((s, g) => s + (g.progress || 0), 0) /
-                  activeGoals.length,
-              )
+              activeGoals.reduce((s, g) => s + (g.progress || 0), 0) /
+              activeGoals.length,
+            )
             : 0;
 
-        response = `🎯 You're working on ${activeGoals.length} goal${activeGoals.length > 1 ? "s" : ""} with an average progress of ${avgProgress}%. ${avgProgress > 50 ? "You're making solid progress!" : "Consider breaking your goals into smaller milestones to build momentum."} ${activeGoals.length > 0 ? `\n\nFocus tip: Your goal "${activeGoals[0]?.title}" is at ${activeGoals[0]?.progress || 0}% - what's the next small step you can take?` : ""}`;
+        response = `🎯 You're working on ${activeGoals.length} goal${activeGoals.length > 1 ? "s" : ""} with an average progress of ${avgProgress}%. ${avgProgress > 50 ? "You're making solid progress!" : "Consider breaking your goals into smaller milestones to build momentum."} ${activeGoals.length > 0 ? `\n\nYou still have ${activeGoals.length} active goals.` : ""}`;
       }
       // Time/productivity questions
       else if (
@@ -422,7 +422,7 @@ export function AILifeCoach() {
         question.includes("focus")
       ) {
         const todayMinutes = timeEntries
-          .filter((t) => t.date === today)
+          .filter((t) => t.date.startsWith(today))
           .reduce((s, t) => s + (t.duration || 0), 0);
         const weekEntries = timeEntries.filter((t) => {
           const entryDate = new Date(t.date);
@@ -445,11 +445,11 @@ export function AILifeCoach() {
         question.includes("finance") ||
         question.includes("save")
       ) {
-        const { totalIncome, totalExpenses, netBalance } = financeStats;
+        const { income, expenses, balance } = financeStats;
         const savingsRate =
-          totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0;
+          income > 0 ? Math.round((balance / income) * 100) : 0;
 
-        response = `💰 This month: Income $${totalIncome.toLocaleString()}, Expenses $${totalExpenses.toLocaleString()}, Net ${netBalance >= 0 ? "+" : ""}$${netBalance.toLocaleString()}. ${savingsRate > 20 ? `Great job! You're saving ${savingsRate}% of your income.` : savingsRate > 0 ? `You're saving ${savingsRate}% - aim for 20%+ if possible.` : "Consider reviewing your expenses to find areas to cut back."}`;
+        response = `💰 This month: Income $${income.toLocaleString()}, Expenses $${expenses.toLocaleString()}, Net ${balance >= 0 ? "+" : ""}$${balance.toLocaleString()}. ${savingsRate > 20 ? `Great job! You're saving ${savingsRate}% of your income.` : savingsRate > 0 ? `You're saving ${savingsRate}% - aim for 20%+ if possible.` : "Consider reviewing your expenses to find areas to cut back."}`;
       }
       // Wellbeing/mood questions
       else if (
@@ -467,7 +467,7 @@ export function AILifeCoach() {
         const avgMood =
           recentJournals.length > 0
             ? recentJournals.reduce((s, j) => s + (j.mood || 5), 0) /
-              recentJournals.length
+            recentJournals.length
             : 5;
 
         response = `💚 Based on your journal entries, your average mood this week is ${avgMood.toFixed(1)}/10. ${avgMood >= 7 ? "You're in a great headspace! Keep doing what works." : avgMood >= 5 ? "You're doing okay. Remember to take breaks and do things that recharge you." : "It seems like you've been having a tough time. Be gentle with yourself and prioritize self-care."}\n\n${recentJournals.length < 3 ? "Regular journaling can help you identify patterns in your mood and energy." : ""}`;
@@ -517,7 +517,7 @@ export function AILifeCoach() {
 
             <div className="flex-1">
               <h2 className="text-xl font-bold flex items-center gap-2">
-                AI Life Coach
+                Jarvis
                 <Sparkles className="w-5 h-5 text-yellow-500" />
               </h2>
               <p className="text-muted-foreground text-sm mt-1">
@@ -754,7 +754,7 @@ export function AILifeCoach() {
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <Brain className="w-5 h-5 text-primary" />
-            Ask Your AI Coach
+            Ask Jarvis
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

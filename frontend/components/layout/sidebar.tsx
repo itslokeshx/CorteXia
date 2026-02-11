@@ -16,6 +16,7 @@ import {
   Settings,
   LogOut,
   User,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/context/auth-context";
@@ -29,7 +30,7 @@ const navItems = [
   { href: "/timeline", label: "Timeline", icon: CalendarRange },
   { href: "/finance", label: "Money", icon: DollarSign },
   { href: "/goals", label: "Goals", icon: Flag },
-  { href: "/ai-coach", label: "AI Coach", icon: Brain },
+  { href: "/ai-coach", label: "Jarvis", icon: Bot, color: "text-violet-500" },
   { href: "/journal", label: "Journal", icon: PenTool },
 ];
 
