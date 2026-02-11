@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/layout/app-layout";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/context/app-context";
@@ -250,9 +252,11 @@ export default function AICoachPage() {
   );
 
   // ─── Voice Input (Web Speech API) ───────────────────────────────────
+
+
   const startListening = () => {
     if (!("webkitSpeechRecognition" in window)) {
-      alert("Voice input is not supported in this browser.");
+      toast.error("Voice input is not supported in this browser.");
       return;
     }
     const SpeechRecognition = (window as any).webkitSpeechRecognition;
@@ -269,6 +273,13 @@ export default function AICoachPage() {
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error", event.error);
       setIsListening(false);
+      if (event.error === "network") {
+        toast.error("Network error: Voice input requires an internet connection.");
+      } else if (event.error === "not-allowed") {
+        toast.error("Microphone access denied.");
+      } else {
+        toast.error("Voice input failed. Please try again.");
+      }
     };
     recognition.onend = () => setIsListening(false);
 
