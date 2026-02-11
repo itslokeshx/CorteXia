@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useAuth } from "@/lib/context/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/lib/context/app-context";
 import { Button } from "@/components/ui/button";
@@ -75,9 +76,9 @@ const formatActionSummary = (action: {
     case "add_tasks_to_goal":
       return `Added ${(data.tasks as any[])?.length || 0} tasks to goal`;
     case "add_expense":
-      return `Logged expense: $${data.amount || 0}`;
+      return `Logged expense: $${data.amount || 0} `;
     case "add_income":
-      return `Logged income: $${data.amount || 0}`;
+      return `Logged income: $${data.amount || 0} `;
     case "delete_transaction":
       return `Deleted transaction`;
     case "log_time":
@@ -85,7 +86,7 @@ const formatActionSummary = (action: {
     case "delete_time_entry":
       return `Deleted time entry`;
     case "log_study":
-      return `Logged ${data.duration || 0}min studying ${data.subject || "General"}`;
+      return `Logged ${data.duration || 0}min studying ${data.subject || "General"} `;
     case "delete_study_session":
       return `Deleted study session`;
     case "create_journal":
@@ -95,9 +96,9 @@ const formatActionSummary = (action: {
     case "delete_journal":
       return `Deleted journal entry`;
     case "navigate":
-      return `Navigating to ${data.path || "/"}`;
+      return `Navigating to ${data.path || "/"} `;
     case "set_theme":
-      return `Switched theme to ${data.theme || "system"}`;
+      return `Switched theme to ${data.theme || "system"} `;
     case "clear_tasks":
       return "Cleared all tasks";
     case "clear_habits":
@@ -208,11 +209,11 @@ const DataDisplay = ({ data }: { data: any }) => {
         <div className="mt-3 space-y-2">
           {data.items?.map((item: any, i: number) => (
             <div key={i} className="flex items-start gap-2 p-2 rounded bg-background/50 border text-xs">
-              <div className={`mt-0.5 w-2 h-2 rounded-full ${item.priority === 'high' ? 'bg-red-500' : item.priority === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'}`} />
+              <div className={`mt - 0.5 w - 2 h - 2 rounded - full ${item.priority === 'high' ? 'bg-red-500' : item.priority === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'} `} />
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{item.title}</p>
                 <p className="text-[10px] text-muted-foreground">
-                  {item.dueDate ? `Due ${item.dueDate}` : "No date"} · {item.status}
+                  {item.dueDate ? `Due ${item.dueDate} ` : "No date"} · {item.status}
                 </p>
               </div>
             </div>
@@ -226,7 +227,7 @@ const DataDisplay = ({ data }: { data: any }) => {
             <div key={i} className="p-2 rounded bg-background/50 border text-xs">
               <p className="font-medium truncate">{item.name}</p>
               <div className="flex items-center gap-1 mt-1">
-                <div className={`w-1.5 h-1.5 rounded-full ${item.completedToday ? 'bg-green-500' : 'bg-gray-300'}`} />
+                <div className={`w - 1.5 h - 1.5 rounded - full ${item.completedToday ? 'bg-green-500' : 'bg-gray-300'} `} />
                 <span className="text-[10px] text-muted-foreground">{item.streak} day streak</span>
               </div>
             </div>
@@ -243,7 +244,7 @@ const DataDisplay = ({ data }: { data: any }) => {
                 <span className="text-[10px]">{item.progress}%</span>
               </div>
               <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                <div className="h-full bg-primary" style={{ width: `${item.progress}%` }} />
+                <div className="h-full bg-primary" style={{ width: `${item.progress}% ` }} />
               </div>
             </div>
           ))}
@@ -277,6 +278,7 @@ export function ConversationalAI() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { setTheme, theme: currentTheme } = useTheme();
+  const { user, profile } = useAuth();
 
   // Get ALL app context for full capabilities
   const {
@@ -347,6 +349,42 @@ export function ConversationalAI() {
       memoryHydratedRef.current = true;
     }
   }, [settings?.aiMemory]);
+
+  // Fetch history on mount or when opening
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const token = localStorage.getItem("cortexia_token");
+      if (!token) return;
+
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_URL}/api/ai/chat/history`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+          const sessionData = await res.json();
+          if (sessionData && sessionData.messages && sessionData.messages.length > 0) {
+            // Map MongoDB messages to ChatMessage format
+            const mappedMessages: ChatMessage[] = sessionData.messages.map((msg: any) => ({
+              id: msg.id || msg._id,
+              role: msg.role,
+              content: msg.content,
+              timestamp: msg.timestamp || new Date().toISOString(),
+              // Actions and suggestions are not stored in DB currently, so they will be undefined for history
+            }));
+            setMessages(mappedMessages);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch chat history:", error);
+      }
+    };
+
+    if (isOpen && messages.length === 0) {
+      fetchHistory();
+    }
+  }, [isOpen]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -471,7 +509,7 @@ export function ConversationalAI() {
         const errorData = await apiRes.json().catch(() => ({}));
         console.error("[AI Chat] API error:", apiRes.status, errorData);
         throw new Error(
-          (errorData as any).error || `API error ${apiRes.status}`,
+          (errorData as any).error || `API error ${apiRes.status} `,
         );
       }
 
@@ -622,7 +660,7 @@ export function ConversationalAI() {
             status: "todo",
             tags: (d.tags as string[]) || [],
           });
-          toast.success(`✅ Task created: ${d.title}`);
+          toast.success(`✅ Task created: ${d.title} `);
           break;
 
         case "update_task":
@@ -659,7 +697,7 @@ export function ConversationalAI() {
             longestStreak: 0,
             active: true,
           });
-          toast.success(`🎯 Habit created: ${d.name}`);
+          toast.success(`🎯 Habit created: ${d.name} `);
           break;
 
         case "update_habit":
@@ -701,7 +739,7 @@ export function ConversationalAI() {
             milestones: (d.milestones as any[]) || [],
             level: (d.level as "quarterly" | "yearly" | "life") || "quarterly",
           });
-          toast.success(`🎯 Goal created: ${d.title}`);
+          toast.success(`🎯 Goal created: ${d.title} `);
           break;
 
         case "update_goal":
@@ -731,16 +769,16 @@ export function ConversationalAI() {
             for (const taskData of goalTasks) {
               addTask({
                 title: taskData.title,
-                description: taskData.description || `Part of goal: ${g.title}`,
+                description: taskData.description || `Part of goal: ${g.title} `,
                 domain: "work",
                 priority:
                   (taskData.priority as "low" | "medium" | "high") || "medium",
                 status: "todo",
-                tags: [`goal:${gId}`],
+                tags: [`goal:${gId} `],
               });
             }
             toast.success(
-              `✅ Added ${goalTasks.length} tasks to goal: ${g.title}`,
+              `✅ Added ${goalTasks.length} tasks to goal: ${g.title} `,
             );
           }
           break;
@@ -763,7 +801,7 @@ export function ConversationalAI() {
             description: (d.description as string) || "",
             date: (d.date as string) || new Date().toISOString(),
           });
-          toast.success(`💸 Expense recorded: ${d.amount}`);
+          toast.success(`💸 Expense recorded: ${d.amount} `);
           break;
 
         case "add_income":
@@ -774,7 +812,7 @@ export function ConversationalAI() {
             description: (d.description as string) || "",
             date: (d.date as string) || new Date().toISOString(),
           });
-          toast.success(`💰 Income recorded: ${d.amount}`);
+          toast.success(`💰 Income recorded: ${d.amount} `);
           break;
 
         case "delete_transaction":
@@ -820,7 +858,7 @@ export function ConversationalAI() {
               Date.now() + Number(d.duration || 30) * 60000,
             ).toISOString(),
           });
-          toast.success(`📚 Study session logged: ${d.subject}`);
+          toast.success(`📚 Study session logged: ${d.subject} `);
           break;
 
         case "delete_study_session":
@@ -833,7 +871,7 @@ export function ConversationalAI() {
           addJournalEntry({
             title:
               (d.title as string) ||
-              `Journal - ${new Date().toLocaleDateString()}`,
+              `Journal - ${new Date().toLocaleDateString()} `,
             content: (d.content as string) || "",
             date: (d.date as string) || new Date().toISOString(),
             mood: (d.mood as number) || 5,
@@ -868,7 +906,7 @@ export function ConversationalAI() {
         case "set_theme": {
           const newTheme = (d.theme as string) || "dark";
           setTheme(newTheme);
-          toast.success(`🎨 Theme switched to ${newTheme}`);
+          toast.success(`🎨 Theme switched to ${newTheme} `);
           break;
         }
 
@@ -910,7 +948,7 @@ export function ConversationalAI() {
       }
     } catch (err) {
       console.error("Failed to execute action:", action.type, err);
-      toast.error(`Failed to execute: ${action.type}`);
+      toast.error(`Failed to execute: ${action.type} `);
     }
   };
 
@@ -1051,15 +1089,15 @@ export function ConversationalAI() {
               className="font-semibold text-sm sm:text-base"
               style={{ color: "var(--color-text-primary)" }}
             >
-              Cortexia AI
+              Jarvis
             </h3>
             <p
               className="text-[10px] sm:text-xs"
               style={{ color: "var(--color-text-tertiary)" }}
             >
               {memory.userName
-                ? `Hey ${memory.userName}`
-                : "Your life assistant"}
+                ? `Hey ${memory.userName} `
+                : "Your intelligent life architect"}
               {memory.conversationCount > 0
                 ? ` · ${memory.conversationCount} chats`
                 : ""}
@@ -1092,14 +1130,14 @@ export function ConversationalAI() {
               </div>
               <h4 className="font-semibold mb-2 text-sm sm:text-base">
                 {memory.userName
-                  ? `Hey ${memory.userName}! 👋`
-                  : "Hi! I'm Cortexia"}
+                  ? `Hey ${memory.userName} ! 👋`
+                  : "Hi! I'm Jarvis"}
               </h4>
               <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-[260px] sm:max-w-[280px] px-2">
                 {memory.conversationCount > 0
                   ? `Welcome back! We've had ${memory.conversationCount} conversations.${memory.lastTopic ? ` Last time we talked about ${memory.lastTopic}.` : ""} How can I help?`
-                  : "Your AI life assistant. I can manage tasks, analyze patterns, control themes, and optimize your productivity."}
-              </p>
+                  : "Your intelligent life architect. I can manage tasks, analyze patterns, control themes, and optimize your productivity."}
+              </p >
               <div className="flex flex-col gap-2 w-full max-w-[260px] sm:max-w-[280px]">
                 {QUICK_ACTIONS.map((action) => (
                   <Button
@@ -1113,7 +1151,7 @@ export function ConversationalAI() {
                   </Button>
                 ))}
               </div>
-            </div>
+            </div >
           ) : (
             <div className="space-y-3 sm:space-y-4">
               {messages.map((message) => (
@@ -1246,26 +1284,28 @@ export function ConversationalAI() {
               )}
             </div>
           )}
-        </div>
-      </div>
+        </div >
+      </div >
 
       {/* Quick Actions (when there are messages) */}
-      {messages.length > 0 && (
-        <div className="px-3 sm:px-4 py-2 border-t flex gap-1.5 sm:gap-2 overflow-x-auto flex-shrink-0 scrollbar-none">
-          {QUICK_ACTIONS.map((action) => (
-            <Button
-              key={action.action}
-              variant="outline"
-              size="sm"
-              className="flex-shrink-0 gap-1 sm:gap-1.5 text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3"
-              onClick={() => handleQuickAction(action.action)}
-            >
-              <action.icon className="w-3 h-3" />
-              <span className="hidden xs:inline">{action.label}</span>
-            </Button>
-          ))}
-        </div>
-      )}
+      {
+        messages.length > 0 && (
+          <div className="px-3 sm:px-4 py-2 border-t flex gap-1.5 sm:gap-2 overflow-x-auto flex-shrink-0 scrollbar-none">
+            {QUICK_ACTIONS.map((action) => (
+              <Button
+                key={action.action}
+                variant="outline"
+                size="sm"
+                className="flex-shrink-0 gap-1 sm:gap-1.5 text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3"
+                onClick={() => handleQuickAction(action.action)}
+              >
+                <action.icon className="w-3 h-3" />
+                <span className="hidden xs:inline">{action.label}</span>
+              </Button>
+            ))}
+          </div>
+        )
+      }
 
       {/* Input */}
       <div className="p-3 sm:p-4 border-t flex-shrink-0 bg-background">
@@ -1310,6 +1350,6 @@ export function ConversationalAI() {
           </Button>
         </form>
       </div>
-    </motion.div>
+    </motion.div >
   );
 }

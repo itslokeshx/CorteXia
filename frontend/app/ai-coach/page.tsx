@@ -174,10 +174,19 @@ export default function AICoachPage() {
           const sessionData = await res.json();
           if (sessionData && sessionData.messages) {
             // Transform to CoachSession format
+            const mappedMessages: CoachMessage[] = sessionData.messages.map(
+              (msg: any) => ({
+                id: msg.id || msg._id,
+                role: msg.role,
+                content: msg.content,
+                timestamp: msg.timestamp || new Date().toISOString(),
+              }),
+            );
+
             const historySession: CoachSession = {
               id: sessionData._id || "history",
               startedAt: sessionData.createdAt || new Date().toISOString(),
-              messages: sessionData.messages,
+              messages: mappedMessages,
               sessionType: "general",
             };
             setCurrentSession(historySession);
@@ -521,15 +530,21 @@ export default function AICoachPage() {
       });
 
       let responseContent: string;
+      let responseActions: any[] = [];
+      let responseId: string = `cm-${Date.now()}`;
 
       if (apiRes.ok) {
         const data = await apiRes.json();
-        responseContent =
-          data.message || "I couldn't generate a response. Please try again.";
+        responseContent = data.message || "I couldn't generate a response. Please try again.";
+        responseActions = data.actions || [];
+        // Ideally backend should return the new message ID, but if not we generate one.
+        // Use a consistent ID format if backend provides it in ACTIONS or a specific field, 
+        // but currently backend returns { message, actions }. 
+        // We will stick to local ID but ensures it doesn't conflict.
 
         // Execute any actions returned by the AI
-        if (data.actions && Array.isArray(data.actions)) {
-          executeAiActions(data.actions);
+        if (responseActions.length > 0) {
+          executeAiActions(responseActions);
         }
       } else {
         // Fallback to a basic local response if the API fails
@@ -537,7 +552,7 @@ export default function AICoachPage() {
       }
 
       const aiMessage: CoachMessage = {
-        id: `cm-${Date.now()}`,
+        id: responseId,
         role: "assistant",
         content: responseContent,
         timestamp: new Date().toISOString(),
@@ -547,6 +562,7 @@ export default function AICoachPage() {
         ...updatedSession,
         messages: [...updatedSession.messages, aiMessage],
       };
+
       setCurrentSession(finalSession);
       setSessions((prev) =>
         prev.map((s) => (s.id === finalSession.id ? finalSession : s)),
