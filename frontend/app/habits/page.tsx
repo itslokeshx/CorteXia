@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Zap,
   BarChart3,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -655,6 +656,18 @@ export default function HabitsPage() {
                         </span>
                       </div>
 
+                      {/* Delete button (minimized) */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteHabit(habit.id);
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-gray-400 hover:text-red-500 transition-colors duration-200"
+                        title="Delete habit"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+
                       {/* Expand toggle */}
                       <button
                         onClick={() =>
@@ -902,6 +915,9 @@ export default function HabitsPage() {
                                 </Button>
                               </div>
                             )}
+
+
+
                           </div>
                         </motion.div>
                       )}

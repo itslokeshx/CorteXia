@@ -1,5 +1,7 @@
 "use client";
 
+
+import { usePathname } from "next/navigation";
 import { CollapsibleSidebar } from "./collapsible-sidebar";
 import { ReactNode, useState, useEffect } from "react";
 import { useApp } from "@/lib/context/app-context";
@@ -8,6 +10,7 @@ import { ConversationalAI } from "@/components/ai/conversational-ai";
 import { cn } from "@/lib/utils";
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const { settings } = useApp();
   const { isAuthenticated } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -30,8 +33,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
       >
         <div className="max-w-[1200px] mx-auto">{children}</div>
       </main>
-      {/* AI Chatbot - only when fully authenticated */}
-      {isAuthenticated && <ConversationalAI />}
+      {/* AI Chatbot - only when fully authenticated and not on AI Coach page */}
+      {isAuthenticated && pathname !== "/ai-coach" && <ConversationalAI />}
     </div>
   );
 }

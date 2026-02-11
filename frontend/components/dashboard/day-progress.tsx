@@ -12,12 +12,17 @@ function getDayProgress(): { pct: number; time: string } {
 }
 
 export function DayProgress() {
-  const [progress, setProgress] = useState(() => getDayProgress());
+  const [progress, setProgress] = useState<{ pct: number; time: string } | null>(null);
 
   useEffect(() => {
+    setProgress(getDayProgress());
     const t = setInterval(() => setProgress(getDayProgress()), 60000);
     return () => clearInterval(t);
   }, []);
+
+  if (!progress) return null; // Avoid hydration mismatch by rendering nothing until mounted
+
+
 
   const pct = Math.round(progress.pct);
 

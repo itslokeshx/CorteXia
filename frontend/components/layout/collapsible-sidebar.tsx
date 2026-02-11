@@ -128,7 +128,7 @@ export function CollapsibleSidebar() {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-y-0 left-0 z-50 w-[280px] bg-white dark:bg-[var(--color-bg-primary)] border-r border-[var(--color-border)] lg:hidden flex flex-col"
+            className="fixed top-0 left-0 z-50 h-[100dvh] w-[280px] bg-white dark:bg-[var(--color-bg-primary)] border-r border-[var(--color-border)] lg:hidden flex flex-col"
           >
             <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-2.5">

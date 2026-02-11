@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/layout/app-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/context/app-context";
+import { useAuth } from "@/lib/context/auth-context";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Send, Plus, Sparkles, Wind } from "lucide-react";
@@ -38,8 +39,12 @@ const getMoodEmoji = (value: number) => {
 
 // ═══════════════════════════════════════════════════════════════════════
 export default function AICoachPage() {
+  const { user, profile } = useAuth();
   const { tasks, habits, goals, journalEntries, transactions, timeEntries } =
     useApp();
+
+  // Get user's preferred name
+  const userName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Friend";
 
   const [sessions, setSessions] = useState<CoachSession[]>([]);
   const [currentSession, setCurrentSession] = useState<CoachSession | null>(
@@ -213,15 +218,19 @@ export default function AICoachPage() {
           ? "Good morning"
           : hour < 18
             ? "Good afternoon"
-            : "Good evening";
+            : hour < 18
+              ? "Good afternoon"
+              : "Good evening";
+
+      const personalizedGreeting = `${greeting}, ${userName}`;
 
       const messages: Record<string, string> = {
-        stress: `${greeting}! I can see you're feeling stressed. Let's work through this together. What's weighing on your mind?`,
-        venting: `${greeting}! I'm here to listen without judgment. Take your time and share whatever is on your mind.`,
-        celebration: `${greeting}! 🎉 I love hearing about wins! What amazing thing happened?`,
-        planning: `${greeting}! Let's plan your day. You have ${userState.tasks.pending} pending tasks${userState.tasks.overdue > 0 ? ` (${userState.tasks.overdue} overdue)` : ""}. What would you like to prioritize?`,
-        "check-in": `${greeting}! ${aiAssessment} How are you feeling right now?`,
-        general: `${greeting}! ${aiAssessment} What's on your mind?`,
+        stress: `${personalizedGreeting}! I can see you're feeling stressed. Let's work through this together. What's weighing on your mind?`,
+        venting: `${personalizedGreeting}! I'm here to listen without judgment. Take your time and share whatever is on your mind.`,
+        celebration: `${personalizedGreeting}! 🎉 I love hearing about wins! What amazing thing happened?`,
+        planning: `${personalizedGreeting}! Let's plan your day. You have ${userState.tasks.pending} pending tasks${userState.tasks.overdue > 0 ? ` (${userState.tasks.overdue} overdue)` : ""}. What would you like to prioritize?`,
+        "check-in": `${personalizedGreeting}! ${aiAssessment} How are you feeling right now?`,
+        general: `${personalizedGreeting}! ${aiAssessment} What's on your mind?`,
       };
 
       const aiMessage: CoachMessage = {
@@ -427,7 +436,7 @@ export default function AICoachPage() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden min-h-0">
+        <div className="flex-1 flex flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden min-h-0 shadow-sm relative">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {currentSession?.messages.map((message) => (
@@ -548,7 +557,7 @@ function generateLocalCoachResponse(
   ) {
     return `That's wonderful! 🌟 Positive moments are worth savoring. What made today special?`;
   }
-  return `Thanks for sharing. Here's where you stand:\n\n• Mood: ${getMoodEmoji(userState.mood.value)} ${userState.mood.value}/10\n• Tasks: ${userState.tasks.pending} pending\n• Streaks: ${userState.habits.streaksActive} active\n\nHow can I help? We could:\n1. Talk through what's on your mind\n2. Create an action plan\n3. Do a mindfulness exercise`;
+  return `Thanks for sharing. Here's where you stand:\n\n• Mood: ${getMoodEmoji(userState.mood.value)} ${userState.mood.value}/10\n• Tasks: ${userState.tasks.pending} pending\n• Streaks: ${userState.habits.streaksActive} active\n\nHow can I help given everything on your plate? We could:\n1. Talk through what's on your mind\n2. Create an action plan\n3. Do a mindfulness exercise`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════

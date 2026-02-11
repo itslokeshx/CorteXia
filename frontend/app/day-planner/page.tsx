@@ -149,7 +149,7 @@ export default function DayPlannerPage() {
   const [timeBlocks, setTimeBlocks] = useState<PlannerBlock[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [createOpen, setCreateOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [monthDate, setMonthDate] = useState(new Date());
   const gridRef = useRef<HTMLDivElement>(null);
@@ -217,6 +217,7 @@ export default function DayPlannerPage() {
   // ─── Clock Tick ─────────────────────────────────────────────────────────
 
   useEffect(() => {
+    setCurrentTime(new Date());
     const interval = setInterval(() => setCurrentTime(new Date()), 30000);
     return () => clearInterval(interval);
   }, []);
@@ -338,7 +339,7 @@ export default function DayPlannerPage() {
 
   // ─── Current time position ──────────────────────────────────────────────
 
-  const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const currentMinutes = currentTime ? currentTime.getHours() * 60 + currentTime.getMinutes() : 0;
   const currentTimeTop = (currentMinutes / 60) * 64;
 
   // ─── Month view data ────────────────────────────────────────────────────
@@ -879,7 +880,7 @@ export default function DayPlannerPage() {
                   })}
 
                   {/* Current time indicator */}
-                  {isToday && (
+                  {isToday && currentTime && (
                     <div
                       className="absolute left-0 right-0 z-20 pointer-events-none"
                       style={{ top: `${currentTimeTop}px` }}
@@ -942,9 +943,9 @@ export default function DayPlannerPage() {
                     <p className="text-sm font-semibold text-[var(--color-text-primary)]">
                       {dayBlocks.length > 0
                         ? Math.round(
-                            (summaryStats.completedBlocks / dayBlocks.length) *
-                              100,
-                          )
+                          (summaryStats.completedBlocks / dayBlocks.length) *
+                          100,
+                        )
                         : 0}
                       %
                     </p>
