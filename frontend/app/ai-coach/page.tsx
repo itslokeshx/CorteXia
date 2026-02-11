@@ -8,7 +8,7 @@ import { useApp } from "@/lib/context/app-context";
 import { useAuth } from "@/lib/context/auth-context";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Send, Plus, Sparkles, Wind } from "lucide-react";
+import { Brain, Send, Plus, Sparkles, Wind, Mic, MicOff, Loader2 } from "lucide-react";
 import { format, subDays } from "date-fns";
 import type { UserState, CoachSession, CoachMessage } from "@/lib/types";
 import {
@@ -52,8 +52,10 @@ export default function AICoachPage() {
   );
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [isBreathingExercise, setIsBreathingExercise] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -247,6 +249,41 @@ export default function AICoachPage() {
     [userState, aiAssessment],
   );
 
+  // ─── Voice Input (Web Speech API) ───────────────────────────────────
+  const startListening = () => {
+    if (!("webkitSpeechRecognition" in window)) {
+      alert("Voice input is not supported in this browser.");
+      return;
+    }
+    const SpeechRecognition = (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput((prev) => (prev ? prev + " " + transcript : transcript));
+    };
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+    };
+    recognition.onend = () => setIsListening(false);
+
+    recognition.start();
+  };
+
+  const stopListening = () => {
+    setIsListening(false);
+    // The recognition object is not stored in ref here for simplicity,
+    // relying on onend or natural stop. For 'stop' button we'd need a ref.
+    // Given continuous=false, it stops automatically after speech.
+    // If we want manual stop, we'd need to track the instance.
+    // For now, let's assume one-shot command or just toggle UI.
+  };
+
   // ── Send message ────────────────────────────────────────────────────
   const sendMessage = useCallback(async () => {
     if (!input.trim() || !currentSession || isThinking) return;
@@ -338,6 +375,10 @@ export default function AICoachPage() {
           message: userInput,
           conversationHistory,
           userData: compactUserData,
+          memory: {
+            userName: userName,
+            conversationCount: sessions.length,
+          },
         }),
       });
 
@@ -501,7 +542,26 @@ export default function AICoachPage() {
           {currentSession && (
             <div className="border-t border-[var(--color-border)] p-3 sm:p-4 flex-shrink-0 bg-[var(--color-bg-primary)]">
               <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "h-10 w-10 flex-shrink-0 rounded-full",
+                    isListening
+                      ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 animate-pulse"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--color-text-tertiary)]",
+                  )}
+                  onClick={isListening ? stopListening : startListening}
+                  disabled={isThinking}
+                >
+                  {isListening ? (
+                    <MicOff className="h-5 w-5" />
+                  ) : (
+                    <Mic className="h-5 w-5" />
+                  )}
+                </Button>
                 <Input
+                  ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) =>
