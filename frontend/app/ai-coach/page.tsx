@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/layout/app-layout";
-
+import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/context/app-context";
@@ -42,11 +43,23 @@ const getMoodEmoji = (value: number) => {
 // ═══════════════════════════════════════════════════════════════════════
 export default function AICoachPage() {
   const { user, profile } = useAuth();
-  const { tasks, habits, goals, journalEntries, transactions, timeEntries } =
-    useApp();
+  const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const {
+    tasks,
+    habits,
+    goals,
+    journalEntries,
+    transactions,
+    timeEntries,
+    addTask,
+    addHabit,
+    addGoal,
+  } = useApp();
 
   // Get user's preferred name
-  const userName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Friend";
+  const userName =
+    profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Friend";
 
   const [sessions, setSessions] = useState<CoachSession[]>([]);
   const [currentSession, setCurrentSession] = useState<CoachSession | null>(
@@ -58,6 +71,87 @@ export default function AICoachPage() {
   const [isBreathingExercise, setIsBreathingExercise] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // ── Action Dispatcher ────────────────────────────────────────────────
+  const executeAiActions = useCallback(
+    (actions: any[]) => {
+      if (!actions || !Array.isArray(actions)) return;
+
+      actions.forEach((action) => {
+        try {
+          switch (action.type) {
+            case "set_theme":
+              if (action.data?.theme) {
+                setTheme(action.data.theme);
+                toast.success(`Theme set to ${action.data.theme}`);
+              }
+              break;
+
+            case "create_task":
+              if (action.data?.title) {
+                addTask({
+                  title: action.data.title,
+                  priority: action.data.priority || "medium",
+                  status: "todo",
+                  dueDate: action.data.dueDate,
+                  tags: action.data.domain ? [action.data.domain] : [],
+                  domain: action.data.domain || "personal", // Default domain
+                  description: action.data.description || "",
+                });
+                toast.success(`Task created: ${action.data.title}`);
+              }
+              break;
+
+            case "create_habit":
+              if (action.data?.name) {
+                addHabit({
+                  name: action.data.name,
+                  frequency: action.data.frequency || "daily",
+                  active: true,
+                  streak: 0,
+                  longestStreak: 0,
+                  description: action.data.description || "",
+                  category: action.data.category || "health",
+                });
+                toast.success(`Habit added: ${action.data.name}`);
+              }
+              break;
+
+            case "create_goal":
+              if (action.data?.title) {
+                addGoal({
+                  title: action.data.title,
+                  category: action.data.category || "personal",
+                  targetDate: action.data.targetDate,
+                  status: "active",
+                  progress: 0,
+                  milestones: [],
+                  description: action.data.description || "",
+                  priority: "medium",
+                  level: "quarterly", // Default level must be a valid string literal
+                });
+                toast.success(`Goal set: ${action.data.title}`);
+              }
+              break;
+
+            case "navigate":
+              if (action.data?.path) {
+                router.push(action.data.path);
+                toast.success(`Navigating to ${action.data.path}`);
+              }
+              break;
+
+            default:
+              console.warn("Unknown AI action:", action.type);
+          }
+        } catch (err) {
+          console.error("Failed to execute AI action:", action, err);
+          toast.error(`Failed to perform action: ${action.type}`);
+        }
+      });
+    },
+    [addTask, addHabit, addGoal, setTheme, router],
+  );
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -399,6 +493,11 @@ export default function AICoachPage() {
         const data = await apiRes.json();
         responseContent =
           data.message || "I couldn't generate a response. Please try again.";
+
+        // Execute any actions returned by the AI
+        if (data.actions && Array.isArray(data.actions)) {
+          executeAiActions(data.actions);
+        }
       } else {
         // Fallback to a basic local response if the API fails
         responseContent = generateLocalCoachResponse(userInput, userState);
@@ -453,6 +552,7 @@ export default function AICoachPage() {
     transactions,
     timeEntries,
     journalEntries,
+    executeAiActions,
   ]);
 
   // ── Render ──────────────────────────────────────────────────────────
