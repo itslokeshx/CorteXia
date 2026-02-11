@@ -57,6 +57,7 @@ export default function AICoachPage() {
     addGoal,
     settings,
     updateSettings,
+    dataReady,
   } = useApp();
 
   // Get user's preferred name - prioritize AI memory, then profile, then email
@@ -165,6 +166,9 @@ export default function AICoachPage() {
   // Fetch chat history on mount
   useEffect(() => {
     const fetchHistory = async () => {
+      // Wait for data to be ready to ensure settings (and userName) are loaded
+      if (!dataReady) return;
+
       try {
         const token = localStorage.getItem("cortexia_token");
         if (!token) return;
@@ -178,6 +182,7 @@ export default function AICoachPage() {
         if (res.ok) {
           const sessionData = await res.json();
           if (sessionData && sessionData.messages) {
+            // ... existing logic ...
             // Transform to CoachSession format
             const mappedMessages: CoachMessage[] = sessionData.messages.map(
               (msg: any) => ({
@@ -197,9 +202,11 @@ export default function AICoachPage() {
             setCurrentSession(historySession);
             setSessions([historySession]);
           } else {
+            // Only start new session if NO history exists
             startNewSession("general");
           }
         } else {
+          // Only start new session if history fetch fails
           startNewSession("general");
         }
       } catch (error) {
@@ -209,7 +216,7 @@ export default function AICoachPage() {
     };
 
     fetchHistory();
-  }, []);
+  }, [dataReady]);
 
   // ── User state ──────────────────────────────────────────────────────
   const userState: UserState = useMemo(() => {
