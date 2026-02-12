@@ -24,13 +24,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
 
     if (!user && !isPublicRoute) {
-      router.push("/login");
+      // Use window.location for reliable navigation in Tauri static export
+      window.location.href = "/login/";
     } else if (user && pathname === "/login") {
-      router.push("/");
+      window.location.href = "/";
     }
   }, [user, loading, pathname, router, splashDone]);
 
-  // Phase 1: Always show 5-second splash screen first
+  // Phase 1: Always show splash screen first
   if (!splashDone) {
     return <LoadingScreen progress={0} onComplete={handleSplashComplete} />;
   }
@@ -40,11 +41,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     return <LoadingScreen progress={100} />;
   }
 
-  // Phase 3: Not authenticated and not on public route
+  // Phase 3: Not authenticated and not on public route — show loading while redirecting
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
   if (!user && !isPublicRoute) {
-    return null; // Will redirect in useEffect
+    return <LoadingScreen progress={100} />;
   }
 
   return <>{children}</>;
 }
+

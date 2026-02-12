@@ -1,0 +1,56 @@
+{
+    "$schema": "https://raw.githubusercontent.com/AdrianGaudeworkersd/tauri-v2-schema/main/tauri.conf.json",
+    "productName": "CorteXia",
+    "version": "1.0.0",
+    "identifier": "com.cortexia.app",
+    "build": {
+        "beforeBuildCommand": "npm run build",
+        "beforeDevCommand": "npm run dev",
+        "devUrl": "http://localhost:3000",
+        "frontendDist": "../out"
+    },
+    "app": {
+        "windows": [
+            {
+                "fullscreen": false,
+                "height": 900,
+                "resizable": true,
+                "title": "CorteXia",
+                "width": 1400,
+                "minWidth": 1024,
+                "minHeight": 768,
+                "center": true,
+                "decorations": true,
+                "transparent": false
+            }
+        ],
+        "security": {
+            "csp": "default-src 'self'; connect-src 'self' https://cortexia-backend.onrender.com https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com"
+        }
+    },
+    "bundle": {
+        "active": true,
+        "category": "Productivity",
+        "copyright": "Copyright (c) 2026 CorteXia",
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "longDescription": "The Ultimate AI-Powered Life Operating System. CorteXia deeply understands your life through advanced AI, providing proactive insights, intelligent automation, and seamless integration.",
+        "shortDescription": "AI-Powered Productivity Platform",
+        "targets": "all",
+        "linux": {
+            "deb": {
+                "depends": []
+            }
+        },
+        "windows": {
+            "certificateThumbprint": null,
+            "digestAlgorithm": "sha256",
+            "timestampUrl": ""
+        }
+    }
+}

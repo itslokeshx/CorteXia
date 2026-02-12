@@ -69,3 +69,8 @@ logs/
 # Misc
 *.pem
 .turbo
+
+# Tauri / Rust
+frontend/src-tauri/target/
+frontend/src-tauri/Cargo.lock
+frontend/src-tauri/WixTools/

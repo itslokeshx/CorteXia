@@ -7,7 +7,6 @@ import { Brain, Mail, Lock, Loader2, User } from "lucide-react";
 import { useAuth } from "@/lib/context/auth-context";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import Script from "next/script";
 
 // ═══ Google G icon SVG ═══
 function GoogleIcon({ className }: { className?: string }) {
@@ -77,6 +76,17 @@ export default function AuthPage() {
       router.replace("/");
     }
   }, [isAuthenticated, loading, router]);
+
+  // Dynamically load Google Identity Services script
+  useEffect(() => {
+    if (document.getElementById("google-gsi-script")) return;
+    const script = document.createElement("script");
+    script.id = "google-gsi-script";
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.onload = () => setGoogleReady(true);
+    document.head.appendChild(script);
+  }, []);
 
   // Initialize Google OAuth2 token client when script loads
   useEffect(() => {
@@ -169,11 +179,6 @@ export default function AuthPage() {
 
   return (
     <>
-      <Script
-        src="https://accounts.google.com/gsi/client"
-        strategy="afterInteractive"
-        onLoad={() => setGoogleReady(true)}
-      />
       <div
         className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden"
         style={{ background: "var(--color-bg-primary)" }}

@@ -1,39 +1,49 @@
-# 🧠 CorteXia - Your Second Brain
+# 🧠 CorteXia Desktop — Your Second Brain
 
 <div align="center">
 
 <img src="frontend/public/Cortexia-icon.jpeg" alt="CorteXia Icon" width="200" height="200" />
 
-**The Ultimate AI-Powered Life Operating System**
+**The Ultimate AI-Powered Life Operating System — Now as a Native Desktop App**
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-v2-24C8DB?style=for-the-badge&logo=tauri)](https://tauri.app/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/cloud/atlas)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![Rust](https://img.shields.io/badge/Rust-Backend-DEA584?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-[Live Demo](#) • [Documentation](#) • [Report Bug](#) • [Request Feature](#)
-
 </div>
+
+---
+
+> **📌 Branch:** `desktop` — This branch packages CorteXia as a native desktop application using [Tauri v2](https://tauri.app/). The web version lives on the `main` branch.
 
 ---
 
 ## 📖 Table of Contents
 
 - [Overview](#-overview)
+- [Architecture](#-architecture)
 - [Key Features](#-key-features)
 - [Tech Stack](#-tech-stack)
 - [Getting Started](#-getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
-  - [Environment Setup](#environment-setup)
-  - [MongoDB Setup](#mongodb-setup)
-  - [Google OAuth Setup](#google-oauth-setup)
+  - [Development](#development)
+  - [Building Installers](#building-installers)
+- [Installing the Desktop App](#-installing-the-desktop-app)
 - [Project Structure](#-project-structure)
+- [Configuration](#-configuration)
+  - [Frontend Environment](#frontend-environment)
+  - [Backend CORS](#backend-cors)
+  - [Google OAuth](#google-oauth)
+  - [Tauri Config](#tauri-config)
 - [Features Deep Dive](#-features-deep-dive)
 - [API Documentation](#-api-documentation)
 - [Database Schema](#-database-schema)
-- [Deployment](#-deployment)
+- [Cross-Platform Builds](#-cross-platform-builds)
+- [Troubleshooting](#-troubleshooting)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -43,127 +53,144 @@
 
 **CorteXia** is a world-class, AI-powered productivity platform that serves as your cognitive operating system. Unlike traditional task managers, CorteXia deeply understands your life through advanced AI, providing proactive insights, intelligent automation, and seamless integration across all aspects of your personal and professional life.
 
+This **desktop branch** packages the full CorteXia experience as a lightweight native application using **Tauri v2**. The app connects to the hosted backend on Render — no local server required.
+
+### Why Desktop?
+
+| Feature | Web | Desktop |
+|---------|-----|---------|
+| **Startup** | Opens in browser tab | Dedicated window, taskbar icon |
+| **Performance** | Browser overhead | Native webview, lower memory |
+| **Offline Shell** | Requires internet | App shell loads instantly |
+| **System Integration** | Limited | Notifications, clipboard, shortcuts |
+| **Distribution** | URL | `.deb`, `.rpm`, `.AppImage`, `.exe`, `.dmg` |
+
 ### Why CorteXia?
 
-- 🧠 **Omnipotent AI** - Create tasks, set reminders, change settings, all via natural conversation
-- 🔗 **Deep Integration** - Tasks, habits, goals, time blocks all connected and synchronized
-- 📊 **Intelligent Insights** - Pattern detection, burnout prevention, productivity optimization
-- 🎯 **Goal-Oriented** - Everything ties back to your long-term objectives
-- 💎 **Beautiful UX** - Minimal design with maximum functionality
-- ☁️ **100% Cloud-Based** - Access your data anywhere, anytime
-- 🔐 **Privacy-First** - Your data is encrypted and secure
+- 🧠 **Omnipotent AI** — Create tasks, set reminders, change settings via natural conversation
+- 🔗 **Deep Integration** — Tasks, habits, goals, time blocks all connected and synchronized
+- 📊 **Intelligent Insights** — Pattern detection, burnout prevention, productivity optimization
+- 🎯 **Goal-Oriented** — Everything ties back to your long-term objectives
+- 💎 **Beautiful UX** — Minimal design with maximum functionality
+- 🔐 **Privacy-First** — Your data is encrypted and secure
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   Tauri v2 Shell                     │
+│  ┌───────────────────────────────────────────────┐  │
+│  │          WebView (webkit2gtk / WebView2)       │  │
+│  │  ┌─────────────────────────────────────────┐  │  │
+│  │  │      Next.js Static Export (out/)        │  │  │
+│  │  │                                          │  │  │
+│  │  │  React 19 + TypeScript + Tailwind v4    │  │  │
+│  │  │  Framer Motion + Radix UI + shadcn/ui   │  │  │
+│  │  └──────────────┬──────────────────────────┘  │  │
+│  │                 │ HTTPS (fetch)                │  │
+│  └─────────────────┼─────────────────────────────┘  │
+│    Rust Backend     │  Plugins: shell, clipboard,    │
+│    (src-tauri/)     │  notifications                 │
+└─────────────────────┼───────────────────────────────┘
+                      │
+                      ▼
+        ┌─────────────────────────┐
+        │  Express.js API Server  │
+        │  (Render.com)           │
+        │                         │
+        │  JWT Auth + MongoDB     │
+        │  AI Chat + All CRUD     │
+        └────────────┬────────────┘
+                     │
+                     ▼
+           ┌──────────────────┐
+           │  MongoDB Atlas   │
+           │  (Cloud DB)      │
+           └──────────────────┘
+```
+
+**Key design decisions:**
+- Frontend is **fully client-rendered** (`"use client"`) — no SSR, no server components
+- Static export via `next build` generates plain HTML/CSS/JS in `out/`
+- Tauri loads `out/` directly via the `custom-protocol` — no dev server needed in production
+- All API calls go through `lib/api-client.ts` using `NEXT_PUBLIC_API_URL`
+- Authentication uses **JWT + localStorage** (not NextAuth.js)
 
 ---
 
 ## ✨ Key Features
 
 ### 🤖 Omnipotent AI Assistant
-- **Natural Language Control** - "Create a task to finish the report by Friday 2pm"
-- **Memory System** - Remembers your name, preferences, and important dates
-- **Proactive Interventions** - Warns about burnout, streak breaks, at-risk goals
-- **Multi-Action Execution** - Performs multiple actions from a single command
-- **Theme Control** - "Switch to dark mode" changes theme instantly
-- **Intelligent API Rotation** - Never runs out of AI capacity with automatic fallback
+- **Natural Language Control** — "Create a task to finish the report by Friday 2pm"
+- **Memory System** — Remembers your name, preferences, and important dates
+- **Proactive Interventions** — Warns about burnout, streak breaks, at-risk goals
+- **Multi-Action Execution** — Performs multiple actions from a single command
+- **Theme Control** — "Switch to dark mode" changes theme instantly
 
 ### ✅ Smart Task Management
-- **AI-Powered Creation** - Analyzes input and suggests priority, time, and goal linking
-- **Time Blocking** - Tasks automatically create time blocks in calendar
-- **Goal Integration** - Link tasks to long-term goals for context
-- **Priority System** - Low, Medium, High, Critical with color coding
-- **Subtasks** - Break down complex tasks into manageable steps
-- **Drag & Drop** - Intuitive task organization
+- AI-powered creation with priority, time, and goal linking
+- Subtasks, drag & drop, time blocking integration
+- Priority system: Low → Medium → High → Critical
 
 ### 🎯 GitHub-Style Habit Tracker
-- **365-Day Heatmap** - Visual streak tracking with intensity levels
-- **Streak Analytics** - Current streak, longest streak, completion rate
-- **Frequency Control** - Daily, weekly, or custom schedules
-- **Quick Toggle** - Mark habits complete with satisfying animations
-- **Pattern Detection** - AI identifies your best times for habit completion
-- **Streak Protection** - Warnings before you break important streaks
+- 365-day heatmap with intensity levels
+- Streak analytics, frequency control, pattern detection
 
 ### 🚩 Hierarchical Goal System
-- **Multi-Level Structure** - Year → Quarter → Month → Week breakdown
-- **Progress Tracking** - Visual progress bars at every level
-- **AI Roadmap Generation** - Automatically create milestones and action items
-- **Status Monitoring** - On Track, At Risk, Behind, Completed
-- **Cross-Feature Linking** - Goals connect to tasks, habits, time blocks, expenses
-- **Deadline Alerts** - AI warns when goals need attention
+- Year → Quarter → Month → Week breakdown
+- AI roadmap generation, cross-feature linking
 
 ### 📅 Visual Time Blocking
-- **Day/Week/Month Views** - Flexible calendar visualization
-- **Drag-and-Drop Scheduling** - Move time blocks effortlessly
-- **Category Colors** - Work, Focus, Meeting, Break, Personal, Habit
-- **Task Integration** - Time blocks linked to tasks and habits
-- **Copy Schedule** - Duplicate yesterday's blocks to today/tomorrow
-- **Current Time Indicator** - Real-time tracking of your position in the day
+- Day/week/month views with drag-and-drop scheduling
+- Category colors, task integration, copy schedule
 
 ### ⏱️ Pomodoro Timer with Analytics
-- **Focus Sessions** - 25-minute deep work intervals
-- **Full-Screen Mode** - Distraction-free timer with ambient animations
-- **Accurate Logging** - Only logs actual time spent (not planned duration)
-- **Detailed Analytics** - Daily/weekly/monthly stats, time by category
-- **Productivity Trends** - Visual charts showing your focus patterns
-- **Incomplete Session Tracking** - Separate tracking for stopped sessions
+- Focus sessions with full-screen mode
+- Accurate logging, detailed analytics, productivity trends
 
-### 💰 Expense Tracking with Goal Impact
-- **Quick Entry** - Log expenses with title, amount, category, date
-- **Budget Monitoring** - Monthly budget with visual progress
-- **Goal Linking** - Track expenses related to savings goals
-- **Impact Analysis** - See how purchases affect goal timelines
-- **Category Breakdown** - Charts and reports by spending category
-- **Receipt Storage** - Upload and link receipt images
+### 💰 Expense Tracking
+- Quick entry, budget monitoring, goal-linked impact analysis
 
 ### ✍️ Journal with AI Reflection
-- **Daily Entries** - One journal entry per day
-- **Mood Tracking** - 5-point scale with emoji selector
-- **Energy/Stress/Focus** - Track multiple dimensions of wellbeing
-- **AI Reflection** - Get personalized insights from your entries
-- **Trend Analysis** - 30-day mood charts and pattern detection
-- **Cross-Linking** - Connect entries to goals, habits, and tasks
+- Daily entries with mood/energy/stress/focus tracking
+- AI reflection and 30-day trend analysis
 
-### 🎨 World-Class Design
-- **Minimal Aesthetic** - 90% white space, surgical precision
-- **Smooth Animations** - Framer Motion for delightful interactions
-- **Responsive Design** - Perfect on desktop, tablet, and mobile
-- **Dark Mode** - Eye-friendly theme with full coverage
-- **Loading Experience** - Meaningful loading screen with particle animations
-- **Micro-interactions** - Confetti celebrations, hover effects, smooth transitions
+### 🎨 Premium Design
+- Minimal aesthetic with smooth Framer Motion animations
+- Dark mode, responsive layout, micro-interactions
 
 ---
 
 ## 🛠️ Tech Stack
 
+### Desktop Shell
+| Technology | Purpose |
+|-----------|---------|
+| [Tauri v2](https://tauri.app/) | Native app shell (Rust backend + system webview) |
+| [Rust](https://www.rust-lang.org/) | Tauri backend process |
+| [webkit2gtk-4.1](https://webkitgtk.org/) | Linux webview engine |
+
 ### Frontend
-- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) + [Radix UI](https://www.radix-ui.com/)
-- **State Management**: [React Query](https://tanstack.com/query) + [Zustand](https://zustand-demo.pmnd.rs/)
-- **Form Handling**: [React Hook Form](https://react-hook-form.com/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Notifications**: [React Hot Toast](https://react-hot-toast.com/)
+| Technology | Purpose |
+|-----------|---------|
+| [Next.js 16](https://nextjs.org/) | React framework (static export mode) |
+| [React 19](https://react.dev/) | UI library |
+| [TypeScript 5](https://www.typescriptlang.org/) | Type safety |
+| [Tailwind CSS v4](https://tailwindcss.com/) | Styling |
+| [Framer Motion](https://www.framer.com/motion/) | Animations |
+| [Radix UI](https://www.radix-ui.com/) + [shadcn/ui](https://ui.shadcn.com/) | Component library |
+| [Lucide React](https://lucide.dev/) | Icons |
 
-### Backend
-- **Database**: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (Cloud)
-- **ODM**: [Mongoose](https://mongoosejs.com/)
-- **Authentication**: [NextAuth.js](https://next-auth.js.org/)
-- **API Routes**: Next.js API Routes (Server-side)
-- **Password Hashing**: [bcryptjs](https://www.npmjs.com/package/bcryptjs)
-
-### AI & Intelligence
-- **AI Integration**: Advanced Large Language Model
-- **Fallback System**: Multi-key automatic rotation
-- **Caching**: 5-minute TTL response cache
-- **Rate Limiting**: Smart distribution and load balancing
-- **Context Building**: Real-time user data aggregation
-
-### DevOps & Tools
-- **Hosting**: [Vercel](https://vercel.com/)
-- **Version Control**: Git + GitHub
-- **Package Manager**: npm / yarn
-- **Code Quality**: ESLint + Prettier
-- **Type Checking**: TypeScript strict mode
+### Backend (Hosted on Render)
+| Technology | Purpose |
+|-----------|---------|
+| [Express.js](https://expressjs.com/) | REST API server |
+| [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) | Cloud database |
+| [Mongoose](https://mongoosejs.com/) | ODM |
+| [JWT](https://jwt.io/) | Authentication |
+| [bcryptjs](https://www.npmjs.com/package/bcryptjs) | Password hashing |
 
 ---
 
@@ -171,141 +198,100 @@
 
 ### Prerequisites
 
-Before you begin, ensure you have:
+| Requirement | Version | Purpose |
+|-------------|---------|---------|
+| **Node.js** | ≥ 18.x | Frontend build |
+| **Rust** | ≥ 1.70 | Tauri compilation |
+| **npm** | ≥ 9.x | Package management |
 
-- **Node.js** 18.x or higher ([Download](https://nodejs.org/))
-- **npm** or **yarn** package manager
-- **MongoDB Atlas** account ([Sign up free](https://www.mongodb.com/cloud/atlas))
-- **Google Cloud Console** account (for OAuth)
-- **AI API** access (your preferred LLM provider)
+**Linux system dependencies:**
+```bash
+sudo apt-get install -y \
+  libwebkit2gtk-4.1-dev \
+  libgtk-3-dev \
+  libsoup2.4-dev \
+  libjavascriptcoregtk-4.1-dev \
+  librsvg2-dev \
+  libappindicator3-dev
+```
+
+**Install Rust (if not installed):**
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+```
 
 ### Installation
 
-1. **Clone the repository**
-
 ```bash
+# Clone the repository
 git clone https://github.com/yourusername/cortexia.git
 cd cortexia
-```
 
-2. **Install dependencies**
+# Switch to the desktop branch
+git checkout desktop
 
-```bash
+# Install frontend dependencies
+cd frontend
 npm install
-# or
-yarn install
 ```
 
-3. **Copy environment template**
+### Development
 
 ```bash
-cp .env.example .env.local
+# Start Tauri dev mode (hot-reload frontend + native window)
+npm run tauri:dev
 ```
 
-4. **Configure environment variables** (see [Environment Setup](#environment-setup))
+This will:
+1. Start the Next.js dev server on `http://localhost:3000`
+2. Launch the Tauri native window pointing to it
+3. Hot-reload on file changes
 
-5. **Run development server**
+### Building Installers
 
 ```bash
-npm run dev
-# or
-yarn dev
+# Build production installers for your current platform
+npm run tauri:build
 ```
 
-6. **Open your browser**
+**Output location:** `frontend/src-tauri/target/release/bundle/`
 
-Navigate to `http://localhost:3000`
+| Platform | Format | Path |
+|----------|--------|------|
+| Linux | `.deb` | `bundle/deb/CorteXia_1.0.0_amd64.deb` |
+| Linux | `.rpm` | `bundle/rpm/CorteXia-1.0.0-1.x86_64.rpm` |
+| Linux | `.AppImage` | `bundle/appimage/CorteXia_1.0.0_amd64.AppImage` |
+| Windows | `.msi` / `.exe` | `bundle/msi/` or `bundle/nsis/` |
+| macOS | `.dmg` / `.app` | `bundle/dmg/` or `bundle/macos/` |
 
 ---
 
-### Environment Setup
+## 📦 Installing the Desktop App
 
-Create a `.env.local` file in the root directory:
-
+### Linux (.deb — Ubuntu/Debian/Mint)
 ```bash
-# MongoDB Atlas
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/cortexia?retryWrites=true&w=majority
+sudo dpkg -i CorteXia_1.0.0_amd64.deb
+```
+Then search for "CorteXia" in your application menu.
 
-# NextAuth.js (generate with: openssl rand -base64 32)
-NEXTAUTH_SECRET=your-secret-key-here
-NEXTAUTH_URL=http://localhost:3000
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# AI API Keys (multiple for fallback)
-AI_API_KEY_1=your_first_key
-AI_API_KEY_2=your_second_key
-AI_API_KEY_3=your_third_key
-AI_API_KEY_4=your_fourth_key
+### Linux (.rpm — Fedora/RHEL)
+```bash
+sudo rpm -i CorteXia-1.0.0-1.x86_64.rpm
 ```
 
----
+### Linux (.AppImage — Universal)
+```bash
+chmod +x CorteXia_1.0.0_amd64.AppImage
+./CorteXia_1.0.0_amd64.AppImage
+```
+No installation needed — runs directly.
 
-### MongoDB Setup
+### Windows (.msi)
+Double-click the `.msi` installer and follow the wizard.
 
-1. **Create MongoDB Atlas Account**
-   - Visit [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
-   - Sign up for a free account
-
-2. **Create a Cluster**
-   - Choose **FREE M0 tier**
-   - Select cloud provider (AWS recommended)
-   - Choose region closest to your users
-   - Name: `cortexia-cluster`
-
-3. **Create Database User**
-   - Navigate to **Database Access**
-   - Add new database user
-   - Authentication: **Password**
-   - Set username and strong password
-   - Privileges: **Atlas Admin**
-
-4. **Configure Network Access**
-   - Go to **Network Access**
-   - Add IP Address
-   - Allow access from anywhere: `0.0.0.0/0`
-   - ⚠️ For production, restrict to specific IPs
-
-5. **Get Connection String**
-   - Click **Connect** on your cluster
-   - Choose "Connect your application"
-   - Driver: **Node.js** version 5.5+
-   - Copy connection string
-   - Replace `<password>` with your password
-   - Add database name: `/cortexia`
-
----
-
-### Google OAuth Setup
-
-1. **Access Google Cloud Console**
-   - Go to [console.cloud.google.com](https://console.cloud.google.com/)
-
-2. **Create New Project**
-   - Click "Select a project" → "New Project"
-   - Name: "CorteXia"
-   - Click "Create"
-
-3. **Enable Google+ API**
-   - Navigate to "APIs & Services" → "Library"
-   - Search for "Google+ API"
-   - Click "Enable"
-
-4. **Create OAuth Credentials**
-   - Go to "Credentials"
-   - Click "Create Credentials" → "OAuth 2.0 Client ID"
-   - Application type: **Web application**
-   - Name: "CorteXia Web Client"
-   - Authorized redirect URIs:
-     - `http://localhost:3000/api/auth/callback/google`
-     - `https://yourdomain.com/api/auth/callback/google`
-   - Click "Create"
-
-5. **Save Credentials**
-   - Copy **Client ID** and **Client Secret**
-   - Add to your `.env.local` file
+### macOS (.dmg)
+Open the `.dmg` and drag CorteXia to your Applications folder.
 
 ---
 
@@ -313,494 +299,305 @@ AI_API_KEY_4=your_fourth_key
 
 ```
 cortexia/
-├── app/                          # Next.js 14 App Router
-│   ├── api/                      # API Routes
-│   │   ├── auth/                 # Authentication
-│   │   │   ├── [...nextauth]/   # NextAuth handler
-│   │   │   └── signup/          # Email signup
-│   │   ├── tasks/               # Task CRUD
-│   │   ├── habits/              # Habit CRUD
-│   │   ├── goals/               # Goal CRUD
-│   │   ├── time-blocks/         # Time block CRUD
-│   │   ├── expenses/            # Expense CRUD
-│   │   ├── journal/             # Journal CRUD
-│   │   └── ai/                  # AI endpoints
-│   │       └── chat/            # AI chat handler
-│   ├── auth/                    # Auth pages
-│   ├── dashboard/               # Protected pages
-│   │   ├── tasks/               # Task management
-│   │   ├── habits/              # Habit tracking
-│   │   ├── goals/               # Goal setting
-│   │   ├── planner/             # Day planner
-│   │   ├── pomodoro/            # Time tracker
-│   │   ├── expenses/            # Expense tracking
-│   │   ├── journal/             # Journaling
-│   │   └── settings/            # User settings
-│   ├── layout.tsx               # Root layout
-│   └── page.tsx                 # Landing page
-├── components/                   # React components
-│   ├── ui/                      # shadcn/ui components
-│   ├── LoadingScreen.tsx        # Loading experience
-│   ├── AIFloatingChat.tsx       # AI chatbot
-│   ├── Sidebar.tsx              # Navigation
-│   └── ...
-├── lib/                         # Utilities
-│   ├── mongodb.ts               # Database connection
-│   ├── ai/                      # AI system
-│   │   ├── client.ts            # API client
-│   │   ├── context.ts           # Context builder
-│   │   ├── prompts.ts           # System prompts
-│   │   └── executor.ts          # Action executor
-│   └── utils.ts                 # Helpers
-├── models/                      # Mongoose schemas
-│   ├── User.ts
-│   ├── Task.ts
-│   ├── Habit.ts
-│   ├── HabitCompletion.ts
-│   ├── Goal.ts
-│   ├── TimeBlock.ts
-│   ├── Expense.ts
-│   ├── JournalEntry.ts
-│   ├── AIConversation.ts
-│   ├── UserMemory.ts
-│   └── TimeLog.ts
-├── hooks/                       # Custom hooks
-│   ├── useAuth.ts
-│   ├── useTasks.ts
-│   └── ...
-├── public/                      # Static files
-├── .env.local                   # Environment variables
+├── frontend/                         # Next.js frontend + Tauri shell
+│   ├── app/                          # Next.js App Router (pages)
+│   │   ├── layout.tsx                # Root layout (client component)
+│   │   ├── page.tsx                  # Dashboard
+│   │   ├── login/page.tsx            # Auth page
+│   │   ├── tasks/page.tsx            # Task management
+│   │   ├── habits/page.tsx           # Habit tracking
+│   │   ├── goals/page.tsx            # Goal system
+│   │   ├── day-planner/page.tsx      # Time blocking
+│   │   ├── time-tracker/page.tsx     # Pomodoro timer
+│   │   ├── finance/page.tsx          # Expense tracking
+│   │   ├── journal/page.tsx          # Daily journal
+│   │   ├── ai-coach/page.tsx         # AI assistant
+│   │   ├── settings/page.tsx         # User settings
+│   │   └── timeline/page.tsx         # Activity timeline
+│   ├── components/                   # React components
+│   │   ├── ui/                       # shadcn/ui primitives
+│   │   ├── auth-guard.tsx            # Route protection
+│   │   ├── loading-screen.tsx        # Splash screen
+│   │   ├── sidebar.tsx               # Navigation
+│   │   └── ...
+│   ├── lib/                          # Utilities & context
+│   │   ├── api-client.ts             # API abstraction layer
+│   │   ├── context/
+│   │   │   ├── auth-context.tsx      # JWT auth (localStorage)
+│   │   │   ├── app-context.tsx       # Global state
+│   │   │   └── celebration-context.tsx
+│   │   └── utils.ts
+│   ├── src-tauri/                    # ── Tauri native shell ──
+│   │   ├── tauri.conf.json           # App config, CSP, window settings
+│   │   ├── Cargo.toml                # Rust dependencies
+│   │   ├── build.rs                  # Tauri build script
+│   │   ├── capabilities/
+│   │   │   └── default.json          # Permission grants
+│   │   ├── icons/                    # App icons (all sizes)
+│   │   └── src/
+│   │       └── main.rs               # Rust entry point
+│   ├── out/                          # Static export output (gitignored)
+│   ├── .env.local                    # Environment variables
+│   ├── next.config.mjs               # Next.js config (static export)
+│   ├── package.json                  # Dependencies + scripts
+│   └── tsconfig.json
+│
+├── backend/                          # Express.js API server
+│   ├── src/
+│   │   ├── index.ts                  # Server entry + CORS config
+│   │   ├── routes/                   # API route handlers
+│   │   │   ├── auth.ts               # Signup, login, Google OAuth
+│   │   │   ├── tasks.ts              # Task CRUD
+│   │   │   ├── habits.ts             # Habit CRUD
+│   │   │   ├── goals.ts              # Goal CRUD
+│   │   │   ├── time-blocks.ts        # Time block CRUD
+│   │   │   ├── expenses.ts           # Expense CRUD
+│   │   │   ├── journal.ts            # Journal CRUD
+│   │   │   └── ai.ts                 # AI chat endpoint
+│   │   ├── models/                   # Mongoose schemas
+│   │   ├── middleware/               # Auth middleware
+│   │   └── utils/                    # Helpers
+│   ├── package.json
+│   └── tsconfig.json
+│
 ├── .gitignore
-├── next.config.js
-├── package.json
-├── tailwind.config.js
-├── tsconfig.json
 └── README.md
 ```
 
 ---
 
-## 🎯 Features Deep Dive
+## ⚙️ Configuration
 
-### Omnipotent AI System
+### Frontend Environment
 
-The AI is the core intelligence that powers CorteXia:
+Create `frontend/.env.local`:
 
-**Natural Language Understanding**
-```
-User: "Create a high-priority task to finish ML assignment by Friday 2pm"
-AI: ✅ Task created
-    📅 Time block scheduled (Friday 2-4pm)
-    ⏰ Reminder set (Friday 1:30pm)
-```
+```bash
+# ─── Backend API URL ─────────────────────────────────────────
+NEXT_PUBLIC_API_URL=https://cortexia-backend.onrender.com
+NEXT_PUBLIC_APP_ENV=desktop
 
-**Memory & Context**
-```
-User: "My name is Sarah"
-AI: [Saves to database] "Got it, Sarah! I'll remember that."
-
-Later conversation:
-AI: "Hey Sarah, you have 3 tasks due today..."
+# ─── Google OAuth ────────────────────────────────────────────
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 ```
 
-**Multi-Action Execution**
-```json
-{
-  "message": "I've organized your week!",
-  "actions": [
-    { "type": "create_task", "data": {...} },
-    { "type": "schedule_time_block", "data": {...} },
-    { "type": "set_reminder", "data": {...} },
-    { "type": "update_goal", "data": {...} }
-  ]
-}
+### Backend CORS
+
+The backend at `backend/src/index.ts` must include `tauri://localhost` in the allowed origins:
+
+```typescript
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:3000",
+  "https://corte-xia.vercel.app",
+  "tauri://localhost",          // ← Desktop app origin
+].filter(Boolean) as string[];
 ```
 
-**System Control**
-```
-User: "Switch to dark mode"
-AI: [Updates user preferences] Theme changed ✨
+### Google OAuth
 
-User: "Delete all my completed tasks"
-AI: [Soft deletes from database] Done! Removed 47 completed tasks.
-```
+For Google sign-in to work inside the Tauri webview:
 
-### Cross-Page Synchronization
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
+2. Edit your OAuth 2.0 Client ID
+3. Add `tauri://localhost` to **Authorized JavaScript origins**
+4. Add `tauri://localhost` to **Authorized redirect URIs**
 
-**Task → Time Block Integration**
-- Create task with time → Auto-generates time block
-- Update task time → Time block moves
-- Complete task → Time block marked done
-- Delete task → Time block removed
+### Tauri Config
 
-**Habit → Streak System**
-- Mark habit complete → Streak +1
-- Miss habit → Streak resets
-- AI detects patterns → Suggests optimal times
-- Break streak → Warning notification
+The Tauri configuration lives at `frontend/src-tauri/tauri.conf.json`. Key settings:
 
-**Goal → Task → Habit Chain**
-- Create year goal → AI generates quarterly milestones
-- Each milestone → Converted to monthly tasks
-- Tasks → Link to supporting habits
-- Progress → Aggregated across all levels
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| `build.frontendDist` | `"../out"` | Points to Next.js static export |
+| `build.devUrl` | `"http://localhost:3000"` | Dev server URL |
+| `app.windows[0].width` | `1400` | Default window width |
+| `app.windows[0].height` | `900` | Default window height |
+| `app.security.csp` | *(see file)* | Content Security Policy |
+| `bundle.identifier` | `"com.cortexia.app"` | App bundle ID |
+
+The **CSP** allows connections to:
+- `https://cortexia-backend.onrender.com` — Backend API
+- `https://accounts.google.com` — Google OAuth
+- `https://fonts.googleapis.com` / `https://fonts.gstatic.com` — Google Fonts
 
 ---
 
 ## 🔌 API Documentation
 
-### Authentication Endpoints
+All API endpoints are served by the Express.js backend at `https://cortexia-backend.onrender.com`.
 
-**POST** `/api/auth/signup`
-```json
-Request:
-{
-  "email": "user@example.com",
-  "password": "securePassword123",
-  "name": "John Doe"
-}
+### Authentication
 
-Response (201):
-{
-  "message": "User created successfully",
-  "userId": "507f1f77bcf86cd799439011"
-}
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/signup` | Register with email/password |
+| `POST` | `/api/auth/login` | Login, returns JWT token |
+| `POST` | `/api/auth/google` | Google OAuth token exchange |
+| `GET` | `/api/auth/me` | Get current user (requires JWT) |
+
+### Resources
+
+| Resource | GET | POST | PATCH | DELETE |
+|----------|-----|------|-------|--------|
+| `/api/tasks` | List all | Create | Update | Soft delete |
+| `/api/habits` | List all | Create | Update | Delete |
+| `/api/habits/:id/complete` | — | Toggle | — | — |
+| `/api/goals` | List all | Create | Update | Delete |
+| `/api/time-blocks` | List all | Create | Update | Delete |
+| `/api/expenses` | List all | Create | Update | Delete |
+| `/api/journal` | List all | Create/Update | — | Delete |
+| `/api/ai/chat` | — | Send message | — | — |
+| `/api/user/settings` | Get | — | Update | — |
+
+All authenticated endpoints require the header:
 ```
-
-**POST** `/api/auth/signin` (via NextAuth)
-```json
-Credentials:
-{
-  "email": "user@example.com",
-  "password": "securePassword123"
-}
-
-Google OAuth:
-{
-  "provider": "google"
-}
-```
-
-### Task Management
-
-**GET** `/api/tasks`
-- Returns all user tasks (non-deleted)
-- Sorted by creation date (newest first)
-- Includes goal and parent task references
-
-**POST** `/api/tasks`
-```json
-Request:
-{
-  "title": "Finish project report",
-  "description": "Complete Q4 report",
-  "priority": "high",
-  "dueDate": "2026-02-15",
-  "dueTime": "14:00",
-  "goalId": "507f1f77bcf86cd799439011"
-}
-
-Response (201):
-{
-  "task": {
-    "_id": "...",
-    "title": "Finish project report",
-    ...
-  }
-}
-```
-
-**PATCH** `/api/tasks`
-```json
-Request:
-{
-  "id": "507f1f77bcf86cd799439011",
-  "completed": true,
-  "completedAt": "2026-02-08T14:30:00Z"
-}
-```
-
-**DELETE** `/api/tasks?id={taskId}`
-- Soft delete (sets deletedAt timestamp)
-- Preserves data for potential recovery
-
-### AI Chat
-
-**POST** `/api/ai/chat`
-```json
-Request:
-{
-  "message": "Create a task to review PR tomorrow at 10am",
-  "userId": "507f1f77bcf86cd799439011",
-  "conversationId": "uuid-v4-here"
-}
-
-Response:
-{
-  "message": "I've created the task and scheduled it!",
-  "actions": [
-    {
-      "success": true,
-      "message": "Created task: 'Review PR'"
-    },
-    {
-      "success": true,
-      "message": "Scheduled: Tomorrow 10-11am"
-    }
-  ]
-}
+Authorization: Bearer <jwt-token>
 ```
 
 ---
 
 ## 💾 Database Schema
 
-### Collections Overview
+**12 MongoDB Collections** hosted on MongoDB Atlas:
 
-**12 MongoDB Collections:**
-1. `users` - User accounts and preferences
-2. `tasks` - Task management
-3. `habits` - Habit definitions
-4. `habitcompletions` - Daily habit tracking
-5. `goals` - Goal hierarchy
-6. `timeblocks` - Calendar events
-7. `expenses` - Financial tracking
-8. `journalentries` - Daily journals
-9. `aiconversations` - Chat history
-10. `usermemories` - AI memory storage
-11. `timelogs` - Pomodoro sessions
-
-### Key Schemas
-
-**User Collection**
-```typescript
-{
-  _id: ObjectId,
-  email: string (unique, indexed),
-  name: string,
-  password: string (bcrypt hashed),
-  provider: 'credentials' | 'google',
-  theme: 'light' | 'dark' | 'auto',
-  timezone: string,
-  notificationPreferences: {
-    email: boolean,
-    push: boolean,
-    dailySummary: boolean,
-    goalReminders: boolean,
-    habitStreaks: boolean
-  },
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-**Task Collection**
-```typescript
-{
-  _id: ObjectId,
-  userId: ObjectId (ref: 'User', indexed),
-  title: string (required),
-  description: string,
-  priority: 'low' | 'medium' | 'high' | 'critical',
-  status: 'pending' | 'in_progress' | 'completed',
-  dueDate: Date,
-  dueTime: string (HH:mm format),
-  estimatedMinutes: number,
-  goalId: ObjectId (ref: 'Goal'),
-  parentTaskId: ObjectId (ref: 'Task'),
-  completed: boolean,
-  completedAt: Date,
-  tags: string[],
-  deletedAt: Date (soft delete),
-  createdAt: Date,
-  updatedAt: Date
-}
-
-Indexes:
-- userId + dueDate (compound)
-- userId + status (compound)
-- goalId
-```
-
-**Habit Collection**
-```typescript
-{
-  _id: ObjectId,
-  userId: ObjectId (ref: 'User'),
-  name: string (required),
-  frequency: 'daily' | 'weekly' | 'custom',
-  frequencyConfig: {
-    monday: boolean,
-    tuesday: boolean,
-    ...
-  },
-  currentStreak: number (default: 0),
-  longestStreak: number (default: 0),
-  totalCompletions: number (default: 0),
-  color: string (hex),
-  icon: string,
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-*Complete schemas available in `/models` directory*
+| Collection | Key Fields |
+|-----------|------------|
+| `users` | email, name, password (hashed), provider, theme, timezone |
+| `tasks` | title, priority, status, dueDate, goalId, subtasks, deletedAt |
+| `habits` | name, frequency, currentStreak, longestStreak, color |
+| `habitcompletions` | habitId, date, completed |
+| `goals` | title, type (year/quarter/month/week), parentGoalId, progress |
+| `timeblocks` | title, date, startTime, endTime, category, taskId |
+| `expenses` | title, amount, category, date, goalId |
+| `journalentries` | date, content, mood, energy, stress, focus |
+| `aiconversations` | messages[], userId |
+| `usermemories` | key, value, userId |
+| `timelogs` | duration, category, date, completed |
 
 ---
 
-## 🚢 Deployment
+## 🌍 Cross-Platform Builds
 
-### Deploying to Vercel
+### Building on Each Platform
 
-1. **Prepare Repository**
-```bash
-git add .
-git commit -m "Production ready"
-git push origin main
+Tauri builds native installers for the **current OS** only. To build for all platforms:
+
+| Platform | Build Environment | Output |
+|----------|------------------|--------|
+| **Linux** | Ubuntu/Debian/Fedora | `.deb`, `.rpm`, `.AppImage` |
+| **Windows** | Windows 10/11 | `.msi`, `.exe` (NSIS) |
+| **macOS** | macOS 11+ | `.dmg`, `.app` |
+
+### GitHub Actions CI (Recommended)
+
+For automated cross-platform builds, create `.github/workflows/build.yml`:
+
+```yaml
+name: Build Desktop App
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Linux deps
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libsoup2.4-dev libjavascriptcoregtk-4.1-dev librsvg2-dev
+      - name: Install and build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run tauri:build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bundles-${{ matrix.platform }}
+          path: frontend/src-tauri/target/release/bundle/**/*
 ```
 
-2. **Import to Vercel**
-   - Visit [vercel.com/new](https://vercel.com/new)
-   - Click "Import Git Repository"
-   - Select your GitHub repository
-   - Configure project settings
+---
 
-3. **Environment Variables**
-   - Add all variables from `.env.local`
-   - Update `NEXTAUTH_URL` to your production domain
-   - Ensure MongoDB URI allows Vercel IPs
+## 🔧 Troubleshooting
 
-4. **Deploy**
-   - Click "Deploy"
-   - Wait for build completion (~2-3 minutes)
-   - Visit your live URL
+### App Shows Blank Screen After Loading
+- **Cause**: Backend may be cold-starting (Render free tier takes ~30s to spin up)
+- **Fix**: Wait 30-60 seconds and restart the app. The first request wakes the backend.
 
-### Production Checklist
+### Google OAuth Not Working
+- **Cause**: `tauri://localhost` not added to Google Cloud Console
+- **Fix**: Add `tauri://localhost` to both Authorized JavaScript Origins and Redirect URIs
 
-**Security**
-- [ ] Environment variables configured
-- [ ] MongoDB network access restricted
-- [ ] Google OAuth production URLs added
-- [ ] CORS policies configured
-- [ ] Rate limiting enabled
-- [ ] HTTPS enforced
+### Build Fails with Missing System Libraries
+- **Cause**: Missing development headers for webkit2gtk, GTK, or libsoup
+- **Fix**: Run the `apt-get install` command from [Prerequisites](#prerequisites)
 
-**Performance**
-- [ ] Image optimization enabled
-- [ ] API route caching configured
-- [ ] Database indexes created
-- [ ] CDN configured
-- [ ] Compression enabled
+### CORS Errors in Console
+- **Cause**: Backend doesn't allow `tauri://localhost` origin
+- **Fix**: Ensure `"tauri://localhost"` is in the `allowedOrigins` array in `backend/src/index.ts`
 
-**Monitoring**
-- [ ] Error tracking (Sentry/LogRocket)
-- [ ] Analytics (Vercel Analytics)
-- [ ] Uptime monitoring
-- [ ] Performance monitoring
-- [ ] Database monitoring
+### `libwebkit2gtk-4.0` Not Found (Ubuntu 24.04+)
+- **Cause**: Ubuntu 24.04 dropped webkit2gtk-4.0
+- **Fix**: This branch uses Tauri v2 which requires webkit2gtk-**4.1** (the default on 24.04)
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions from the community!
+We welcome contributions!
 
-### How to Contribute
-
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. **Make your changes**
-   - Follow code style guidelines
-   - Add tests if applicable
-   - Update documentation
-4. **Commit your changes**
-   ```bash
-   git commit -m "Add amazing feature"
-   ```
-5. **Push to your branch**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-6. **Open a Pull Request**
-   - Describe your changes
-   - Reference any related issues
-   - Request review
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m "Add amazing feature"`
+4. **Push** to branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
 
 ### Development Guidelines
-
-- **Code Style**: Follow existing patterns
-- **TypeScript**: Use strict mode, avoid `any`
-- **Components**: Keep them small and focused
-- **Commits**: Write clear, descriptive messages
-- **Tests**: Add tests for new features
-- **Documentation**: Update README when needed
+- Follow existing code patterns and TypeScript strict mode
+- Keep components small and focused
+- Test on the desktop app (not just browser) before submitting
+- Update README when adding new features
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
 
 ```
-MIT License
-
-Copyright (c) 2026 CorteXia
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+MIT License — Copyright (c) 2026 CorteXia
 ```
-
-See [LICENSE](LICENSE) file for full details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-**Technologies & Libraries**
-- [Next.js](https://nextjs.org/) - The React framework for production
-- [MongoDB Atlas](https://www.mongodb.com/) - Cloud database platform
-- [NextAuth.js](https://next-auth.js.org/) - Authentication for Next.js
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- [Framer Motion](https://www.framer.com/motion/) - Animation library
-- [shadcn/ui](https://ui.shadcn.com/) - Beautifully designed components
-- [Vercel](https://vercel.com/) - Deployment and hosting platform
-
-**Inspiration**
-- Linear - For design inspiration and keyboard shortcuts
-- Notion - For flexible data structures
-- GitHub - For contribution graph visualization
-- Arc Browser - For spatial intelligence
+- [Tauri](https://tauri.app/) — Lightweight native app framework
+- [Next.js](https://nextjs.org/) — React framework
+- [MongoDB Atlas](https://www.mongodb.com/) — Cloud database
+- [Tailwind CSS](https://tailwindcss.com/) — Utility-first CSS
+- [Framer Motion](https://www.framer.com/motion/) — Animations
+- [shadcn/ui](https://ui.shadcn.com/) — Component library
 
 ---
 
-## 📧 Support & Contact
-
-**Need Help?**
-- 📖 [Documentation](#)
-- 💬 [Discord Community](#)
-- 🐛 [Report Issues](https://github.com/yourusername/cortexia/issues)
-- ✨ [Request Features](https://github.com/yourusername/cortexia/issues/new)
-
-
 <div align="center">
 
-### Built with 💜 by developers, for productivity enthusiasts
+### Built with 💜 for productivity enthusiasts
 
-**[⬆ Back to Top](#-cortexia---your-second-brain)**
+**[⬆ Back to Top](#-cortexia-desktop--your-second-brain)**
 
 ---
 

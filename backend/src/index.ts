@@ -27,6 +27,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:3000",
   "https://corte-xia.vercel.app",
+  "tauri://localhost",
 ].filter(Boolean) as string[];
 
 app.use(
