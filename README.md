@@ -12,32 +12,11 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-[Live Demo](#) • [Documentation](#) • [Report Bug](#) • [Request Feature](#)
 
 </div>
 
 ---
 
-## 📖 Table of Contents
-
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Tech Stack](#-tech-stack)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Environment Setup](#environment-setup)
-  - [MongoDB Setup](#mongodb-setup)
-  - [Google OAuth Setup](#google-oauth-setup)
-- [Project Structure](#-project-structure)
-- [Features Deep Dive](#-features-deep-dive)
-- [API Documentation](#-api-documentation)
-- [Database Schema](#-database-schema)
-- [Deployment](#-deployment)
-- [Contributing](#-contributing)
-- [License](#-license)
-
----
 
 ## 🌟 Overview
 
