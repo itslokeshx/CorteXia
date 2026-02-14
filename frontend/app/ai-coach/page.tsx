@@ -53,7 +53,11 @@ export default function AICoachPage() {
     transactions,
     timeEntries,
     addTask,
+    deleteTask,
+    completeTask,
     addHabit,
+    deleteHabit,
+    completeHabit,
     addGoal,
     settings,
     updateSettings,
@@ -140,6 +144,35 @@ export default function AICoachPage() {
               }
               break;
 
+            case "delete_task":
+              if (action.data?.taskId) {
+                deleteTask(action.data.taskId);
+                toast.success(`Task deleted`);
+              }
+              break;
+
+            case "delete_habit":
+              if (action.data?.habitId) {
+                deleteHabit(action.data.habitId);
+                toast.success(`Habit deleted`);
+              }
+              break;
+
+            case "complete_task":
+              if (action.data?.taskId) {
+                completeTask(action.data.taskId);
+                toast.success(`Task completed!`);
+              }
+              break;
+
+            case "complete_habit":
+              if (action.data?.habitId) {
+                const today = new Date().toISOString().split('T')[0];
+                completeHabit(action.data.habitId, today);
+                toast.success(`Habit completed!`);
+              }
+              break;
+
             case "navigate":
               if (action.data?.path) {
                 router.push(action.data.path);
@@ -156,7 +189,7 @@ export default function AICoachPage() {
         }
       });
     },
-    [addTask, addHabit, addGoal, setTheme, router],
+    [addTask, addHabit, addGoal, deleteTask, deleteHabit, completeTask, completeHabit, setTheme, router],
   );
 
   useEffect(() => {

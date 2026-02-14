@@ -895,6 +895,34 @@ export function ConversationalAI() {
           toast.success(`🗑️ Journal entry deleted`);
           break;
 
+        // === BULK DELETE ACTIONS ===
+        case "clear_completed_tasks": {
+          const completedTasks = tasks.filter(t => t.status === "completed");
+          for (const task of completedTasks) {
+            deleteTask(task.id);
+          }
+          toast.success(`🗑️ Cleared ${completedTasks.length} completed tasks`);
+          break;
+        }
+
+        case "clear_all_tasks": {
+          const allTasks = [...tasks];
+          for (const task of allTasks) {
+            deleteTask(task.id);
+          }
+          toast.success(`🗑️ Cleared all ${allTasks.length} tasks`);
+          break;
+        }
+
+        case "clear_all_habits": {
+          const allHabits = [...habits];
+          for (const habit of allHabits) {
+            deleteHabit(habit.id);
+          }
+          toast.success(`🗑️ Cleared all ${allHabits.length} habits`);
+          break;
+        }
+
         // === NAVIGATION ===
         case "navigate": {
           const navPath = d.path as string;

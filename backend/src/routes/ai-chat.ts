@@ -234,23 +234,32 @@ function buildSystemPrompt(userData: any, memory: any): string {
 
   if (userData?.journalEntries?.length) {
     const j = userData.journalEntries;
-    const latest = j[0];
-    data += "\n[JOURNAL] " + j.length + " entries";
-    if (latest) {
-      data +=
-        " | Latest(" +
-        (latest.date?.slice(5) || "?") +
-        "): mood=" +
-        (latest.mood || "?") +
-        "/10, energy=" +
-        (latest.energy || "?") +
-        "/10";
+    data += "\n[JOURNAL] " + j.length + " recent entries";
+
+    // Include last 3 journal entries with FULL content for deeper insights
+    const recentEntries = j.slice(0, 3);
+    for (const entry of recentEntries) {
+      data += "\n  • " + (entry.date?.slice(5) || "?") +
+        " [mood:" + (entry.mood || "?") +
+        "/10, energy:" + (entry.energy || "?") + "/10]";
+
+      if (entry.title) {
+        data += "\n    Title: " + entry.title;
+      }
+
+      if (entry.content) {
+        // Include first 200 chars of content for context
+        const contentPreview = entry.content.length > 200
+          ? entry.content.substring(0, 200) + "..."
+          : entry.content;
+        data += "\n    Content: " + contentPreview;
+      }
     }
+
+    // Add mood trend if enough data
     if (j.length >= 3) {
-      const avgMood =
-        j.slice(0, 5).reduce((s: number, x: any) => s + (x.mood || 5), 0) /
-        Math.min(j.length, 5);
-      data += ", avg mood=" + avgMood.toFixed(1);
+      const avgMood = j.slice(0, 5).reduce((s: number, x: any) => s + (x.mood || 5), 0) / Math.min(j.length, 5);
+      data += "\n  Avg mood (last 5): " + avgMood.toFixed(1) + "/10";
     }
   }
 
@@ -270,14 +279,23 @@ The JSON object MUST have these fields:
 ACTIONS — when user asks to create/add/do something, put actions in the "actions" array:
 • create_task: {"type":"create_task","data":{"title":"string","priority":"low|medium|high","domain":"work|study|personal|health|finance","dueDate":"YYYY-MM-DD","description":"string"}}
 • complete_task: {"type":"complete_task","data":{"taskId":"id"}}
+• delete_task: {"type":"delete_task","data":{"taskId":"id"}}
 • create_habit: {"type":"create_habit","data":{"name":"string","frequency":"daily|weekly","category":"health|productivity|learning|mindfulness|fitness|other","description":"string"}}
 • complete_habit: {"type":"complete_habit","data":{"habitId":"id"}}
+• delete_habit: {"type":"delete_habit","data":{"habitId":"id"}}
 • create_goal: {"type":"create_goal","data":{"title":"string","category":"string","targetDate":"YYYY-MM-DD","description":"string"}}
 • add_expense: {"type":"add_expense","data":{"amount":0.00,"category":"string","description":"string"}}
 • add_income: {"type":"add_income","data":{"amount":0.00,"description":"string"}}
+• delete_transaction: {"type":"delete_transaction","data":{"transactionId":"id"}}
 • log_time: {"type":"log_time","data":{"task":"string","duration":30,"category":"string"}}
+• delete_time_entry: {"type":"delete_time_entry","data":{"entryId":"id"}}
 • log_study: {"type":"log_study","data":{"subject":"string","duration":45,"topic":"string"}}
+• delete_study_session: {"type":"delete_study_session","data":{"sessionId":"id"}}
 • create_journal: {"type":"create_journal","data":{"content":"string","mood":7,"energy":6}}
+• delete_journal: {"type":"delete_journal","data":{"entryId":"id"}}
+• clear_completed_tasks: {"type":"clear_completed_tasks","data":{}} — Delete all completed tasks
+• clear_all_tasks: {"type":"clear_all_tasks","data":{}} — Delete ALL tasks (use with caution)
+• clear_all_habits: {"type":"clear_all_habits","data":{}} — Delete ALL habits (use with caution)
 • navigate: {"type":"navigate","data":{"path":"/tasks"}}  — VALID PAGES: /tasks, /habits, /goals, /finance, /journal, /day-planner, /time-tracker, /study, /insights, /settings, /ai-coach, /timeline
 • set_theme: {"type":"set_theme","data":{"theme":"dark|light"}}
 • display_data: {"type":"display_data","data":{"dataType":"tasks|habits|goals|finance|analysis","items":[]}} — Use this to show lists inline.
