@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![CorteXia Banner](https://via.placeholder.com/1200x300/8B5CF6/FFFFFF?text=CorteXia+-+Your+AI-Powered+Second+Brain)
+<img src="frontend/public/Cortexia-icon.jpeg" alt="CorteXia Icon" width="200" height="200" />
 
 **The All-in-One Productivity Platform That Actually Thinks With You**
 
