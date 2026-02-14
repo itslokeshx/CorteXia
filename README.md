@@ -6,7 +6,7 @@
 
 **The All-in-One Productivity Platform That Actually Thinks With You**
 
-[![Live Demo](https://img.shields.io/badge/✨)](https://corte-xia.vercel.app)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-corte--xia.vercel.app-8B5CF6?style=for-the-badge)](https://corte-xia.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
