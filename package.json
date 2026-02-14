@@ -2,6 +2,7 @@
   "name": "cortexia",
   "version": "2.0.0",
   "private": true,
+  "license": "MIT",
   "description": "CorteXia - AI-Powered Productivity Platform (Frontend + Backend)",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",

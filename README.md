@@ -6,10 +6,11 @@
 
 **The All-in-One Productivity Platform That Actually Thinks With You**
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-corte--xia.vercel.app-8B5CF6?style=for-the-badge)](https://corte-xia.vercel.app)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo)](https://corte-xia.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 [🎯 Features](#-what-makes-cortexia-different) • [🚀 Live Demo](https://corte-xia.vercel.app) • [📖 Documentation](#-complete-feature-set) • [💬 Community](#-community--support)
@@ -370,13 +371,9 @@ Node.js 18+ Runtime
 ```
 
 ### **Infrastructure**
-```
-Vercel (Frontend Hosting)
-├── MongoDB Atlas (Database)
-├── Continuous Deployment
-├── Edge Functions
-└── Global CDN
-```
+- **Frontend**: [Vercel](https://vercel.com) (Edge Network)
+- **Backend**: [Render](https://render.com) (Node.js Service)
+- **Database**: [MongoDB Atlas](https://www.mongodb.com) (Cloud Cluster)
 
 ## 📊 Database Schema
 
@@ -431,26 +428,6 @@ CorteXia uses **12 MongoDB collections** for comprehensive data management:
 
 ---
 
-## 🚢 Deployment
-
-### **Deploy to Vercel (Frontend)**
-
-1. Push to GitHub
-2. Visit [vercel.com](https://vercel.com)
-3. Import your repository
-4. Set environment variable: `NEXT_PUBLIC_API_URL`
-5. Deploy
-
-### **Deploy Backend**
-
-**Render.com**
-- Create Web Service
-- Connect GitHub repo
-- Set build command: `cd backend && npm install`
-- Add environment variables
-- Deploy
-
-
 
 ## 🤝 Contributing
 
@@ -494,20 +471,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - [Todoist](https://todoist.com) - Task management simplicity
 - [GitHub](https://github.com) - Contribution visualization
 
----
-
-## 💬 Community & Support
-
-<div align="center">
-
-### Get Help & Connect
-
-[![Discord](https://img.shields.io/badge/Discord-Join_Community-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/cortexia)
-[![Documentation](https://img.shields.io/badge/Docs-Read_Guide-8B5CF6?style=for-the-badge&logo=gitbook)](https://docs.cortexia.app)
-[![Issues](https://img.shields.io/badge/GitHub-Report_Bug-red?style=for-the-badge&logo=github)](https://github.com/itslokeshx/CorteXia/issues)
-[![Email](https://img.shields.io/badge/Email-Support-blue?style=for-the-badge&logo=gmail)](mailto:support@cortexia.app)
-
-</div>
 
 ---
 
@@ -546,11 +509,6 @@ If CorteXia helps you achieve more, **star this repository** to show your suppor
 
 [![Live Demo](https://img.shields.io/badge/🚀_Try_It_Now-corte--xia.vercel.app-8B5CF6?style=for-the-badge)](https://corte-xia.vercel.app)
 
----
-
-**Built with 💜 by [Lokesh](https://github.com/itslokeshx) for people who believe in intelligent productivity**
-
-**[⬆ Back to Top](#-cortexia)**
 
 ---
 
