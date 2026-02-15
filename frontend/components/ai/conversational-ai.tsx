@@ -269,7 +269,7 @@ const DataDisplay = ({ data }: { data: any }) => {
   }
 };
 
-export function ConversationalAI() {
+export function ConversationalAI({ isSidebarCollapsed = false }: { isSidebarCollapsed?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -1051,12 +1051,15 @@ export function ConversationalAI() {
     return (
       <>
         {/* Desktop — Minimal bottom bar */}
-        <div className="hidden sm:block fixed z-50 bottom-0 left-0 right-0">
+        <div
+          className="hidden sm:block fixed z-40 bottom-0 right-0 transition-[left] duration-200 ease-out"
+          style={{ left: isSidebarCollapsed ? "68px" : "260px" }}
+        >
           <div className="border-t border-[var(--color-border)] bg-[var(--color-bg-primary)]">
-            <div className="max-w-xl mx-auto px-4 py-2.5">
+            <div className="max-w-xl mx-auto px-4 h-[60px] flex items-center">
               <form
                 onSubmit={(e) => { e.preventDefault(); handleBarSubmit(); }}
-                className="relative"
+                className="relative w-full"
               >
                 <input
                   ref={barInputRef}

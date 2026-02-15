@@ -35,7 +35,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="max-w-[1200px] mx-auto">{children}</div>
       </main>
       {/* AI Chatbot - only when fully authenticated and not on AI Coach or Settings page */}
-      {isAuthenticated && pathname !== "/ai-coach" && pathname !== "/settings" && <ConversationalAI />}
+      {isAuthenticated && pathname !== "/ai-coach" && pathname !== "/settings" && <ConversationalAI isSidebarCollapsed={isCollapsed} />}
       {isAuthenticated && <CommandPalette />}
     </div>
   );

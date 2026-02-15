@@ -58,19 +58,38 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
                 CorteXia
               </h1>
 
-              {/* Minimal Progress Bar (Apple Style) */}
-              <div className="w-24 h-[2px] bg-secondary rounded-full overflow-hidden opacity-80">
-                <motion.div
-                  className="h-full bg-foreground"
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 3.5, ease: "easeInOut" }}
-                />
-              </div>
+              {/* Minimal Percentage - Pure Text */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center gap-1"
+              >
+                <Counter from={0} to={100} duration={3.5} />
+              </motion.div>
             </div>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   );
+}
+
+function Counter({ from, to, duration }: { from: number; to: number; duration: number }) {
+  const [count, setCount] = useState(from);
+
+  useEffect(() => {
+    let startTimestamp: number | null = null;
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / (duration * 1000), 1);
+      setCount(Math.floor(progress * (to - from) + from));
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, [from, to, duration]);
+
+  return <span className="text-[10px] font-medium tracking-widest text-muted-foreground">{count}%</span>;
 }

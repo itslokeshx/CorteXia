@@ -76,7 +76,7 @@ export function CollapsibleSidebar() {
       <Link
         href={item.href}
         className={cn(
-          "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-normal transition-colors duration-150",
+          "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-normal transition-colors duration-150 w-full",
           collapsed ? "justify-center" : "",
           isActive
             ? "bg-[#ececf1] dark:bg-[#2a2b32] text-gray-900 dark:text-white"
@@ -237,8 +237,8 @@ export function CollapsibleSidebar() {
           ))}
         </nav>
 
-        {/* Bottom: Settings only */}
-        <div className="px-2 py-2 border-t border-[var(--color-border)] space-y-0.5 flex-shrink-0">
+        {/* Bottom: Settings only - Fixed height to match AI bar (60px) */}
+        <div className="px-2 h-[60px] border-t border-[var(--color-border)] flex items-center flex-shrink-0">
           {bottomItems.map((item) => (
             <NavLink key={item.href} item={item} collapsed={isCollapsed} />
           ))}
