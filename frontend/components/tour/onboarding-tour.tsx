@@ -60,37 +60,37 @@ export function OnboardingTour() {
                 shouldShow = run;
                 break;
             case "/tasks":
-                currentSteps = getTasksSteps();
+                currentSteps = getTasksSteps(isMobile);
                 key = "tasks";
                 shouldShow = !localStorage.getItem(`cortexia_tour_${key}_seen`);
                 break;
             case "/habits":
-                currentSteps = getHabitsSteps();
+                currentSteps = getHabitsSteps(isMobile);
                 key = "habits";
                 shouldShow = !localStorage.getItem(`cortexia_tour_${key}_seen`);
                 break;
             case "/finance":
-                currentSteps = getFinanceSteps();
+                currentSteps = getFinanceSteps(isMobile);
                 key = "finance";
                 shouldShow = !localStorage.getItem(`cortexia_tour_${key}_seen`);
                 break;
             case "/journal":
-                currentSteps = getJournalSteps();
+                currentSteps = getJournalSteps(isMobile);
                 key = "journal";
                 shouldShow = !localStorage.getItem(`cortexia_tour_${key}_seen`);
                 break;
             case "/goals":
-                currentSteps = getGoalsSteps();
+                currentSteps = getGoalsSteps(isMobile);
                 key = "goals";
                 shouldShow = !localStorage.getItem(`cortexia_tour_${key}_seen`);
                 break;
             case "/day-planner":
-                currentSteps = getDayPlannerSteps();
+                currentSteps = getDayPlannerSteps(isMobile);
                 key = "day-planner";
                 shouldShow = !localStorage.getItem(`cortexia_tour_${key}_seen`);
                 break;
             case "/time-tracker":
-                currentSteps = getFocusSteps();
+                currentSteps = getFocusSteps(isMobile);
                 key = "time-tracker";
                 shouldShow = !localStorage.getItem(`cortexia_tour_${key}_seen`);
                 break;
@@ -161,12 +161,8 @@ export function OnboardingTour() {
                     textColor: "var(--color-text-primary)",
                     overlayColor: 'rgba(0, 0, 0, 0.6)',
                 },
-                overlay: {
-                    mixBlendMode: 'normal'
-                },
                 spotlight: {
                     borderRadius: '12px',
-                    backgroundColor: 'transparent',
                 }
             }}
             disableOverlayClose={true}

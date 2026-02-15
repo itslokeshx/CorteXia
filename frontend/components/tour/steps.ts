@@ -4,9 +4,11 @@ export const getDashboardSteps = (isMobile: boolean): Step[] => {
     const steps: Step[] = [
         {
             target: "body",
-            content: "Welcome to CorteXia! Your AI-powered productivity workspace. Let's take a quick tour to help you get started.",
+            content: isMobile
+                ? "Welcome to CorteXia! Let's take a quick tour."
+                : "Welcome to CorteXia! Your AI-powered productivity workspace. Let's take a quick tour to help you get started.",
             placement: "center",
-            title: "🧠 Welcome to CorteXia!",
+            title: "🧠 Welcome!",
             disableBeacon: true,
         },
         {
@@ -48,7 +50,7 @@ export const getDashboardSteps = (isMobile: boolean): Step[] => {
     return steps;
 };
 
-export const getTasksSteps = (): Step[] => [
+export const getTasksSteps = (isMobile: boolean): Step[] => [
     {
         target: "body",
         content: "Welcome to your Tasks workspace. Organize your life with ease.",
@@ -59,24 +61,24 @@ export const getTasksSteps = (): Step[] => [
     {
         target: "[data-tour='create-task-btn']",
         content: "Create a new task. You can add details, due dates, and priorities.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Create Task",
     },
     {
         target: "[data-tour='task-filters']",
         content: "Filter tasks by status, priority, or category to focus on what matters.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Filter & Sort",
     },
     {
         target: "[role='tablist']",
         content: "Switch between Today, Week, Month, or All Time views to plan your schedule.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "View Options",
     },
 ];
 
-export const getHabitsSteps = (): Step[] => [
+export const getHabitsSteps = (isMobile: boolean): Step[] => [
     {
         target: "body",
         content: "Build better habits and break bad ones. Consistency is key!",
@@ -87,18 +89,18 @@ export const getHabitsSteps = (): Step[] => [
     {
         target: "[data-tour='create-habit-btn']",
         content: "Start a new habit. Define frequency and goals.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "New Habit",
     },
     {
         target: "[data-tour='habit-heatmap']",
         content: "Visualize your consistency over time with the heatmap.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Consistency Heatmap",
     },
 ];
 
-export const getFinanceSteps = (): Step[] => [
+export const getFinanceSteps = (isMobile: boolean): Step[] => [
     {
         target: "body",
         content: "Take control of your finances. Track income, expenses, and savings.",
@@ -109,18 +111,18 @@ export const getFinanceSteps = (): Step[] => [
     {
         target: "[data-tour='add-transaction-btn']",
         content: "Log an expense or income. Categorize it for better insights.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Add Transaction",
     },
     {
         target: "[data-tour='finance-overview']",
         content: "See your net worth, monthly spending, and budget status.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Financial Overview",
     },
 ];
 
-export const getJournalSteps = (): Step[] => [
+export const getJournalSteps = (isMobile: boolean): Step[] => [
     {
         target: "body",
         content: "Reflect on your day, track your mood, and clear your mind.",
@@ -131,17 +133,17 @@ export const getJournalSteps = (): Step[] => [
     {
         target: "[data-tour='new-entry-btn']",
         content: "Write a new entry. Use templates or free flow.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "New Entry",
     },
     {
         target: "[data-tour='mood-tracker']",
         content: "Track your emotional well-being over time.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Mood Tracker",
     },
 ];
-export const getGoalsSteps = (): Step[] => [
+export const getGoalsSteps = (isMobile: boolean): Step[] => [
     {
         target: "body",
         content: "Turn your dreams into reality. Break big goals into manageable steps.",
@@ -152,18 +154,18 @@ export const getGoalsSteps = (): Step[] => [
     {
         target: "[data-tour='create-goal-area']",
         content: "Type your goal here and select a timeframe. It's that simple.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Quick Create",
     },
     {
         target: "[data-tour='goals-list']",
         content: "Track progress, see momentum, and celebrate milestones.",
-        placement: "top",
+        placement: isMobile ? "auto" : "top",
         title: "Track Progress",
     },
 ];
 
-export const getDayPlannerSteps = (): Step[] => [
+export const getDayPlannerSteps = (isMobile: boolean): Step[] => [
     {
         target: "body",
         content: "Master your day with time blocking. Plan intentionally.",
@@ -174,24 +176,24 @@ export const getDayPlannerSteps = (): Step[] => [
     {
         target: "[data-tour='add-block-btn']",
         content: "Add a time block for tasks, meetings, or deep work.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Add Block",
     },
     {
         target: "[data-tour='planner-view-toggle']",
         content: "Switch between Day to focus and Month to plan ahead.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Views",
     },
     {
         target: "[data-tour='planner-stats']",
         content: "See your daily balance. Ensure you have enough deep work and breaks.",
-        placement: "top",
+        placement: isMobile ? "auto" : "top",
         title: "Daily Balance",
     },
 ];
 
-export const getFocusSteps = (): Step[] => [
+export const getFocusSteps = (isMobile: boolean): Step[] => [
     {
         target: "body",
         content: "Enter the flow state. Distraction-free focus sessions.",
@@ -202,19 +204,19 @@ export const getFocusSteps = (): Step[] => [
     {
         target: "[data-tour='focus-presets']",
         content: "Start a scientifically-proven session like Pomodoro or Deep Work.",
-        placement: "bottom",
+        placement: isMobile ? "auto" : "bottom",
         title: "Quick Start",
     },
     {
         target: "[data-tour='custom-timer']",
         content: "Need a specific duration? Set a custom timer here.",
-        placement: "top",
+        placement: isMobile ? "auto" : "top",
         title: "Custom Timer",
     },
     {
         target: "[data-tour='recent-sessions']",
         content: "Track your focus history and see your productivity trends.",
-        placement: "top",
+        placement: isMobile ? "auto" : "top",
         title: "History",
     },
 ];
