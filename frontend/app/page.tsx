@@ -23,7 +23,6 @@ import { DashboardQuickNav } from "@/components/dashboard/dashboard-quick-nav";
 import { DayProgress } from "@/components/dashboard/day-progress";
 import { DashboardDailySummary } from "@/components/dashboard/dashboard-ai-insight";
 import type { Task } from "@/lib/types";
-import { Preloader } from "@/components/preloader";
 
 const container = {
   hidden: { opacity: 0 },
@@ -216,13 +215,7 @@ export default function DashboardPage() {
     t.status === "completed" ? uncompleteTask(id) : completeTask(id);
   };
 
-  const [showPreloader, setShowPreloader] = useState(true);
-
-  if (!mounted || showPreloader) {
-    return (
-      <Preloader onComplete={() => setShowPreloader(false)} />
-    );
-  }
+  if (!mounted) return null;
 
   const timeStats = getTodayStats();
   const habitStreakMax =
