@@ -102,7 +102,7 @@ export function CollapsibleSidebar() {
       {/* Mobile trigger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden p-2.5 rounded-xl bg-white dark:bg-[var(--color-bg-secondary)] border border-[var(--color-border)] shadow-sm"
+        className="fixed top-4 left-4 z-[60] lg:hidden p-2.5 rounded-xl bg-white dark:bg-[var(--color-bg-secondary)] border border-[var(--color-border)] shadow-sm"
         aria-label="Open menu"
       >
         <Menu className="w-5 h-5" />
@@ -129,7 +129,7 @@ export function CollapsibleSidebar() {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed top-0 left-0 z-50 h-[100dvh] w-[280px] bg-white dark:bg-[var(--color-bg-primary)] border-r border-[var(--color-border)] lg:hidden flex flex-col"
+            className="fixed top-0 left-0 z-[60] h-[100dvh] w-[280px] bg-white dark:bg-[var(--color-bg-primary)] border-r border-[var(--color-border)] lg:hidden flex flex-col"
           >
             <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-2.5">
@@ -168,7 +168,7 @@ export function CollapsibleSidebar() {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-[#f9fafb] dark:bg-[#171717] border-r border-[var(--color-border)] overflow-hidden group transition-[width] duration-200 ease-out",
+          "hidden lg:flex fixed inset-y-0 left-0 z-[60] flex-col bg-[#f9fafb] dark:bg-[#171717] border-r border-[var(--color-border)] overflow-hidden group transition-[width] duration-200 ease-out",
           isCollapsed ? "w-[68px]" : "w-[260px]",
         )}
       >
