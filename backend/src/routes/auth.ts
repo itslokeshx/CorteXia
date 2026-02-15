@@ -208,6 +208,7 @@ router.get("/me", authMiddleware, async (req: AuthRequest, res: Response) => {
       email: user.email,
       name: user.name,
       image: user.image || null,
+      onboardingCompleted: user.onboardingCompleted || false,
     });
   } catch (error) {
     console.error("Get me error:", error);

@@ -16,7 +16,7 @@ interface TourContextType {
 const TourContext = createContext<TourContextType | undefined>(undefined);
 
 export function TourProvider({ children }: { children: React.ReactNode }) {
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, refreshProfile } = useAuth();
     const [run, setRun] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
     const [hasStarted, setHasStarted] = useState(false);
@@ -54,6 +54,9 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
             if (!response.ok) throw new Error("Failed to update status");
 
             toast.success("You're all set! Enjoy CorteXia. 🚀");
+
+            // Refresh local user context to reflect the change
+            await refreshProfile();
         } catch (error) {
             console.error("Failed to save tour progress:", error);
         }

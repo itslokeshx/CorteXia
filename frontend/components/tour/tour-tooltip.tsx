@@ -16,7 +16,7 @@ export function TourTooltip({
     return (
         <Card
             {...tooltipProps}
-            className="max-w-[300px] sm:max-w-[400px] border-[var(--color-border)] bg-[var(--color-bg-secondary)] shadow-xl z-[1000] relative rounded-xl"
+            className="w-[280px] sm:w-[400px] border-[var(--color-border)] bg-[var(--color-bg-secondary)] shadow-xl z-[1000] relative rounded-xl"
         >
             <button
                 {...closeProps}
