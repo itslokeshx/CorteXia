@@ -344,7 +344,7 @@ export default function HabitsPage() {
           </div>
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
+              <Button data-tour="create-habit-btn" className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
                 <Plus className="w-4 h-4" /> New Habit
               </Button>
             </DialogTrigger>
@@ -750,125 +750,127 @@ export default function HabitsPage() {
                             <p className="text-xs font-medium text-[var(--color-text-secondary)] mb-3">
                               365-Day History
                             </p>
-                            <TooltipProvider delayDuration={0}>
-                              <div className="overflow-x-auto scrollbar-thin">
-                                <div className="min-w-max">
-                                  {/* Month labels row */}
-                                  <div
-                                    className="relative h-4 ml-[30px]"
-                                    style={{
-                                      width: `${weeks.length * 14}px`,
-                                    }}
-                                  >
-                                    {monthLabels.map((m, idx) => (
-                                      <span
-                                        key={`${m.label}-${idx}`}
-                                        className="absolute text-[10px] text-[var(--color-text-tertiary)]"
-                                        style={{
-                                          left: `${m.col * 14}px`,
-                                        }}
-                                      >
-                                        {m.label}
-                                      </span>
-                                    ))}
-                                  </div>
-
-                                  {/* Heatmap body */}
-                                  <div className="flex">
-                                    {/* Day labels */}
-                                    <div className="flex flex-col gap-[2px] mr-1 pt-0">
-                                      {[0, 1, 2, 3, 4, 5, 6].map((d) => (
-                                        <div
-                                          key={d}
-                                          className="flex items-center justify-end"
+                            <div data-tour="habit-heatmap">
+                              <TooltipProvider delayDuration={0}>
+                                <div className="overflow-x-auto scrollbar-thin">
+                                  <div className="min-w-max">
+                                    {/* Month labels row */}
+                                    <div
+                                      className="relative h-4 ml-[30px]"
+                                      style={{
+                                        width: `${weeks.length * 14}px`,
+                                      }}
+                                    >
+                                      {monthLabels.map((m, idx) => (
+                                        <span
+                                          key={`${m.label}-${idx}`}
+                                          className="absolute text-[10px] text-[var(--color-text-tertiary)]"
                                           style={{
-                                            height: 12,
-                                            width: 26,
+                                            left: `${m.col * 14}px`,
                                           }}
                                         >
-                                          {d === 1 || d === 3 || d === 5 ? (
-                                            <span className="text-[10px] leading-none text-[var(--color-text-tertiary)]">
-                                              {DAY_LABELS[d]}
-                                            </span>
-                                          ) : null}
-                                        </div>
+                                          {m.label}
+                                        </span>
                                       ))}
                                     </div>
 
-                                    {/* Grid */}
-                                    <div className="flex gap-[2px]">
-                                      {weeks.map((week, wi) => (
-                                        <div
-                                          key={wi}
-                                          className="flex flex-col gap-[2px]"
-                                        >
-                                          {week.map((day, di) => (
-                                            <Tooltip key={di}>
-                                              <TooltipTrigger asChild>
-                                                <div
-                                                  className={cn(
-                                                    "cursor-pointer transition-all duration-150",
-                                                    "hover:scale-[1.4] hover:outline hover:outline-2 hover:outline-purple-500/50 hover:outline-offset-1",
-                                                    day.dateStr === "" &&
-                                                    "invisible",
-                                                  )}
-                                                  style={{
-                                                    width: 12,
-                                                    height: 12,
-                                                    borderRadius: 2,
-                                                    backgroundColor:
-                                                      day.dateStr === ""
-                                                        ? "transparent"
-                                                        : day.future
-                                                          ? "transparent"
-                                                          : day.completed
-                                                            ? heatmapColors[4]
-                                                            : heatmapColors[0],
-                                                    border: day.future
-                                                      ? "1px dashed var(--color-border)"
-                                                      : "none",
-                                                  }}
-                                                  onClick={() => {
-                                                    if (
-                                                      day.dateStr &&
-                                                      !day.future
-                                                    )
-                                                      completeHabit(
-                                                        habit.id,
-                                                        day.dateStr,
-                                                      );
-                                                  }}
-                                                />
-                                              </TooltipTrigger>
-                                              {day.dateStr && (
-                                                <TooltipContent
-                                                  side="top"
-                                                  className="text-xs"
-                                                >
-                                                  <p>
-                                                    {format(
-                                                      day.date,
-                                                      "MMM d, yyyy",
+                                    {/* Heatmap body */}
+                                    <div className="flex">
+                                      {/* Day labels */}
+                                      <div className="flex flex-col gap-[2px] mr-1 pt-0">
+                                        {[0, 1, 2, 3, 4, 5, 6].map((d) => (
+                                          <div
+                                            key={d}
+                                            className="flex items-center justify-end"
+                                            style={{
+                                              height: 12,
+                                              width: 26,
+                                            }}
+                                          >
+                                            {d === 1 || d === 3 || d === 5 ? (
+                                              <span className="text-[10px] leading-none text-[var(--color-text-tertiary)]">
+                                                {DAY_LABELS[d]}
+                                              </span>
+                                            ) : null}
+                                          </div>
+                                        ))}
+                                      </div>
+
+                                      {/* Grid */}
+                                      <div className="flex gap-[2px]">
+                                        {weeks.map((week, wi) => (
+                                          <div
+                                            key={wi}
+                                            className="flex flex-col gap-[2px]"
+                                          >
+                                            {week.map((day, di) => (
+                                              <Tooltip key={di}>
+                                                <TooltipTrigger asChild>
+                                                  <div
+                                                    className={cn(
+                                                      "cursor-pointer transition-all duration-150",
+                                                      "hover:scale-[1.4] hover:outline hover:outline-2 hover:outline-purple-500/50 hover:outline-offset-1",
+                                                      day.dateStr === "" &&
+                                                      "invisible",
                                                     )}
-                                                  </p>
-                                                  <p className="text-[10px] text-[var(--color-text-tertiary)]">
-                                                    {day.future
-                                                      ? "Upcoming"
-                                                      : day.completed
-                                                        ? "✅ Completed"
-                                                        : "❌ Missed"}
-                                                  </p>
-                                                </TooltipContent>
-                                              )}
-                                            </Tooltip>
-                                          ))}
-                                        </div>
-                                      ))}
+                                                    style={{
+                                                      width: 12,
+                                                      height: 12,
+                                                      borderRadius: 2,
+                                                      backgroundColor:
+                                                        day.dateStr === ""
+                                                          ? "transparent"
+                                                          : day.future
+                                                            ? "transparent"
+                                                            : day.completed
+                                                              ? heatmapColors[4]
+                                                              : heatmapColors[0],
+                                                      border: day.future
+                                                        ? "1px dashed var(--color-border)"
+                                                        : "none",
+                                                    }}
+                                                    onClick={() => {
+                                                      if (
+                                                        day.dateStr &&
+                                                        !day.future
+                                                      )
+                                                        completeHabit(
+                                                          habit.id,
+                                                          day.dateStr,
+                                                        );
+                                                    }}
+                                                  />
+                                                </TooltipTrigger>
+                                                {day.dateStr && (
+                                                  <TooltipContent
+                                                    side="top"
+                                                    className="text-xs"
+                                                  >
+                                                    <p>
+                                                      {format(
+                                                        day.date,
+                                                        "MMM d, yyyy",
+                                                      )}
+                                                    </p>
+                                                    <p className="text-[10px] text-[var(--color-text-tertiary)]">
+                                                      {day.future
+                                                        ? "Upcoming"
+                                                        : day.completed
+                                                          ? "✅ Completed"
+                                                          : "❌ Missed"}
+                                                    </p>
+                                                  </TooltipContent>
+                                                )}
+                                              </Tooltip>
+                                            ))}
+                                          </div>
+                                        ))}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            </TooltipProvider>
+                              </TooltipProvider>
+                            </div>
 
                             {/* Legend (bottom right) */}
                             <div className="flex items-center justify-end gap-2 mt-3">

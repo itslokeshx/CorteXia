@@ -69,7 +69,7 @@ export function TourTooltip({
                     <Button
                         {...primaryProps}
                         size="sm"
-                        className="text-xs h-8 bg-purple-600 hover:bg-purple-700 text-white"
+                        className="text-xs h-8"
                     >
                         {isLastStep ? "Finish" : "Next"}
                     </Button>

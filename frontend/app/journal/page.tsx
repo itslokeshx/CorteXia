@@ -241,6 +241,7 @@ export default function JournalPage() {
               </span>
             </div>
             <Button
+              data-tour="new-entry-btn"
               size="sm"
               className="text-xs h-7 px-2"
               onClick={() => setShowNewEntryModal(true)}
@@ -449,7 +450,7 @@ export default function JournalPage() {
             </div>
 
             {/* Mood Trend */}
-            <div className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+            <div data-tour="mood-tracker" className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
               <h3 className="text-xs font-medium text-[var(--color-text-primary)] mb-2">
                 Mood Trend (14d)
               </h3>

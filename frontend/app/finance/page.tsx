@@ -275,7 +275,7 @@ export default function FinancePage() {
 
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
+                <Button data-tour="add-transaction-btn" className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
                   <Plus className="w-4 h-4" /> Add Transaction
                 </Button>
               </DialogTrigger>
@@ -394,7 +394,7 @@ export default function FinancePage() {
         </div>
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" data-tour="finance-overview">
           <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">

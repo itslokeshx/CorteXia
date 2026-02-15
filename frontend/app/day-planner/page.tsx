@@ -369,7 +369,7 @@ export default function DayPlannerPage() {
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* View Toggle */}
-            <div className="flex items-center gap-0.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg p-0.5">
+            <div data-tour="planner-view-toggle" className="flex items-center gap-0.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg p-0.5">
               <button
                 onClick={() => setViewMode("day")}
                 className={cn(
@@ -431,7 +431,7 @@ export default function DayPlannerPage() {
 
                 <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                   <DialogTrigger asChild>
-                    <Button className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
+                    <Button data-tour="add-block-btn" className="gap-2 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 shadow-sm">
                       <Plus className="w-4 h-4" /> Add Block
                     </Button>
                   </DialogTrigger>
@@ -665,7 +665,7 @@ export default function DayPlannerPage() {
         {viewMode === "day" && (
           <>
             {/* Summary bar */}
-            <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+            <div data-tour="planner-stats" className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
               <div className="flex items-center gap-6 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Clock className="w-3.5 h-3.5 text-purple-500" />
@@ -783,6 +783,7 @@ export default function DayPlannerPage() {
 
             {/* Time Grid (Full 24h: 12 AM – 11:59 PM) */}
             <div
+              data-tour="planner-calendar"
               ref={gridRef}
               className="relative bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl overflow-y-auto overflow-x-hidden touch-pan-y"
               style={{ maxHeight: "calc(100vh - 260px)" }}

@@ -318,7 +318,7 @@ export default function TimeTrackerPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div data-tour="focus-stats" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             {
               label: "Today",
@@ -355,7 +355,7 @@ export default function TimeTrackerPage() {
         </div>
 
         {/* Weekly Analytics */}
-        <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-4">
+        <div data-tour="focus-weekly-chart" className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-4 h-4 text-[var(--color-text-tertiary)]" />
             <h2 className="text-sm font-medium text-[var(--color-text-secondary)]">
@@ -414,7 +414,7 @@ export default function TimeTrackerPage() {
           <h2 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
             Start a Focus Session
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div data-tour="focus-presets" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {PRESETS.map((preset) => (
               <motion.button
                 key={preset.label}
@@ -445,6 +445,7 @@ export default function TimeTrackerPage() {
 
             {/* Custom Session Card */}
             <motion.div
+              data-tour="custom-timer"
               whileHover={{ scale: 1.02 }}
               className="group relative overflow-hidden p-5 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl hover:shadow-lg transition-all"
             >
@@ -525,7 +526,7 @@ export default function TimeTrackerPage() {
           <h2 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
             Recent Sessions
           </h2>
-          <div className="space-y-2">
+          <div data-tour="recent-sessions" className="space-y-2">
             {(timeEntries || [])
               .slice(-10)
               .reverse()

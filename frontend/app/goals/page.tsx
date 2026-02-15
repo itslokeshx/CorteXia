@@ -847,7 +847,7 @@ export default function GoalsPage() {
         </div>
 
         {/* ── Dead Simple Creation ──────────────────────────────────────── */}
-        <div className="mb-10 p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+        <div data-tour="create-goal-area" className="mb-10 p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
           <div className="space-y-3">
             <Input
               value={goalName}
@@ -892,7 +892,7 @@ export default function GoalsPage() {
         </div>
 
         {/* ── Goal List ─────────────────────────────────────────────────── */}
-        <div className="space-y-2">
+        <div data-tour="goals-list" className="space-y-2">
           <AnimatePresence mode="popLayout">
             {activeGoals.length > 0 ? (
               activeGoals.map((goal, i) => {

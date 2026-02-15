@@ -579,6 +579,7 @@ export default function TasksPage() {
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <Button
+              data-tour="create-task-btn"
               onClick={() => {
                 resetForm();
                 setEditingTaskId(null);
@@ -591,19 +592,21 @@ export default function TasksPage() {
               <span className="sm:hidden">Add</span>
             </Button>
 
-            <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger className="h-8 w-[90px] sm:w-[100px] text-[12px] rounded-lg border-gray-300 dark:border-gray-600">
-                <Filter className="w-3 h-3 mr-1 text-gray-500" />
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
+            <div data-tour="task-filters">
+              <Select value={filterPriority} onValueChange={setFilterPriority}>
+                <SelectTrigger className="h-8 w-[90px] sm:w-[100px] text-[12px] rounded-lg border-gray-300 dark:border-gray-600">
+                  <Filter className="w-3 h-3 mr-1 text-gray-500" />
+                  <SelectValue placeholder="Filter" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <Select
               value={sortBy}
