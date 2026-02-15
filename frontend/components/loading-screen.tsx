@@ -15,8 +15,8 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // 3.5 seconds to reach 100%
-    const duration = 3500;
+    // 4 seconds strict
+    const duration = 4000;
     const startTime = Date.now();
 
     const updateProgress = () => {
@@ -34,8 +34,8 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
         // Complete
         setTimeout(() => {
           setExit(true);
-          setTimeout(() => onComplete?.(), 1000);
-        }, 500);
+          setTimeout(() => onComplete?.(), 500); // Fast exit 0.5s
+        }, 200);
       }
     };
 
@@ -48,55 +48,47 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
         <motion.div
           className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background overflow-hidden"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, filter: "blur(10px)" }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          {/* Subtle Background Texture for "Richness" */}
-          <div className="absolute inset-0 bg-grid-pattern opacity-[0.015] pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-secondary/5 opacity-40 pointer-events-none" />
-
           {/* 
              The Symbol. 
-             No effects. No glow. Just the form.
-             Breathing animation mimic Apple's sleep indicator.
+             No blur. No glow. Sharp vectors.
+             Breathing opacity only.
           */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0 }}
             animate={{
-              opacity: [0.4, 1, 0.4],
-              scale: 1
+              opacity: [0.3, 1, 0.3],
             }}
             transition={{
               opacity: { duration: 3, ease: "easeInOut", repeat: Infinity },
-              duration: 1.5, ease: "easeOut"
             }}
-            className="flex flex-col items-center gap-8 relative z-10"
+            className="flex flex-col items-center gap-6 relative z-10"
           >
             <div className="relative">
               <Brain
-                className="w-16 h-16 text-foreground"
-                strokeWidth={1} // Ultra-fine stroke
+                className="w-12 h-12 text-foreground"
+                strokeWidth={1.5} // Slightly thicker for smaller size
               />
-              {/* Very subtle glow */}
-              <div className="absolute inset-0 bg-foreground/20 blur-[40px] rounded-full scale-150" />
             </div>
 
-            <div className="flex flex-col items-center gap-4">
-              <h1 className="text-2xl font-light tracking-[0.25em] text-foreground uppercase">
+            <div className="flex flex-col items-center gap-3">
+              <h1 className="text-lg font-medium tracking-[0.2em] text-foreground uppercase antialiased">
                 CorteXia
               </h1>
 
-              {/* Synchronized Inline Progress */}
+              {/* Ultra-Compact Sharp Progress */}
               <div className="flex items-center gap-3">
                 {/* Progress Bar */}
-                <div className="relative w-24 h-[2px] bg-secondary/50 rounded-full overflow-hidden backdrop-blur-sm">
+                <div className="relative w-32 h-1 bg-secondary rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-foreground shadow-[0_0_10px_currentColor]"
+                    className="h-full bg-primary"
                     style={{ width: `${progress}%`, transition: 'none' }}
                   />
                 </div>
                 {/* Percentage */}
-                <span className="text-xs font-mono font-light tracking-widest text-muted-foreground/80 tabular-nums min-w-[32px]">
+                <span className="text-[10px] font-bold font-mono text-primary tabular-nums w-[32px] text-right">
                   {Math.floor(progress)}%
                 </span>
               </div>
