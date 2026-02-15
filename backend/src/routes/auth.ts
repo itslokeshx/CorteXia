@@ -53,6 +53,7 @@ router.post("/signup", async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         image: user.image || null,
+        onboardingCompleted: user.onboardingCompleted || false,
       },
     });
   } catch (error) {
@@ -97,6 +98,7 @@ router.post("/login", async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         image: user.image || null,
+        onboardingCompleted: user.onboardingCompleted || false,
       },
     });
   } catch (error) {
@@ -181,6 +183,7 @@ router.post("/google", async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         image: user.image || null,
+        onboardingCompleted: user.onboardingCompleted || false,
       },
     });
   } catch (error) {

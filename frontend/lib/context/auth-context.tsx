@@ -32,6 +32,7 @@ interface AuthUser {
   email?: string | null;
   name?: string | null;
   image?: string | null;
+  onboardingCompleted?: boolean;
 }
 
 interface AuthContextType {
@@ -115,18 +116,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const profile: UserProfile | null = user
     ? {
-        id: user.id,
-        email: user.email || "",
-        full_name: user.name || null,
-        avatar_url: user.image || null,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        theme: "dark",
-        notification_preferences: {},
-        onboarding_completed: true,
-        last_active_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
+      id: user.id,
+      email: user.email || "",
+      full_name: user.name || null,
+      avatar_url: user.image || null,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      theme: "dark",
+      notification_preferences: {},
+      onboarding_completed: user.onboardingCompleted || false,
+      last_active_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
     : null;
 
   const isDemoMode = false;

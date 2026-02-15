@@ -84,7 +84,7 @@ export function WidgetTodayTasks({
   const dashOffset = circumference - (pct / 100) * circumference;
 
   return (
-    <div className="dashboard-card h-full">
+    <div className="dashboard-card h-full" data-tour="tasks-widget">
       <div className="dashboard-card-header">
         <h2 className="text-base font-semibold" style={{ color: "var(--color-text-primary)" }}>
           Today's Focus

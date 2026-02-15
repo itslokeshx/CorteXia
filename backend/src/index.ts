@@ -18,6 +18,7 @@ import settingsRoutes from "./routes/settings";
 import aiChatRoutes from "./routes/ai-chat";
 import userDataRoutes from "./routes/user-data";
 import deleteAllDataRoutes from "./routes/delete-all-data";
+import userRoutes from "./routes/user";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -64,6 +65,7 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/ai/chat", aiChatRoutes);
 app.use("/api/user-data", userDataRoutes);
 app.use("/api/delete-all-data", deleteAllDataRoutes);
+app.use("/api/user", userRoutes);
 
 // ─── Start ───
 async function start() {

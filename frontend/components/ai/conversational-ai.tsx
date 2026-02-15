@@ -1052,7 +1052,7 @@ export function ConversationalAI({ isSidebarCollapsed = false }: { isSidebarColl
       <>
         {/* Desktop — Minimal bottom bar */}
         <div
-          className="hidden sm:block fixed z-40 bottom-0 right-0 transition-[left] duration-200 ease-out"
+          className="ai-chat-trigger hidden sm:block fixed z-40 bottom-0 right-0 transition-[left] duration-200 ease-out"
           style={{ left: isSidebarCollapsed ? "68px" : "260px" }}
         >
           <div className="border-t border-[var(--color-border)] bg-[var(--color-bg-primary)]">
@@ -1091,7 +1091,7 @@ export function ConversationalAI({ isSidebarCollapsed = false }: { isSidebarColl
         {/* Mobile — Clean FAB */}
         <div className="sm:hidden fixed z-50 bottom-4 right-4">
           <motion.button
-            className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+            className="ai-chat-trigger w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
             style={{
               background: "var(--color-accent-primary)",
               color: "var(--color-bg-primary)",

@@ -6,6 +6,8 @@ import { AuthProvider } from "@/lib/context/auth-context";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CelebrationProvider } from "@/components/celebration/celebration-provider";
 import { AuthGuard } from "@/components/auth-guard";
+import { TourProvider } from "@/lib/context/tour-context";
+import { OnboardingTour } from "@/components/tour/onboarding-tour";
 import "./globals.css";
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -35,7 +37,10 @@ export default function RootLayout({
           <AuthProvider>
             <AuthGuard>
               <AppProvider>
-                <CelebrationProvider>{children}</CelebrationProvider>
+                <TourProvider>
+                  <OnboardingTour />
+                  <CelebrationProvider>{children}</CelebrationProvider>
+                </TourProvider>
               </AppProvider>
             </AuthGuard>
           </AuthProvider>

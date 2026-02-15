@@ -54,6 +54,7 @@ export function WidgetTodayExpense({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="h-full flex flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-4 sm:p-5 hover:shadow-sm transition-shadow"
+            data-tour="expenses-widget"
         >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">

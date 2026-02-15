@@ -38,7 +38,7 @@ export function WidgetTodayHabits({
   const pct = habits.length > 0 ? Math.round((completedCount / habits.length) * 100) : 0;
 
   return (
-    <div className="dashboard-card h-full">
+    <div className="dashboard-card h-full" data-tour="habits-widget">
       <div className="dashboard-card-header">
         <div>
           <h2 className="text-base font-semibold" style={{ color: "var(--color-text-primary)" }}>

@@ -231,7 +231,7 @@ export function CollapsibleSidebar() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5 scrollbar-thin overflow-x-hidden">
+        <nav className="sidebar-nav flex-1 overflow-y-auto px-2 py-2 space-y-0.5 scrollbar-thin overflow-x-hidden">
           {navItems.map((item) => (
             <NavLink key={item.href} item={item} collapsed={isCollapsed} />
           ))}

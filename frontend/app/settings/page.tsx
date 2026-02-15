@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useApp } from "@/lib/context/app-context";
 import { useAuth } from "@/lib/context/auth-context";
 import { AppLayout } from "@/components/layout/app-layout";
+import { useTour } from "@/lib/context/tour-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -48,6 +49,7 @@ export default function SettingsPage() {
     journalEntries,
     importData,
   } = useApp();
+  const { restartTour } = useTour();
 
   const { user, profile, signOut, isDemoMode } = useAuth();
 
@@ -439,6 +441,39 @@ export default function SettingsPage() {
               <Trash2 className="w-3.5 h-3.5 mr-1.5" />
               Delete All Data
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Onboarding & Help */}
+        <Card className="border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+          <CardContent className="p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+              <Label className="text-sm font-medium text-[var(--color-text-primary)]">
+                Onboarding & Help
+              </Label>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  Restart Product Tour
+                </p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">
+                  Replay the welcome onboarding guide
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  await restartTour();
+                  window.location.href = "/";
+                }}
+                className="text-xs h-8 border-[var(--color-border)]"
+              >
+                Restart Tour
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
