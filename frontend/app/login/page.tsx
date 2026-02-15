@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Brain, Mail, Lock, Loader2, User } from "lucide-react";
+import { Brain, Mail, Lock, Loader2, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/context/auth-context";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -59,17 +59,17 @@ export default function AuthPage() {
     signInWithCredentials,
     signUpWithCredentials,
   } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [googleReady, setGoogleReady] = useState(false);
-  const tokenClientRef = useRef<{ requestAccessToken: () => void } | null>(
-    null,
-  );
+  const tokenClientRef = useRef<{ requestAccessToken: () => void } | null>(null);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -85,7 +85,6 @@ export default function AuthPage() {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
-    // Use OAuth2 token client — opens a real Google popup, no iframe/origin issues
     tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: "email profile",
@@ -95,7 +94,6 @@ export default function AuthPage() {
           setIsGoogleLoading(false);
           return;
         }
-        // We got an access token — send it to backend to exchange for user info
         try {
           setIsGoogleLoading(true);
           setError("");
@@ -110,7 +108,6 @@ export default function AuthPage() {
     });
   }, [googleReady, signInWithGoogle, router]);
 
-  // Google button click — just open the OAuth popup
   const handleGoogleClick = useCallback(() => {
     if (tokenClientRef.current) {
       setIsGoogleLoading(true);
@@ -150,18 +147,12 @@ export default function AuthPage() {
 
   if (loading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--color-bg-primary)" }}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         >
-          <Brain
-            className="w-8 h-8"
-            style={{ color: "var(--color-text-tertiary)" }}
-          />
+          <Brain className="w-8 h-8 text-muted-foreground" />
         </motion.div>
       </div>
     );
@@ -174,233 +165,193 @@ export default function AuthPage() {
         strategy="afterInteractive"
         onLoad={() => setGoogleReady(true)}
       />
-      <div
-        className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden"
-        style={{ background: "var(--color-bg-primary)" }}
-      >
-        {/* Subtle ambient glow */}
-        <motion.div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            background:
-              "radial-gradient(circle at 30% 50%, var(--color-accent-primary) 0%, transparent 60%)",
-          }}
-          animate={{ opacity: [0.03, 0.05, 0.03] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
+      <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-background">
+
+        {/* Aesthetic Background Pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
+
+        {/* Subtle Ambient Glows - simplified and cleaner */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px] pointer-events-none" />
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-md relative z-10"
+          initial={{ opacity: 0, y: 30, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-[420px] relative z-10"
         >
-          {/* Card */}
-          <div
-            className="rounded-2xl border backdrop-blur-xl p-8 sm:p-10 text-center"
-            style={{
-              borderColor: "var(--color-border)",
-              background: "var(--color-bg-secondary)",
-            }}
-          >
-            {/* Logo */}
-            <div className="mb-8">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{
-                  delay: 0.1,
-                  duration: 0.5,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="relative inline-block"
-              >
-                <div
-                  className="absolute inset-0 blur-2xl opacity-20 scale-150"
-                  style={{
-                    background:
-                      "radial-gradient(circle, var(--color-accent-primary) 0%, transparent 70%)",
-                  }}
-                />
-                <Brain
-                  className="w-14 h-14 mx-auto relative z-10 mb-4"
-                  style={{ color: "var(--color-text-primary)" }}
-                  strokeWidth={1.3}
-                />
-              </motion.div>
-              <h1
-                className="text-3xl font-bold tracking-tight"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                CorteXia
-              </h1>
-              <p
-                className="text-sm mt-1.5"
-                style={{ color: "var(--color-text-tertiary)" }}
-              >
-                Your Second Brain
-              </p>
-            </div>
+          <div className="relative group">
 
-            {/* Value proposition */}
-            <p
-              className="text-sm mb-8 leading-relaxed"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              Organize your life. Achieve your goals.
-              <br />
-              All in one intelligent system.
-            </p>
+            {/* Glassmorphic Glow Border Effect */}
+            <div className="absolute -inset-0.5 bg-gradient-to-b from-primary/10 to-transparent rounded-[20px] blur-sm opacity-50 group-hover:opacity-100 transition duration-1000"></div>
 
-            {/* Custom Google Sign-In Button */}
-            <button
-              type="button"
-              onClick={handleGoogleClick}
-              disabled={isGoogleLoading || !googleReady}
-              className="w-full flex items-center justify-center gap-3 rounded-xl border px-5 py-3.5 text-sm font-medium transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mb-6"
-              style={{
-                borderColor: "var(--color-border)",
-                background: "var(--color-bg-tertiary)",
-                color: "var(--color-text-primary)",
-              }}
-            >
-              {isGoogleLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <GoogleIcon className="w-5 h-5" />
-              )}
-              {isGoogleLoading
-                ? "Signing in..."
-                : isSignUp
-                  ? "Sign up with Google"
-                  : "Continue with Google"}
-            </button>
+            <div className="relative bg-card/80 backdrop-blur-2xl border border-white/5 shadow-2xl rounded-[20px] overflow-hidden p-8 sm:p-10">
 
-            {/* OAuth2 token client — no hidden button needed */}
+              {/* Header section with Logo */}
+              <div className="flex flex-col items-center text-center mb-8">
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.6 }}
+                  className="mb-6 relative"
+                >
+                  <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-110" />
+                  <div className="relative bg-background/50 p-4 rounded-2xl border border-white/10 shadow-inner">
+                    <Brain className="w-10 h-10 text-foreground" strokeWidth={1.5} />
+                  </div>
+                </motion.div>
 
-            {/* Divider */}
-            <div className="flex items-center gap-3 mb-6">
-              <div
-                className="flex-1 h-px"
-                style={{ background: "var(--color-border)" }}
-              />
-              <span
-                className="text-[11px] uppercase tracking-wider"
-                style={{ color: "var(--color-text-tertiary)" }}
-              >
-                or {isSignUp ? "create account" : "sign in with email"}
-              </span>
-              <div
-                className="flex-1 h-px"
-                style={{ background: "var(--color-border)" }}
-              />
-            </div>
-
-            {/* Email/Password Form */}
-            <form onSubmit={handleCredentialAuth} className="space-y-4">
-              {isSignUp && (
-                <div className="relative">
-                  <User
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: "var(--color-text-tertiary)" }}
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Full name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              )}
-              <div className="relative">
-                <Mail
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: "var(--color-text-tertiary)" }}
-                />
-                <Input
-                  type="email"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-              <div className="relative">
-                <Lock
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: "var(--color-text-tertiary)" }}
-                />
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  required
-                  minLength={6}
-                />
+                <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+                  CorteXia
+                </h1>
+                <p className="text-sm text-muted-foreground mt-2 font-medium tracking-wide">
+                  Intelligent Workspace
+                </p>
               </div>
 
-              {error && (
-                <p className="text-xs text-red-400 text-left">{error}</p>
-              )}
-
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full"
-                style={{
-                  background: "var(--color-accent-primary)",
-                  color: "var(--color-bg-primary)",
-                }}
+              {/* Value Prop / Tagline */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-sm text-center text-muted-foreground/80 mb-8 leading-relaxed font-light"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {isSignUp ? "Creating account..." : "Signing in..."}
-                  </>
-                ) : isSignUp ? (
-                  "Create Account"
-                ) : (
-                  "Sign In"
-                )}
-              </Button>
-            </form>
+                {isSignUp ? "Begin your journey to clarity." : "Welcome back to your second brain."}
+              </motion.p>
 
-            {/* Toggle sign in / sign up */}
-            <div className="mt-6">
+              {/* Google Button */}
               <button
                 type="button"
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError("");
-                }}
-                className="text-sm transition-colors hover:opacity-80"
-                style={{ color: "var(--color-text-secondary)" }}
+                onClick={handleGoogleClick}
+                disabled={isGoogleLoading || !googleReady}
+                className="
+                    w-full flex items-center justify-center gap-3 
+                    py-3 px-4 rounded-xl 
+                    bg-secondary/50 hover:bg-secondary/80 
+                    border border-border/50
+                    text-foreground font-medium text-sm
+                    transition-all duration-200 
+                    hover:scale-[1.01] active:scale-[0.99]
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    mb-6 shadow-sm
+                "
               >
-                {isSignUp
-                  ? "Already have an account? Sign in"
-                  : "Don't have an account? Sign up"}
+                {isGoogleLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <GoogleIcon className="w-5 h-5" />
+                )}
+                <span>
+                  {isGoogleLoading ? "Connecting..." : (isSignUp ? "Sign up with Google" : "Continue with Google")}
+                </span>
               </button>
-            </div>
 
-            {/* Legal */}
-            <p
-              className="mt-8 text-[10px] leading-relaxed"
-              style={{ color: "var(--color-text-tertiary)" }}
-            >
-              By continuing, you agree to our{" "}
-              <span className="underline cursor-pointer hover:opacity-70">
-                Terms
-              </span>{" "}
-              and{" "}
-              <span className="underline cursor-pointer hover:opacity-70">
-                Privacy Policy
-              </span>
-            </p>
+              {/* Divider */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex-1 h-px bg-border/40"></div>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground/50 font-medium">Or email</span>
+                <div className="flex-1 h-px bg-border/40"></div>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleCredentialAuth} className="space-y-4">
+                <motion.div layout className="space-y-4">
+                  {isSignUp && (
+                    <div className="relative group/input">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
+                      <Input
+                        type="text"
+                        placeholder="Full Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="pl-10 h-11 bg-background/50 border-white/5 focus:border-primary/50 transition-all rounded-xl"
+                        required
+                      />
+                    </div>
+                  )}
+                  <div className="relative group/input">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
+                    <Input
+                      type="email"
+                      placeholder="Email Address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-11 bg-background/50 border-white/5 focus:border-primary/50 transition-all rounded-xl"
+                      required
+                    />
+                  </div>
+
+                  {/* Password Field with Show/Hide Toggle */}
+                  <div className="relative group/input">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10 h-11 bg-background/50 border-white/5 focus:border-primary/50 transition-all rounded-xl"
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+
+                {error && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
+                    className="text-xs text-red-400 text-center font-medium bg-red-500/10 py-2 rounded-lg"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full h-11 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-300"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      {isSignUp ? "Create Account" : "Sign In"}
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  )}
+                </Button>
+              </form>
+
+              {/* Footer */}
+              <div className="mt-8 text-center space-y-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setError("");
+                  }}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  {isSignUp ? "Already have an account? Sign in" : "New to CorteXia? Create account"}
+                </button>
+
+                <p className="text-[10px] text-muted-foreground/60 leading-relaxed max-w-[280px] mx-auto">
+                  By continuing, you agree to our Terms of Service and Privacy Policy.
+                </p>
+              </div>
+
+            </div>
           </div>
         </motion.div>
       </div>
