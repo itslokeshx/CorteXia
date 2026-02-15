@@ -272,9 +272,12 @@ export function ConversationalAI() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [barInput, setBarInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [pendingBulkActions, setPendingBulkActions] = useState<any[] | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const barInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { setTheme, theme: currentTheme } = useTheme();
@@ -399,6 +402,17 @@ export function ConversationalAI() {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
+
+  // Send from the persistent bar
+  const handleBarSubmit = () => {
+    if (!barInput.trim()) return;
+    setIsOpen(true);
+    // Small delay so chat panel mounts first
+    setTimeout(() => {
+      sendMessage(barInput.trim());
+      setBarInput("");
+    }, 150);
+  };
 
   // Build COMPREHENSIVE context for AI with full data access
   // Send message to AI
@@ -594,18 +608,38 @@ export function ConversationalAI() {
 
       // === EXECUTE ACTIONS ===
       if (response.actions && response.actions.length > 0) {
-        console.log(
-          "[AI Chat] Executing",
-          response.actions.length,
-          "actions:",
-          response.actions.map((a: any) => a.type),
+        const createTaskActions = response.actions.filter(
+          (a: any) => a.type === "create_task",
         );
-        for (const action of response.actions) {
+        const otherActions = response.actions.filter(
+          (a: any) => a.type !== "create_task",
+        );
+
+        // Bulk creation: 2+ create_task → show confirmation instead of auto-executing
+        if (createTaskActions.length >= 2) {
+          setPendingBulkActions(createTaskActions);
+          console.log(
+            "[AI Chat] Queued",
+            createTaskActions.length,
+            "tasks for bulk confirmation",
+          );
+        } else {
+          // Single create_task or other → execute immediately
+          for (const action of createTaskActions) {
+            try {
+              await executeAction(action);
+            } catch (err) {
+              console.error("[AI Chat] Action failed:", action.type, err);
+            }
+          }
+        }
+
+        // Always execute non-create_task actions immediately
+        for (const action of otherActions) {
           try {
             await executeAction(action);
-            console.log("[AI Chat] Action executed:", action.type);
-          } catch (actionErr) {
-            console.error("[AI Chat] Action failed:", action.type, actionErr);
+          } catch (err) {
+            console.error("[AI Chat] Action failed:", action.type, err);
           }
         }
       }
@@ -1044,39 +1078,97 @@ export function ConversationalAI() {
     recognition.start();
   };
 
-  // Minimized floating button
+  // ── CLOSED STATE ──
+  // Desktop: persistent bottom input bar
+  // Mobile: floating action button
   if (!isOpen) {
     return (
-      <div className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6">
-        {/* Subtle pulse */}
-        <motion.div
-          className="absolute inset-0 rounded-full opacity-20"
-          style={{ background: "var(--color-accent-primary)" }}
-          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0, 0.2] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.button
-          className={cn(
-            "relative w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center",
-            "shadow-lg transition-all",
-          )}
-          style={{
-            background: "var(--color-accent-primary)",
-            color: "var(--color-bg-primary)",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          }}
-          onClick={() => {
-            setIsOpen(true);
-          }}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          exit={{ scale: 0 }}
-        >
-          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
-        </motion.button>
-      </div>
+      <>
+        {/* ═══ DESKTOP — Persistent Bottom Bar ═══ */}
+        <div className="hidden sm:block fixed z-50 bottom-0 left-0 right-0">
+          <div className="bg-[var(--color-bg-primary)]/95 backdrop-blur-xl border-t border-[var(--color-border)]">
+            <div className="max-w-2xl mx-auto px-4 py-3">
+              <form
+                onSubmit={(e) => { e.preventDefault(); handleBarSubmit(); }}
+                className="flex items-center gap-2.5"
+              >
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--color-bg-tertiary)" }}
+                >
+                  <Sparkles className="w-4 h-4" style={{ color: "var(--color-accent-primary)" }} />
+                </div>
+                <div className="flex-1 relative">
+                  <input
+                    ref={barInputRef}
+                    type="text"
+                    value={barInput}
+                    onChange={(e) => setBarInput(e.target.value)}
+                    placeholder="Tell Jarvis what you need..."
+                    className="w-full h-10 px-4 pr-16 rounded-xl text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]/30 focus:border-[var(--color-accent-primary)]/50 transition-all"
+                  />
+                  <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-tertiary)] bg-[var(--color-bg-tertiary)] rounded border border-[var(--color-border)]">
+                    ⌘K
+                  </kbd>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleVoiceInput}
+                  className={cn(
+                    "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-all border",
+                    isListening
+                      ? "bg-red-500/10 border-red-500/30 text-red-500"
+                      : "bg-[var(--color-bg-secondary)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-text-tertiary)]",
+                  )}
+                >
+                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </button>
+                <button
+                  type="submit"
+                  disabled={!barInput.trim()}
+                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-[var(--color-accent-primary)] text-[var(--color-bg-primary)] disabled:opacity-30 hover:opacity-90 transition-all"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(true)}
+                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-all"
+                  title="Open chat"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══ MOBILE — Floating Action Button ═══ */}
+        <div className="sm:hidden fixed z-50 bottom-4 right-4">
+          <motion.div
+            className="absolute inset-0 rounded-full opacity-20"
+            style={{ background: "var(--color-accent-primary)" }}
+            animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0, 0.2] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.button
+            className="relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+            style={{
+              background: "var(--color-accent-primary)",
+              color: "var(--color-bg-primary)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            }}
+            onClick={() => setIsOpen(true)}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+          >
+            <Sparkles className="w-5 h-5" />
+          </motion.button>
+        </div>
+      </>
     );
   }
 
@@ -1270,6 +1362,96 @@ export function ConversationalAI() {
                   )}
                 </motion.div>
               ))}
+
+              {/* Bulk Creation Confirmation Card */}
+              {pendingBulkActions && pendingBulkActions.length > 0 && (
+                <motion.div
+                  className="flex gap-2 sm:gap-3"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <div
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0 flex items-center justify-center"
+                    style={{ background: "var(--color-bg-tertiary)" }}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "var(--color-accent-primary)" }} />
+                  </div>
+                  <div className="max-w-[85%] sm:max-w-[80%] rounded-2xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+                    <div className="px-3 sm:px-4 py-2.5 border-b border-[var(--color-border)]">
+                      <p className="text-xs sm:text-sm font-medium text-[var(--color-text-primary)]">
+                        ✨ {pendingBulkActions.length} tasks ready to create
+                      </p>
+                      <p className="text-[10px] sm:text-xs text-[var(--color-text-tertiary)] mt-0.5">
+                        Review and confirm
+                      </p>
+                    </div>
+                    <div className="divide-y divide-[var(--color-border)]">
+                      {pendingBulkActions.map((action: any, i: number) => {
+                        const d = action.data || {};
+                        const priorityColors: Record<string, string> = {
+                          critical: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                          high: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+                          medium: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+                          low: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+                        };
+                        return (
+                          <div key={i} className="px-3 sm:px-4 py-2.5 flex items-start gap-2.5">
+                            <span className="text-[12px] font-mono text-[var(--color-text-tertiary)] mt-0.5 flex-shrink-0">
+                              {i + 1}.
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs sm:text-sm font-medium text-[var(--color-text-primary)] leading-snug">
+                                {d.title || "Untitled"}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                {d.priority && (
+                                  <span className={cn("px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-medium uppercase", priorityColors[d.priority] || priorityColors.medium)}>
+                                    {d.priority}
+                                  </span>
+                                )}
+                                {d.dueDate && (
+                                  <span className="text-[10px] text-[var(--color-text-tertiary)]">
+                                    📅 {d.dueDate}
+                                  </span>
+                                )}
+                              </div>
+                              {d.description && (
+                                <p className="text-[10px] sm:text-xs text-[var(--color-text-tertiary)] mt-1 line-clamp-1">
+                                  {d.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="px-3 sm:px-4 py-2.5 border-t border-[var(--color-border)] flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 h-7 sm:h-8 text-[10px] sm:text-xs bg-[var(--color-accent-primary)] text-[var(--color-bg-primary)] hover:opacity-90"
+                        onClick={async () => {
+                          const actions = [...pendingBulkActions];
+                          setPendingBulkActions(null);
+                          for (const act of actions) {
+                            try { await executeAction(act); } catch { /* ignore */ }
+                          }
+                          toast.success(`${actions.length} tasks created!`);
+                        }}
+                      >
+                        ✅ Accept All
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 sm:h-8 text-[10px] sm:text-xs"
+                        onClick={() => setPendingBulkActions(null)}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
               {/* Loading indicator */}
               {isLoading && (

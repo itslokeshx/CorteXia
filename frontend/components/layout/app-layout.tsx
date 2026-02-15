@@ -7,6 +7,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { useApp } from "@/lib/context/app-context";
 import { useAuth } from "@/lib/context/auth-context";
 import { ConversationalAI } from "@/components/ai/conversational-ai";
+import { CommandPalette } from "@/components/ai/command-palette";
 import { cn } from "@/lib/utils";
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -27,7 +28,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         className={cn(
           "min-h-screen transition-[margin-left] duration-200 ease-out",
           "max-lg:!ml-0",
-          "px-6 sm:px-8 lg:px-12 py-8 pt-16 lg:pt-8",
+          "px-6 sm:px-8 lg:px-12 py-8 pt-16 lg:pt-8 sm:pb-20",
           mounted && isCollapsed ? "ml-[68px]" : "ml-[260px]",
         )}
       >
@@ -35,6 +36,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       </main>
       {/* AI Chatbot - only when fully authenticated and not on AI Coach page */}
       {isAuthenticated && pathname !== "/ai-coach" && <ConversationalAI />}
+      {isAuthenticated && <CommandPalette />}
     </div>
   );
 }

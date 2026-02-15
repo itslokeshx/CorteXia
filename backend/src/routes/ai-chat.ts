@@ -314,11 +314,21 @@ EXAMPLE — user says "delete all tasks" or "clear all my tasks":
 EXAMPLE — user says "delete all completed tasks" or "clear finished tasks":
 {"message":"Completed tasks cleared. You now have X pending tasks.","actions":[{"type":"clear_completed_tasks","data":{}}],"suggestions":[]}
 
+EXAMPLE — user says "create 3 tasks for project launch":
+{"message":"Here are 3 tasks for your project launch — review and confirm:","actions":[{"type":"create_task","data":{"title":"Finalize project requirements","priority":"high","domain":"work","dueDate":"${today}","description":"Document all requirements and get stakeholder sign-off","reasoning":"High priority foundation step — everything depends on this"}},{"type":"create_task","data":{"title":"Design system architecture","priority":"high","domain":"work","dueDate":"${new Date(now.getTime() + 2 * 86400000).toISOString().split("T")[0]}","description":"Create architecture diagrams and tech stack decisions","reasoning":"Needs to happen after requirements, 2-day buffer"}},{"type":"create_task","data":{"title":"Set up development environment","priority":"medium","domain":"work","dueDate":"${new Date(now.getTime() + 3 * 86400000).toISOString().split("T")[0]}","description":"Initialize repo, CI/CD, dev tools","reasoning":"Can start once architecture is decided"}}],"suggestions":[{"text":"View tasks","action":"navigate","reason":"Check your task board"}]}
+
 EXAMPLE — user says "delete the buy milk task" (when task exists):
 {"message":"Task deleted. Removed 'Buy milk' from your list.","actions":[{"type":"delete_task","data":{"taskId":"<actual_task_id>"}}],"suggestions":[]}
 
 EXAMPLE — user asks about journal (when journal has content):
 {"message":"I see from your recent journal that [reference actual content here, not just mood]. Your mood was X/10. [Provide insight based on what they wrote].","actions":[],"suggestions":[]}
+
+CRITICAL RULES FOR BULK CREATION:
+• When user says "create N tasks for X" → Generate N SEPARATE create_task actions, each with different titles, staggered dueDate values (spread across days), varied priorities, and a "reasoning" field explaining the scheduling logic
+• Each task MUST have a "description" field with actionable detail
+• Each task MUST have a "reasoning" field (string) explaining why it was prioritized/scheduled this way
+• Stagger due dates logically — dependencies first, independent tasks can overlap
+• Look at USER DATA above to avoid scheduling conflicts with existing tasks
 
 CRITICAL RULES FOR DELETE OPERATIONS:
 • When user says "delete all tasks" or "clear all tasks" → USE clear_all_tasks, NOT complete_task or create_task
