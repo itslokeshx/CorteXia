@@ -17,6 +17,10 @@ import {
   endOfMonth,
   startOfYear,
   endOfYear,
+  isBefore,
+  isSameDay,
+  isAfter,
+  startOfDay,
 } from "date-fns";
 import { useRouter } from "next/navigation";
 import {
@@ -87,6 +91,47 @@ type TabView = "all" | "today" | "tomorrow" | "week" | "month";
 type SortBy = "priority" | "dueDate" | "title" | "created";
 
 // ═════════════════════════════════════════════════════════════════════════════
+//  SMART TIME HELPERS
+// ═════════════════════════════════════════════════════════════════════════════
+
+const DURATION_PRESETS = [
+  { label: "15m", minutes: 15 },
+  { label: "30m", minutes: 30 },
+  { label: "1h", minutes: 60 },
+  { label: "2h", minutes: 120 },
+];
+
+/** Round current time UP to the next 15-minute boundary. */
+function getSmartTimeDefaults(durationMinutes = 60) {
+  const now = new Date();
+  const mins = now.getMinutes();
+  const roundedMins = Math.ceil(mins / 15) * 15;
+  const start = new Date(now);
+  start.setMinutes(roundedMins, 0, 0);
+  if (roundedMins >= 60) {
+    start.setHours(start.getHours() + 1);
+    start.setMinutes(0);
+  }
+  const end = new Date(start.getTime() + durationMinutes * 60000);
+  return {
+    startTime: format(start, "HH:mm"),
+    endTime: format(end, "HH:mm"),
+  };
+}
+
+/** Format a 24h time string to 12h display. */
+function formatTime12h(time24: string): string {
+  try {
+    const [h, m] = time24.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return format(d, "h:mm a");
+  } catch {
+    return time24;
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 //  MAIN COMPONENT
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -124,10 +169,12 @@ export default function TasksPage() {
   >("today");
   const [formGoalId, setFormGoalId] = useState("");
   const [formTimeBlock, setFormTimeBlock] = useState(false);
-  const [formStartTime, setFormStartTime] = useState("09:00");
-  const [formEndTime, setFormEndTime] = useState("10:00");
-  const [formDurH, setFormDurH] = useState(0);
-  const [formDurM, setFormDurM] = useState(30);
+  const smartDefaults = getSmartTimeDefaults(60);
+  const [formStartTime, setFormStartTime] = useState(smartDefaults.startTime);
+  const [formEndTime, setFormEndTime] = useState(smartDefaults.endTime);
+  const [formDurH, setFormDurH] = useState(1);
+  const [formDurM, setFormDurM] = useState(0);
+  const [selectedPreset, setSelectedPreset] = useState<number | null>(60);
 
   const today = format(new Date(), "yyyy-MM-dd");
   const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
@@ -268,16 +315,33 @@ export default function TasksPage() {
   const completed = filteredTasks.filter((t) => t.status === "completed");
 
   const resetForm = () => {
+    const defaults = getSmartTimeDefaults(60);
     setFormTitle("");
     setFormDescription("");
     setFormPriority("medium");
     setFormSchedule("today");
     setFormGoalId("");
     setFormTimeBlock(false);
-    setFormStartTime("09:00");
-    setFormEndTime("10:00");
-    setFormDurH(0);
-    setFormDurM(30);
+    setFormStartTime(defaults.startTime);
+    setFormEndTime(defaults.endTime);
+    setFormDurH(1);
+    setFormDurM(0);
+    setSelectedPreset(60);
+  };
+
+  /** Apply a duration preset — updates hours, minutes, and end time. */
+  const applyDurationPreset = (minutes: number) => {
+    setSelectedPreset(minutes);
+    setFormDurH(Math.floor(minutes / 60));
+    setFormDurM(minutes % 60);
+    // Recalculate end time from current start time
+    try {
+      const [sh, sm] = formStartTime.split(":").map(Number);
+      const start = new Date();
+      start.setHours(sh, sm, 0, 0);
+      const end = new Date(start.getTime() + minutes * 60000);
+      setFormEndTime(format(end, "HH:mm"));
+    } catch { /* ignore */ }
   };
 
   const handleCreate = async () => {
@@ -559,22 +623,164 @@ export default function TasksPage() {
           </div>
         </div>
 
-        {/* Task List */}
-        <div className="space-y-1.5">
-          <AnimatePresence mode="popLayout">
-            {pending.length > 0 ? (
-              <>
-                {(() => {
-                  const collapsed = !expandedSections[view];
-                  const slice =
-                    collapsed && pending.length > 5
-                      ? pending.slice(0, 3)
-                      : pending;
-                  const hiddenN = pending.length - 3;
+        {/* Task List — Time-Based Grouped View */}
+        {(() => {
+          // Format boundary dates as yyyy-MM-dd strings for comparison with task.dueDate
+          const weekEnd = format(addDays(new Date(), 7), "yyyy-MM-dd");
+          const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
 
-                  return (
-                    <>
-                      {slice.map((task, i) => (
+          const groups: { key: string; icon: string; label: string; accent: string; tasks: typeof pending; defaultOpen: boolean; schedule?: "today" | "tomorrow" | "week" | "month" }[] = [];
+
+          const overdueList = pending.filter(
+            (t) => t.dueDate && t.dueDate < today && t.status !== "completed",
+          );
+          const todayList = pending.filter((t) => t.dueDate === today);
+          const tomorrowList = pending.filter((t) => t.dueDate === tomorrow);
+          const weekList = pending.filter(
+            (t) => t.dueDate && t.dueDate > tomorrow && t.dueDate <= weekEnd,
+          );
+          const monthList = pending.filter(
+            (t) => t.dueDate && t.dueDate > weekEnd && t.dueDate <= monthEnd,
+          );
+          const laterList = pending.filter(
+            (t) => (t.dueDate && t.dueDate > monthEnd) || !t.dueDate,
+          );
+
+          if (overdueList.length > 0) groups.push({ key: "overdue", icon: "⚠️", label: "Overdue", accent: "text-red-600 dark:text-red-400", tasks: overdueList, defaultOpen: true });
+          groups.push({ key: "today", icon: "🌅", label: "Today", accent: "text-[var(--color-text-primary)]", tasks: todayList, defaultOpen: true, schedule: "today" });
+          groups.push({ key: "tomorrow", icon: "🌄", label: "Tomorrow", accent: "text-[var(--color-text-primary)]", tasks: tomorrowList, defaultOpen: tomorrowList.length <= 5, schedule: "tomorrow" });
+          groups.push({ key: "week", icon: "📅", label: "This Week", accent: "text-[var(--color-text-primary)]", tasks: weekList, defaultOpen: false, schedule: "week" });
+          groups.push({ key: "month", icon: "📆", label: "This Month", accent: "text-[var(--color-text-primary)]", tasks: monthList, defaultOpen: false, schedule: "month" });
+          if (laterList.length > 0) groups.push({ key: "later", icon: "🔮", label: "Later", accent: "text-[var(--color-text-secondary)]", tasks: laterList, defaultOpen: false });
+
+          // When a specific view tab is selected, only show the matching group
+          const visibleGroups = view === "all"
+            ? groups
+            : groups.filter((g) => g.key === view || (g.key === "overdue" && view === "today"));
+
+          return (
+            <div className="space-y-4">
+              {visibleGroups.map((group) => {
+                const isOpen = expandedSections[group.key] !== undefined ? expandedSections[group.key] : group.defaultOpen;
+                return (
+                  <div key={group.key}>
+                    {/* Section Header */}
+                    <button
+                      onClick={() => toggleSection(group.key)}
+                      className="w-full flex items-center gap-2 mb-2 pb-1.5 border-b border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 transition-colors group/header"
+                    >
+                      <span className="text-[14px]">{group.icon}</span>
+                      <span className={cn("text-[12px] font-semibold uppercase tracking-wider", group.accent)}>
+                        {group.label}
+                      </span>
+                      <span className="ml-1 text-[11px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-md">
+                        {group.tasks.length}
+                      </span>
+                      <span className="ml-auto text-[11px] text-gray-400 dark:text-gray-500">
+                        {isOpen ? "▼" : "▶"}
+                      </span>
+                    </button>
+
+                    {isOpen ? (
+                      <div className="space-y-1.5">
+                        <AnimatePresence mode="popLayout">
+                          {group.tasks.length > 0 ? (
+                            group.tasks.map((task, i) => (
+                              <TaskCard
+                                key={task.id}
+                                task={task}
+                                i={i}
+                                today={today}
+                                tomorrow={tomorrow}
+                                goals={goals}
+                                fmtDue={fmtDue}
+                                onToggleComplete={toggleTaskComplete}
+                                onDelete={deleteTask}
+                                onEdit={() => openEdit(task)}
+                                onStartTimer={() => handleStartTimer(task)}
+                                onBlock={handleBlockTask}
+                                addingSubtask={addingSubtask}
+                                setAddingSubtask={setAddingSubtask}
+                                newSubtaskText={newSubtaskText}
+                                setNewSubtaskText={setNewSubtaskText}
+                                addSubtask={handleAddSubtask}
+                                toggleSubtask={handleToggleSubtask}
+                                updateTask={updateTask}
+                              />
+                            ))
+                          ) : (
+                            <motion.div className="text-center py-6">
+                              <p className="text-[13px] text-gray-400 dark:text-gray-500">
+                                {group.key === "today"
+                                  ? "✨ No tasks for today. You're all set!"
+                                  : group.key === "overdue"
+                                    ? "🎉 No overdue tasks! You're on track."
+                                    : `No tasks scheduled`}
+                              </p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        {/* Inline add-task for this section */}
+                        {group.schedule && (
+                          <button
+                            onClick={() => {
+                              resetForm();
+                              setFormSchedule(group.schedule!);
+                              setEditingTaskId(null);
+                              setShowModal(true);
+                            }}
+                            className="w-full flex items-center justify-center gap-1 py-1.5 text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          >
+                            <Plus className="w-3 h-3" />
+                            Add task for {group.label.toLowerCase()}
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-[12px] text-gray-400 dark:text-gray-500 ml-6 mb-2">
+                        {group.tasks.length} task{group.tasks.length !== 1 ? "s" : ""} scheduled
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Global empty state when absolutely no tasks */}
+              {pending.length === 0 && completed.length === 0 && (
+                <motion.div className="text-center py-12">
+                  <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3">
+                    <Check className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <p className="text-[14px] font-medium text-[var(--color-text-primary)]">
+                    All clear
+                  </p>
+                  <p className="text-[12px] text-gray-500 mt-1">
+                    No tasks yet. Create your first one!
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Completed */}
+              {completed.length > 0 && (
+                <div className="mt-2">
+                  <button
+                    onClick={() => toggleSection("done")}
+                    className="w-full flex items-center gap-2 mb-2 pb-1.5 border-b border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 transition-colors"
+                  >
+                    <span className="text-[14px]">✅</span>
+                    <span className="text-[12px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                      Completed
+                    </span>
+                    <span className="ml-1 text-[11px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-md">
+                      {completed.length}
+                    </span>
+                    <span className="ml-auto text-[11px] text-gray-400 dark:text-gray-500">
+                      {expandedSections["done"] ? "▼" : "▶"}
+                    </span>
+                  </button>
+                  {expandedSections["done"] && (
+                    <div className="space-y-1.5">
+                      {completed.map((task, i) => (
                         <TaskCard
                           key={task.id}
                           task={task}
@@ -595,97 +801,16 @@ export default function TasksPage() {
                           addSubtask={handleAddSubtask}
                           toggleSubtask={handleToggleSubtask}
                           updateTask={updateTask}
+                          compact
                         />
                       ))}
-                      {collapsed && pending.length > 5 && (
-                        <motion.button
-                          onClick={() => toggleSection(view)}
-                          className="w-full py-2 text-[12px] text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 font-medium"
-                        >
-                          +{hiddenN} more
-                        </motion.button>
-                      )}
-                      {!collapsed && pending.length > 5 && (
-                        <motion.button
-                          onClick={() => toggleSection(view)}
-                          className="w-full py-2 text-[12px] text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 font-medium"
-                        >
-                          Show less
-                        </motion.button>
-                      )}
-                    </>
-                  );
-                })()}
-              </>
-            ) : (
-              <motion.div className="text-center py-12">
-                <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3">
-                  <Check className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                    </div>
+                  )}
                 </div>
-                <p className="text-[14px] font-medium text-[var(--color-text-primary)]">
-                  All clear
-                </p>
-                <p className="text-[12px] text-gray-500 mt-1">
-                  {view === "today"
-                    ? "No tasks today"
-                    : view === "tomorrow"
-                      ? "Nothing planned tomorrow"
-                      : "No tasks"}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Completed */}
-          {completed.length > 0 && (
-            <div className="mt-6">
-              <div className="mb-2 pb-1 border-b border-gray-100 dark:border-gray-800">
-                <span className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  Completed ({completed.length})
-                </span>
-              </div>
-              <div className="space-y-1.5">
-                {(expandedSections["done"]
-                  ? completed
-                  : completed.slice(0, 3)
-                ).map((task, i) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    i={i}
-                    today={today}
-                    tomorrow={tomorrow}
-                    goals={goals}
-                    fmtDue={fmtDue}
-                    onToggleComplete={toggleTaskComplete}
-                    onDelete={deleteTask}
-                    onEdit={() => openEdit(task)}
-                    onStartTimer={() => handleStartTimer(task)}
-                    onBlock={handleBlockTask}
-                    addingSubtask={addingSubtask}
-                    setAddingSubtask={setAddingSubtask}
-                    newSubtaskText={newSubtaskText}
-                    setNewSubtaskText={setNewSubtaskText}
-                    addSubtask={handleAddSubtask}
-                    toggleSubtask={handleToggleSubtask}
-                    updateTask={updateTask}
-                    compact
-                  />
-                ))}
-                {completed.length > 3 && (
-                  <button
-                    onClick={() => toggleSection("done")}
-                    className="w-full py-1.5 text-[11px] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                  >
-                    {expandedSections["done"]
-                      ? "Show less"
-                      : `+${completed.length - 3} more`}
-                  </button>
-                )}
-              </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })()}
       </motion.div>
 
       {/* Modal */}
@@ -823,32 +948,84 @@ export default function TasksPage() {
               </div>
 
               <div>
-                <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                <label className="text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">
                   Duration
                 </label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={12}
-                    value={formDurH}
-                    onChange={(e) => setFormDurH(parseInt(e.target.value) || 0)}
-                    className="w-16 h-9 text-center text-[13px]"
-                  />
-                  <span className="text-[12px] text-gray-500">h</span>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={59}
-                    value={formDurM}
-                    onChange={(e) => setFormDurM(parseInt(e.target.value) || 0)}
-                    className="w-16 h-9 text-center text-[13px]"
-                  />
-                  <span className="text-[12px] text-gray-500">m</span>
+                {/* Quick presets */}
+                <div className="flex items-center gap-1.5 mb-2">
+                  {DURATION_PRESETS.map((p) => (
+                    <button
+                      key={p.minutes}
+                      type="button"
+                      onClick={() => applyDurationPreset(p.minutes)}
+                      className={cn(
+                        "px-3 py-1.5 text-[12px] font-medium rounded-lg border transition-all",
+                        selectedPreset === p.minutes
+                          ? "border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
+                          : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800",
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPreset(null)}
+                    className={cn(
+                      "px-3 py-1.5 text-[12px] font-medium rounded-lg border transition-all",
+                      selectedPreset === null
+                        ? "border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
+                        : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800",
+                    )}
+                  >
+                    Custom
+                  </button>
                 </div>
+                {/* Custom duration (visible when "Custom" selected) */}
+                {selectedPreset === null && (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={12}
+                      value={formDurH}
+                      onChange={(e) => {
+                        const h = parseInt(e.target.value) || 0;
+                        setFormDurH(h);
+                        try {
+                          const [sh, sm] = formStartTime.split(":").map(Number);
+                          const s = new Date(); s.setHours(sh, sm, 0, 0);
+                          const end = new Date(s.getTime() + (h * 60 + formDurM) * 60000);
+                          setFormEndTime(format(end, "HH:mm"));
+                        } catch { /* ignore */ }
+                      }}
+                      className="w-16 h-9 text-center text-[13px]"
+                    />
+                    <span className="text-[12px] text-gray-500">h</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={59}
+                      value={formDurM}
+                      onChange={(e) => {
+                        const m = parseInt(e.target.value) || 0;
+                        setFormDurM(m);
+                        try {
+                          const [sh, sm] = formStartTime.split(":").map(Number);
+                          const s = new Date(); s.setHours(sh, sm, 0, 0);
+                          const end = new Date(s.getTime() + (formDurH * 60 + m) * 60000);
+                          setFormEndTime(format(end, "HH:mm"));
+                        } catch { /* ignore */ }
+                      }}
+                      className="w-16 h-9 text-center text-[13px]"
+                    />
+                    <span className="text-[12px] text-gray-500">m</span>
+                  </div>
+                )}
               </div>
             </div>
 
+            {/* Time Block */}
             <div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -868,7 +1045,17 @@ export default function TasksPage() {
                       <Input
                         type="time"
                         value={formStartTime}
-                        onChange={(e) => setFormStartTime(e.target.value)}
+                        onChange={(e) => {
+                          setFormStartTime(e.target.value);
+                          // Recalculate end time
+                          try {
+                            const [h, m] = e.target.value.split(":").map(Number);
+                            const s = new Date(); s.setHours(h, m, 0, 0);
+                            const dur = formDurH * 60 + formDurM;
+                            const end = new Date(s.getTime() + dur * 60000);
+                            setFormEndTime(format(end, "HH:mm"));
+                          } catch { /* ignore */ }
+                        }}
                         className="w-full sm:w-28 h-9 text-center text-[12px]"
                       />
                       <span className="text-gray-400 text-center sm:text-left">
@@ -880,6 +1067,15 @@ export default function TasksPage() {
                         onChange={(e) => setFormEndTime(e.target.value)}
                         className="w-full sm:w-28 h-9 text-center text-[12px]"
                       />
+                    </div>
+                    {/* Visual timeline summary */}
+                    <div className="mt-2 ml-6 flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+                        <Clock className="w-3 h-3" />
+                        <span className="font-medium">{formatTime12h(formStartTime)}</span>
+                        <span className="text-gray-300 dark:text-gray-600">───►</span>
+                        <span className="font-medium">{formatTime12h(formEndTime)}</span>
+                      </div>
                     </div>
                   </motion.div>
                 )}

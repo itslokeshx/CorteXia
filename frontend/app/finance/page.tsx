@@ -21,6 +21,10 @@ import {
   Trash2,
   ArrowUpRight,
   ArrowDownRight,
+  Filter,
+  CheckSquare,
+  Square,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -147,6 +151,26 @@ export default function FinancePage() {
     type: "expense" as "income" | "expense",
   });
 
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [filterCategory, setFilterCategory] = useState("all");
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const handleBulkDelete = useCallback(() => {
+    selectedIds.forEach((id) => deleteTransaction(id));
+    setSelectedIds(new Set());
+  }, [selectedIds, deleteTransaction]);
+
   const handleCreate = () => {
     const amount = parseFloat(newTx.amount);
     if (!newTx.description.trim() || isNaN(amount) || amount <= 0) return;
@@ -187,8 +211,9 @@ export default function FinancePage() {
           return d >= startOfMonth(now) && d <= endOfMonth(now);
         return true;
       })
+      .filter((t) => filterCategory === "all" || t.category === filterCategory)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, view]);
+  }, [transactions, view, filterCategory]);
 
   const stats = useMemo(() => {
     const income = filteredTransactions
@@ -342,15 +367,31 @@ export default function FinancePage() {
           </div>
         </div>
 
-        {/* View Tabs */}
-        <Tabs value={view} onValueChange={setView}>
-          <TabsList className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-            <TabsTrigger value="today">Today</TabsTrigger>
-            <TabsTrigger value="this-week">This Week</TabsTrigger>
-            <TabsTrigger value="this-month">This Month</TabsTrigger>
-            <TabsTrigger value="all">All Time</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* View Tabs + Category Filter */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <Tabs value={view} onValueChange={setView}>
+            <TabsList className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
+              <TabsTrigger value="today">Today</TabsTrigger>
+              <TabsTrigger value="this-week">This Week</TabsTrigger>
+              <TabsTrigger value="this-month">This Month</TabsTrigger>
+              <TabsTrigger value="all">All Time</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-[140px] h-8 text-[12px] rounded-lg border-gray-300 dark:border-gray-600">
+              <Filter className="w-3 h-3 mr-1 text-gray-500" />
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {Object.entries(CATEGORIES).map(([key, val]) => (
+                <SelectItem key={key} value={key}>
+                  {val.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -478,20 +519,55 @@ export default function FinancePage() {
 
         {/* Transaction List */}
         <div>
-          <h2 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
-            Transactions
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-medium text-[var(--color-text-secondary)]">
+              Transactions
+            </h2>
+            {filteredTransactions.length > 0 && (
+              <button
+                onClick={() => {
+                  if (selectedIds.size === filteredTransactions.length) {
+                    clearSelection();
+                  } else {
+                    setSelectedIds(new Set(filteredTransactions.map((t) => t.id)));
+                  }
+                }}
+                className="text-[11px] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                {selectedIds.size === filteredTransactions.length && selectedIds.size > 0
+                  ? "Deselect all"
+                  : "Select all"}
+              </button>
+            )}
+          </div>
           <div className="space-y-2">
             <AnimatePresence>
               {filteredTransactions.map((tx) => {
                 const catInfo =
                   CATEGORIES[tx.category || "other"] || CATEGORIES.other;
                 const isIncome = tx.type === "income";
+                const isSelected = selectedIds.has(tx.id);
                 return (
                   <motion.div
                     key={tx.id}
-                    className="flex items-center gap-3 p-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl group"
+                    className={cn(
+                      "flex items-center gap-3 p-3 border rounded-xl group transition-all",
+                      isSelected
+                        ? "bg-gray-50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600"
+                        : "bg-[var(--color-bg-secondary)] border-[var(--color-border)]",
+                    )}
                   >
+                    {/* Selection Checkbox */}
+                    <button
+                      onClick={() => toggleSelect(tx.id)}
+                      className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      {isSelected ? (
+                        <CheckSquare className="w-4 h-4 text-gray-900 dark:text-gray-100" />
+                      ) : (
+                        <Square className="w-4 h-4" />
+                      )}
+                    </button>
                     <div
                       className={cn(
                         "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
@@ -537,6 +613,36 @@ export default function FinancePage() {
             )}
           </div>
         </div>
+
+        {/* Floating Bulk Actions Toolbar */}
+        <AnimatePresence>
+          {selectedIds.size > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-2xl"
+            >
+              <span className="text-[13px] font-medium">
+                {selectedIds.size} selected
+              </span>
+              <div className="w-px h-5 bg-gray-700 dark:bg-gray-300" />
+              <button
+                onClick={handleBulkDelete}
+                className="flex items-center gap-1.5 text-[13px] font-medium text-red-400 dark:text-red-600 hover:text-red-300 dark:hover:text-red-500 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete
+              </button>
+              <button
+                onClick={clearSelection}
+                className="flex items-center gap-1 text-[13px] text-gray-400 dark:text-gray-500 hover:text-gray-200 dark:hover:text-gray-700 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AppLayout>
   );
