@@ -53,16 +53,20 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
               strokeWidth={1.2} // Fine, precise stroke
             />
 
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-4">
               <h1 className="text-xl font-medium tracking-tight text-foreground">
                 CorteXia
               </h1>
-              {/* 
-                   Progress? 
-                   No bar. Just a subtle text indicator, or nothing. 
-                   Steve would probably prefer nothing, but user asked for "4 sec".
-                   Let's do a micro-spinner or just wait.
-                */}
+
+              {/* Minimal Progress Bar (Apple Style) */}
+              <div className="w-24 h-[2px] bg-secondary rounded-full overflow-hidden opacity-80">
+                <motion.div
+                  className="h-full bg-foreground"
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 3.5, ease: "easeInOut" }}
+                />
+              </div>
             </div>
           </motion.div>
         </motion.div>
