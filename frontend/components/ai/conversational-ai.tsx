@@ -1079,84 +1079,51 @@ export function ConversationalAI() {
   };
 
   // ── CLOSED STATE ──
-  // Desktop: persistent bottom input bar
-  // Mobile: floating action button
   if (!isOpen) {
     return (
       <>
-        {/* ═══ DESKTOP — Persistent Bottom Bar ═══ */}
+        {/* Desktop — Minimal bottom bar */}
         <div className="hidden sm:block fixed z-50 bottom-0 left-0 right-0">
-          <div className="bg-[var(--color-bg-primary)]/95 backdrop-blur-xl border-t border-[var(--color-border)]">
-            <div className="max-w-2xl mx-auto px-4 py-3">
+          <div className="border-t border-[var(--color-border)] bg-[var(--color-bg-primary)]">
+            <div className="max-w-xl mx-auto px-4 py-2.5">
               <form
                 onSubmit={(e) => { e.preventDefault(); handleBarSubmit(); }}
-                className="flex items-center gap-2.5"
+                className="relative"
               >
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: "var(--color-bg-tertiary)" }}
-                >
-                  <Sparkles className="w-4 h-4" style={{ color: "var(--color-accent-primary)" }} />
-                </div>
-                <div className="flex-1 relative">
-                  <input
-                    ref={barInputRef}
-                    type="text"
-                    value={barInput}
-                    onChange={(e) => setBarInput(e.target.value)}
-                    placeholder="Tell Jarvis what you need..."
-                    className="w-full h-10 px-4 pr-16 rounded-xl text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]/30 focus:border-[var(--color-accent-primary)]/50 transition-all"
-                  />
-                  <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-tertiary)] bg-[var(--color-bg-tertiary)] rounded border border-[var(--color-border)]">
-                    ⌘K
-                  </kbd>
-                </div>
-                <button
-                  type="button"
-                  onClick={toggleVoiceInput}
-                  className={cn(
-                    "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-all border",
-                    isListening
-                      ? "bg-red-500/10 border-red-500/30 text-red-500"
-                      : "bg-[var(--color-bg-secondary)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-text-tertiary)]",
+                <input
+                  ref={barInputRef}
+                  type="text"
+                  value={barInput}
+                  onChange={(e) => setBarInput(e.target.value)}
+                  placeholder="Ask Jarvis anything..."
+                  className="w-full h-10 pl-4 pr-20 rounded-xl text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:outline-none focus:border-[var(--color-accent-primary)]/40 transition-colors"
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                  {barInput.trim() ? (
+                    <button
+                      type="submit"
+                      className="w-7 h-7 rounded-lg flex items-center justify-center bg-[var(--color-accent-primary)] text-[var(--color-bg-primary)] hover:opacity-90 transition-opacity"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <kbd className="hidden lg:inline-flex px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-tertiary)] bg-[var(--color-bg-tertiary)] rounded border border-[var(--color-border)]">
+                      ⌘K
+                    </kbd>
                   )}
-                >
-                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                </button>
-                <button
-                  type="submit"
-                  disabled={!barInput.trim()}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-[var(--color-accent-primary)] text-[var(--color-bg-primary)] disabled:opacity-30 hover:opacity-90 transition-all"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(true)}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-all"
-                  title="Open chat"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                </button>
+                </div>
               </form>
             </div>
           </div>
         </div>
 
-        {/* ═══ MOBILE — Floating Action Button ═══ */}
+        {/* Mobile — Clean FAB */}
         <div className="sm:hidden fixed z-50 bottom-4 right-4">
-          <motion.div
-            className="absolute inset-0 rounded-full opacity-20"
-            style={{ background: "var(--color-accent-primary)" }}
-            animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0, 0.2] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          />
           <motion.button
-            className="relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+            className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
             style={{
               background: "var(--color-accent-primary)",
               color: "var(--color-bg-primary)",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
             }}
             onClick={() => setIsOpen(true)}
             whileHover={{ scale: 1.08 }}

@@ -15,7 +15,6 @@ import {
     Calendar,
     GraduationCap,
     Settings,
-    ArrowRight,
     Zap,
     Brain,
 } from "lucide-react";
@@ -196,28 +195,9 @@ export function CommandPalette() {
                                                     </p>
                                                 )}
                                             </div>
-                                            {i === selectedIndex && (
-                                                <ArrowRight className="w-3.5 h-3.5 text-[var(--color-text-tertiary)] flex-shrink-0" />
-                                            )}
                                         </button>
                                     ))
                                 )}
-                            </div>
-
-                            {/* Footer */}
-                            <div className="px-4 py-2 border-t border-[var(--color-border)] flex items-center gap-4 text-[10px] text-[var(--color-text-tertiary)]">
-                                <span className="flex items-center gap-1">
-                                    <kbd className="px-1 py-0.5 bg-[var(--color-bg-tertiary)] rounded border border-[var(--color-border)]">↑↓</kbd>
-                                    Navigate
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <kbd className="px-1 py-0.5 bg-[var(--color-bg-tertiary)] rounded border border-[var(--color-border)]">↵</kbd>
-                                    Select
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <kbd className="px-1 py-0.5 bg-[var(--color-bg-tertiary)] rounded border border-[var(--color-border)]">ESC</kbd>
-                                    Close
-                                </span>
                             </div>
                         </div>
                     </motion.div>
