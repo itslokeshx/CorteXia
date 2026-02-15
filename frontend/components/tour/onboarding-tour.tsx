@@ -106,13 +106,21 @@ export function OnboardingTour() {
         setSteps(currentSteps);
         setPageKey(key);
 
-        // For dashboard, we rely on the Context's "run" state. 
-        // For others, we trigger it locally if not seen.
-        if (key !== "dashboard" && shouldShow && currentSteps.length > 0) {
-            setRun(true);
+        if (key === "dashboard") {
+            // Dashboard tour is controlled by context "run" state which checks backend
+            // We don't interfere here
+        } else {
+            // For other pages, we explicitly control the run state
+            if (shouldShow && currentSteps.length > 0) {
+                // Only run if not seen and steps exist
+                setRun(true);
+            } else {
+                // forceful disable if already seen or no steps
+                setRun(false);
+            }
         }
 
-    }, [pathname, isMobile, isMounted, run, setRun, pageKey, setStepIndex]);
+    }, [pathname, isMobile, isMounted, setRun, setStepIndex]);
 
     if (!isMounted) return null;
 
