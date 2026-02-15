@@ -77,16 +77,36 @@ export function WidgetTodayTasks({
   const today = new Date().toISOString().split("T")[0];
   const all = [...tasks, ...completedToday];
   const displayList = all.slice(0, 3);
+  const completedCount = completedToday.length;
+  const totalCount = all.length;
+  const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const circumference = 2 * Math.PI * 14;
+  const dashOffset = circumference - (pct / 100) * circumference;
 
   return (
     <div className="dashboard-card h-full">
       <div className="dashboard-card-header">
-        <h2 className="text-base font-semibold text-[var(--text-primary)]">
-          Today's Tasks
+        <h2 className="text-base font-semibold" style={{ color: "var(--color-text-primary)" }}>
+          Today's Focus
         </h2>
-        <span className="text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-2 py-0.5 rounded-lg">
-          {all.length} tasks
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium" style={{ color: "var(--color-text-secondary)" }}>
+            {completedCount}/{totalCount}
+          </span>
+          <svg width="28" height="28" viewBox="0 0 32 32" className="progress-ring">
+            <circle cx="16" cy="16" r="14" fill="none" stroke="var(--color-border)" strokeWidth="2.5" />
+            <circle
+              cx="16" cy="16" r="14"
+              fill="none"
+              stroke="var(--domain-goals)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={dashOffset}
+              style={{ transition: "stroke-dashoffset 1s ease-out" }}
+            />
+          </svg>
+        </div>
       </div>
 
       <div className="dashboard-card-body scrollbar-thin">
@@ -200,10 +220,10 @@ export function WidgetTodayTasks({
         <div className="dashboard-card-footer flex justify-end">
           <Link
             href="/tasks"
-            className="text-sm font-medium text-[#3b82f6] hover:underline inline-flex items-center gap-1 transition-transform hover:translate-x-0.5"
+            className="text-sm font-medium hover:underline inline-flex items-center gap-1 transition-all hover:translate-x-0.5"
+            style={{ color: "var(--domain-goals)" }}
           >
-            View all tasks
-            <ChevronRight className="w-4 h-4" />
+            View all {all.length} tasks →
           </Link>
         </div>
       )}

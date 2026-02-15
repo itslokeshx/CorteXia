@@ -54,21 +54,27 @@ export function QuickStatsRow({ stats }: { stats: StatCardPayload }) {
   const cards = [
     {
       ...CARD_CONFIG[0],
-      value: stats.tasks ? `${stats.tasks.done} / ${stats.tasks.total}` : "0 / 0",
+      value: stats.tasks ? `${stats.tasks.done}/${stats.tasks.total}` : "0/0",
+      sub: "completed",
     },
     {
       ...CARD_CONFIG[1],
       value: stats.habits ? `${stats.habits.count}` : "0",
+      sub: stats.habits?.bestStreak ? `${stats.habits.bestStreak}d streak` : "active",
     },
     {
       ...CARD_CONFIG[2],
       value: stats.goals ? `${stats.goals.inProgress}` : "0",
+      sub: "in progress",
     },
     {
       ...CARD_CONFIG[3],
       value: stats.focus
-        ? `${Math.floor(stats.focus.minutes / 60)}h ${stats.focus.minutes % 60}m`
+        ? stats.focus.minutes >= 60
+          ? `${Math.floor(stats.focus.minutes / 60)}h${stats.focus.minutes % 60 > 0 ? ` ${stats.focus.minutes % 60}m` : ""}`
+          : `${stats.focus.minutes}m`
         : "0m",
+      sub: stats.focus?.sessions ? `${stats.focus.sessions} sessions` : "today",
     },
   ];
 
@@ -79,25 +85,30 @@ export function QuickStatsRow({ stats }: { stats: StatCardPayload }) {
           key={card.key}
           href={card.href}
           className={cn(
-            "group rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-secondary)]",
-            "p-3 min-h-[80px] flex flex-row items-center justify-between transition-all duration-200 ease-out",
-            "hover:border-[var(--color-border)] hover:shadow-sm",
+            "group rounded-xl border bg-[var(--color-bg-secondary)]",
+            "p-4 flex flex-col gap-1 transition-all duration-200 ease-out",
+            "border-[var(--color-border-subtle)]",
+            "hover:border-[var(--color-border)] hover:shadow-md hover:-translate-y-0.5",
           )}
         >
-          <div className="flex flex-col justify-center">
-            <span className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider mb-0.5">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-medium uppercase tracking-widest"
+              style={{ color: "var(--color-text-tertiary)" }}>
               {card.label}
             </span>
-            <p className="text-lg font-bold tracking-tight text-[var(--text-primary)]">
-              {card.value}
-            </p>
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity"
+              style={{ backgroundColor: card.iconBg }}
+            >
+              <card.icon className="w-3.5 h-3.5" style={{ color: card.iconColor }} />
+            </div>
           </div>
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity"
-            style={{ backgroundColor: card.iconBg }}
-          >
-            <card.icon className="w-4 h-4" style={{ color: card.iconColor }} />
-          </div>
+          <p className="text-2xl font-semibold tracking-tight" style={{ color: "var(--color-text-primary)" }}>
+            {card.value}
+          </p>
+          <span className="text-[11px]" style={{ color: "var(--color-text-tertiary)" }}>
+            {card.sub}
+          </span>
         </Link>
       ))}
     </div>

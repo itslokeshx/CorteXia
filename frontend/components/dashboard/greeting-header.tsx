@@ -109,7 +109,6 @@ export function GreetingHeader() {
   }, []);
 
   // Memoize the selected greeting to prevent flickering on every render
-  // We only want it to change if the context drastically changes or on mount/refresh
   const { icon: Icon, text } = useMemo(() => {
     const dynamic = getDynamicGreetings(context);
     const allOptions = [...DEFAULT_GREETINGS, ...dynamic];
@@ -127,8 +126,6 @@ export function GreetingHeader() {
 
     return allOptions[0]; // Fallback
   }, [context.taskCount, context.streakCount, context.isProductive]);
-  // Dependencies intentionally limited to avoid changing on every second,
-  // but responding to state changes.
 
   const displayName =
     profile?.full_name?.trim() ||
@@ -138,17 +135,30 @@ export function GreetingHeader() {
 
   const finalGreeting = text.replace("[Name]", firstName);
 
+  // Motivational line
+  const motiveLine = useMemo(() => {
+    if (context.taskCount === 0 && context.completedTasks > 0) return "All caught up — nice work.";
+    if (context.taskCount === 0) return "A clean slate. Make it count.";
+    if (context.taskCount <= 3) return `${context.taskCount} task${context.taskCount === 1 ? "" : "s"} until a perfect day.`;
+    if (context.isProductive) return "You're on a roll — keep it going.";
+    return `${context.taskCount} things on your plate today.`;
+  }, [context]);
+
   return (
-    <header className="flex flex-row items-center justify-between gap-3 py-1 sm:py-2">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 sm:gap-3 mb-0.5 sm:mb-1">
-          <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent-primary)] shrink-0" />
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-[var(--color-text-primary)] truncate">
-            {finalGreeting}
-          </h1>
-        </div>
-        <p className="text-xs sm:text-base text-[var(--color-text-secondary)] font-medium pl-0.5 sm:pl-1 truncate">
+    <header className="py-1 sm:py-2">
+      <div className="flex items-center gap-2 sm:gap-3 mb-1">
+        <Icon className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" style={{ color: "var(--color-text-tertiary)" }} />
+        <h1 className="text-2xl sm:text-4xl font-light tracking-tight" style={{ color: "var(--color-text-primary)" }}>
+          {finalGreeting}
+        </h1>
+      </div>
+      <div className="flex items-center gap-3 pl-0.5 sm:pl-1">
+        <p className="text-xs sm:text-sm" style={{ color: "var(--color-text-tertiary)" }}>
           {format(currentTime, "EEEE, MMMM d")}
+        </p>
+        <span className="text-xs sm:text-sm" style={{ color: "var(--color-border)" }}>·</span>
+        <p className="text-xs sm:text-sm italic" style={{ color: "var(--color-text-secondary)" }}>
+          {motiveLine}
         </p>
       </div>
     </header>

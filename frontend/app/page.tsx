@@ -21,7 +21,9 @@ import { WidgetTodayExpense } from "@/components/dashboard/widget-today-expense"
 import { WidgetJournalPrompt } from "@/components/dashboard/widget-journal-prompt";
 import { DashboardQuickNav } from "@/components/dashboard/dashboard-quick-nav";
 import { DayProgress } from "@/components/dashboard/day-progress";
+import { DashboardDailySummary } from "@/components/dashboard/dashboard-ai-insight";
 import type { Task } from "@/lib/types";
+import { Preloader } from "@/components/preloader";
 
 const container = {
   hidden: { opacity: 0 },
@@ -214,17 +216,11 @@ export default function DashboardPage() {
     t.status === "completed" ? uncompleteTask(id) : completeTask(id);
   };
 
-  if (!mounted) {
+  const [showPreloader, setShowPreloader] = useState(true);
+
+  if (!mounted || showPreloader) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-8 h-8 border-2 border-[var(--color-border)] border-t-[var(--color-text-primary)] rounded-full"
-          />
-        </div>
-      </AppLayout>
+      <Preloader onComplete={() => setShowPreloader(false)} />
     );
   }
 
@@ -248,10 +244,10 @@ export default function DashboardPage() {
           <QuickStatsRow stats={quickStats} />
         </motion.section>
 
-        {/* Symmetric 2×2 grid: 4 widgets total */}
+        {/* 2×2 widget grid */}
         <motion.section
           variants={item}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"
           style={{ gridAutoRows: "minmax(280px, 1fr)" }}
         >
           <div className="min-h-[280px] h-full">
@@ -283,6 +279,18 @@ export default function DashboardPage() {
           </div>
         </motion.section>
 
+        {/* AI Daily Summary — full width */}
+        <motion.section variants={item} className="mb-6">
+          <DashboardDailySummary
+            completedTaskTitles={completedToday.map(t => t.title)}
+            completedHabitNames={todayHabits.filter(h => h.completed).map(h => h.name)}
+            habitStreak={habitStreakMax}
+            focusMinutes={timeStats.totalMinutes}
+            overdueCount={overdueCount}
+            pendingTaskCount={todayTasks.filter(t => t.status !== "completed").length}
+          />
+        </motion.section>
+
         <motion.section
           variants={item}
           className="pt-6 border-t border-[var(--border-subtle)] mb-6"
@@ -290,7 +298,6 @@ export default function DashboardPage() {
           <DashboardQuickNav />
         </motion.section>
 
-        {/* Day progress */}
         <motion.section variants={item} className="pb-0">
           <DayProgress />
         </motion.section>

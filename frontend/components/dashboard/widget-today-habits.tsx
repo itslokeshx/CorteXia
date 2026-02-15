@@ -33,16 +33,28 @@ export function WidgetTodayHabits({
   today: string;
 }) {
   const displayList = habits.slice(0, 3);
+  const completedCount = habits.filter(h => h.completed).length;
+  const bestStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0;
+  const pct = habits.length > 0 ? Math.round((completedCount / habits.length) * 100) : 0;
 
   return (
     <div className="dashboard-card h-full">
       <div className="dashboard-card-header">
-        <h2 className="text-base font-semibold text-[var(--text-primary)]">
-          Today's Habits
-        </h2>
-        <span className="text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-2 py-0.5 rounded-lg">
-          {habits.length} habits
-        </span>
+        <div>
+          <h2 className="text-base font-semibold" style={{ color: "var(--color-text-primary)" }}>
+            Habits
+          </h2>
+          <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-tertiary)" }}>
+            {completedCount}/{habits.length} done{bestStreak > 0 ? ` · ${bestStreak}d best streak` : ""}
+          </p>
+        </div>
+        {/* Mini progress bar */}
+        <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-border)" }}>
+          <div
+            className="h-full rounded-full transition-all duration-700 ease-out"
+            style={{ width: `${pct}%`, background: "var(--domain-habits)" }}
+          />
+        </div>
       </div>
 
       <div className="dashboard-card-body scrollbar-thin">
@@ -118,10 +130,10 @@ export function WidgetTodayHabits({
         <div className="dashboard-card-footer flex justify-end">
           <Link
             href="/habits"
-            className="text-sm font-medium text-[#3b82f6] hover:underline inline-flex items-center gap-1 transition-transform hover:translate-x-0.5"
+            className="text-sm font-medium hover:underline inline-flex items-center gap-1 transition-all hover:translate-x-0.5"
+            style={{ color: "var(--domain-habits)" }}
           >
-            See all habits
-            <ChevronRight className="w-4 h-4" />
+            See all habits →
           </Link>
         </div>
       )}
