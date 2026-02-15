@@ -23,6 +23,7 @@ import {
   Bot,
   User,
   Trash2,
+  Plus,
   Palette,
   Brain,
 } from "lucide-react";
@@ -194,10 +195,10 @@ function extractMemoryFacts(userMsg: string): Partial<AIMemory> {
 }
 
 const QUICK_ACTIONS = [
-  { icon: Calendar, label: "Show Today", action: "show_today" },
-  { icon: BarChart3, label: "Analyze Patterns", action: "analyze_patterns" },
-  { icon: Lightbulb, label: "Give Suggestions", action: "suggestions" },
-  { icon: Brain, label: "Life Score", action: "life_score" },
+  { icon: Plus, label: "Add a task", action: "create_task_prompt" },
+  { icon: Calendar, label: "Plan my day", action: "show_today" },
+  { icon: Trash2, label: "Clear done tasks", action: "clear_completed" },
+  { icon: Lightbulb, label: "What's overdue?", action: "show_overdue" },
 ];
 
 const DataDisplay = ({ data }: { data: any }) => {
@@ -1149,12 +1150,7 @@ export function ConversationalAI() {
               className="text-[10px] sm:text-xs"
               style={{ color: "var(--color-text-tertiary)" }}
             >
-              {memory.userName
-                ? `Hey ${memory.userName} `
-                : "Your intelligent life architect"}
-              {memory.conversationCount > 0
-                ? ` · ${memory.conversationCount} chats`
-                : ""}
+              Quick Actions
             </p>
           </div>
         </div>
@@ -1179,33 +1175,30 @@ export function ConversationalAI() {
         >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-6 sm:py-8">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 sm:mb-4">
-                <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+              <div className="w-12 h-12 rounded-xl bg-[var(--color-bg-tertiary)] flex items-center justify-center mb-3">
+                <Sparkles className="w-5 h-5" style={{ color: "var(--color-accent-primary)" }} />
               </div>
-              <h4 className="font-semibold mb-2 text-sm sm:text-base">
-                {memory.userName
-                  ? `Hey ${memory.userName} ! 👋`
-                  : "Hi! I'm Jarvis"}
+              <h4 className="font-medium mb-1 text-sm">
+                Quick Actions
               </h4>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-[260px] sm:max-w-[280px] px-2">
-                {memory.conversationCount > 0
-                  ? `Welcome back! We've had ${memory.conversationCount} conversations.${memory.lastTopic ? ` Last time we talked about ${memory.lastTopic}.` : ""} How can I help?`
-                  : "Your intelligent life architect. I can manage tasks, analyze patterns, control themes, and optimize your productivity."}
-              </p >
-              <div className="flex flex-col gap-2 w-full max-w-[260px] sm:max-w-[280px]">
+              <p className="text-xs text-muted-foreground mb-4 max-w-[240px]">
+                Create tasks, plan your day, automate your workflow.
+              </p>
+              <div className="flex flex-col gap-1.5 w-full max-w-[240px]">
                 {QUICK_ACTIONS.map((action) => (
                   <Button
                     key={action.action}
                     variant="outline"
-                    className="justify-start gap-2 text-sm"
+                    size="sm"
+                    className="justify-start gap-2 text-xs h-8"
                     onClick={() => handleQuickAction(action.action)}
                   >
-                    <action.icon className="w-4 h-4" />
+                    <action.icon className="w-3.5 h-3.5" />
                     {action.label}
                   </Button>
                 ))}
               </div>
-            </div >
+            </div>
           ) : (
             <div className="space-y-3 sm:space-y-4">
               {messages.map((message) => (
