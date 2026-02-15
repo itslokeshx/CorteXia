@@ -353,41 +353,8 @@ export function ConversationalAI() {
     }
   }, [settings?.aiMemory]);
 
-  // Fetch history on mount or when opening
-  useEffect(() => {
-    const fetchHistory = async () => {
-      const token = localStorage.getItem("cortexia_token");
-      if (!token) return;
-
-      try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${API_URL}/api/ai/chat/history`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (res.ok) {
-          const sessionData = await res.json();
-          if (sessionData && sessionData.messages && sessionData.messages.length > 0) {
-            // Map MongoDB messages to ChatMessage format
-            const mappedMessages: ChatMessage[] = sessionData.messages.map((msg: any) => ({
-              id: msg.id || msg._id,
-              role: msg.role,
-              content: msg.content,
-              timestamp: msg.timestamp || new Date().toISOString(),
-              // Actions and suggestions are not stored in DB currently, so they will be undefined for history
-            }));
-            setMessages(mappedMessages);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch chat history:", error);
-      }
-    };
-
-    if (isOpen && messages.length === 0) {
-      fetchHistory();
-    }
-  }, [isOpen]);
+  // Floating Jarvis = action-only, no history fetch.
+  // Full conversation lives on the /ai-coach page.
 
   // Scroll to bottom on new messages
   useEffect(() => {

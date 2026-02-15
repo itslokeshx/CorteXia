@@ -680,7 +680,17 @@ export default function AICoachPage() {
             </div>
           </div>
           <Button
-            onClick={() => {
+            onClick={async () => {
+              try {
+                const token = localStorage.getItem("cortexia_token");
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+                await fetch(`${API_URL}/api/ai/chat/history`, {
+                  method: "DELETE",
+                  headers: token ? { Authorization: `Bearer ${token}` } : {},
+                });
+              } catch (e) {
+                console.error("Failed to clear chat history:", e);
+              }
               setCurrentSession(null);
               setInput("");
               startNewSession("general");

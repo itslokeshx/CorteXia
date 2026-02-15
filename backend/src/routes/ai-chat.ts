@@ -27,6 +27,18 @@ router.get("/history", async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Clear chat history (New Chat)
+router.delete("/history", async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    await ChatSession.deleteMany({ userId });
+    res.json({ success: true });
+  } catch (error) {
+    console.error("[AI] Clear history error:", error);
+    res.status(500).json({ error: "Failed to clear history" });
+  }
+});
+
 const GROQ_API_KEYS = [
   process.env.GROQ_API_KEY_1,
   process.env.GROQ_API_KEY_2,
